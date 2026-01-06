@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pinput/pinput.dart';
+import 'package:temple_app/widgets/translated_text.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -34,7 +35,7 @@ class _AuthScreenState extends State<AuthScreen> {
               SizedBox(height: 30.h),
 
               /// TITLE
-              Text(
+              TranslatedText(
                 isLogin ? "Sign In" : "Sign Up",
                 style: TextStyle(
                   fontFamily: 'aBeeZee',
@@ -47,9 +48,10 @@ class _AuthScreenState extends State<AuthScreen> {
               SizedBox(height: 6.h),
 
               /// SUBTITLE
-              Text(
+              TranslatedText(
                 isLogin
-                    ? "Welcome back, please login to your account"
+                    // ? "Welcome back, please login to your account"
+                    ? "Welcome back please login to your account"
                     : "Create an Account",
                 style: TextStyle(
                   fontFamily: 'aBeeZee',
@@ -128,7 +130,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Widget _label(String text) => Padding(
     padding: EdgeInsets.only(bottom: 6.h),
-    child: Text(
+    child: TranslatedText(
       text,
       style: TextStyle(
         fontFamily: 'aBeeZee',
@@ -149,13 +151,23 @@ class _AuthScreenState extends State<AuthScreen> {
       obscureText: obscure,
       keyboardType: keyboard,
       decoration: InputDecoration(
-        hintText: hint,
+        // We use 'label' because it accepts a Widget (TranslatedText)
+        label: TranslatedText(hint),
+        // This ensures the label doesn't float up, making it look like a hint
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+
         filled: true,
         fillColor: Colors.white,
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide.none,
+        ),
+        // Match the hint style to your label style if needed
+        labelStyle: TextStyle(
+          color: Colors.black54,
+          fontSize: 15.sp,
+          fontFamily: 'aBeeZee',
         ),
       ),
       style: TextStyle(fontSize: 15.sp),
@@ -167,7 +179,6 @@ class _AuthScreenState extends State<AuthScreen> {
     height: 48.h,
     child: ElevatedButton(
       onPressed: isLogin ? _login : _register,
-      // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF15A29), enableFeedback: true),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFFF15A29),
         foregroundColor: Colors.white,
@@ -176,7 +187,7 @@ class _AuthScreenState extends State<AuthScreen> {
           borderRadius: BorderRadius.circular(12.r),
         ),
       ),
-      child: Text(
+      child: TranslatedText(
         isLogin ? "Sign In" : "Sign Up",
         style: TextStyle(
           fontFamily: 'aBeeZee',
@@ -191,13 +202,13 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _switchAuthMode() => Wrap(
     alignment: WrapAlignment.center,
     children: [
-      Text(
+      TranslatedText(
         isLogin ? "Don't have an account? " : "Already have an account? ",
         style: TextStyle(fontFamily: 'aBeeZee'),
       ),
       GestureDetector(
         onTap: () => setState(() => isLogin = !isLogin),
-        child: Text(
+        child: TranslatedText(
           isLogin ? "Sign Up" : "Sign In",
           style: const TextStyle(
             fontFamily: 'aBeeZee',
@@ -219,21 +230,41 @@ class _AuthScreenState extends State<AuthScreen> {
             fontSize: 13.sp,
             color: Colors.black,
           ),
-          children: const [
-            TextSpan(text: "By signing up, you agree to the "),
-            TextSpan(
-              text: "Terms & Conditions",
-              style: TextStyle(
-                color: Colors.amber, // Yellow shade
-                fontWeight: FontWeight.w600,
+          children: [
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: TranslatedText("By signing up, you agree to the "),
+            ),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: GestureDetector(
+                onTap: () => print("Terms tapped"),
+                child: TranslatedText(
+                  "Terms & Conditions",
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.sp, // Match the parent font size
+                  ),
+                ),
               ),
             ),
-            TextSpan(text: " and "),
-            TextSpan(
-              text: "Privacy Policy",
-              style: TextStyle(
-                color: Colors.amber, // Yellow shade
-                fontWeight: FontWeight.w600,
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: TranslatedText(" and "),
+            ),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: GestureDetector(
+                onTap: () => print("Privacy tapped"),
+                child: TranslatedText(
+                  "Privacy Policy",
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.sp,
+                  ),
+                ),
               ),
             ),
           ],
@@ -248,9 +279,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _register() {
     if (passCtrl.text != confirmCtrl.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Passwords do not match")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: TranslatedText("Passwords do not match")),
+      );
       return;
     }
     _showOtp();
@@ -273,12 +304,12 @@ class _OtpSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          TranslatedText(
             "Verify OTP",
             style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10.h),
-          Text(
+          TranslatedText(
             "Enter the 6-digit code sent to your mobile",
             textAlign: TextAlign.center,
           ),
@@ -287,7 +318,7 @@ class _OtpSheet extends StatelessWidget {
           SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Verify"),
+            child: TranslatedText("Verify"),
           ),
         ],
       ),

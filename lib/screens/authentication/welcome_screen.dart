@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/screens/authentication/auth_screen.dart';
 import 'package:temple_app/screens/dashboard/home_screen.dart';
 
+import 'package:temple_app/widgets/translated_text.dart';
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -67,7 +69,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         /// Title
-                        Text(
+                        TranslatedText(
                           'Begin Your Day with a Divine Moment',
                           style: TextStyle(
                             fontFamily: 'aBeeZee',
@@ -79,7 +81,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         SizedBox(height: 12.h),
 
                         /// Subtitle
-                        Text(
+                        TranslatedText(
                           'Connect with Marakatha Sri Lakshmi Ganapathi Devalayam through darshan, pujas and sacred updates.',
                           style: TextStyle(
                             fontFamily: 'Inter',
@@ -131,7 +133,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 borderRadius: BorderRadius.circular(16.r),
                               ),
                             ),
-                            child: Text(
+                            child: TranslatedText(
                               'Continue',
                               style: TextStyle(
                                 fontFamily: 'aBeeZee',
@@ -157,7 +159,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                               );
                             },
-                            child: Text(
+                            child: TranslatedText(
                               'Skip for now',
                               style: TextStyle(
                                 fontFamily: 'aBeeZee',
@@ -195,7 +197,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
         SizedBox(width: 12.w),
         Expanded(
-          child: Text(
+          child: TranslatedText(
             text,
             style: TextStyle(
               fontFamily: 'aBeeZee',

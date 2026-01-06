@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/screens/authentication/welcome_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:temple_app/blocs/language/language_bloc.dart';
+import 'package:temple_app/widgets/translated_text.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -12,14 +15,11 @@ class LanguageSelectionScreen extends StatefulWidget {
 }
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  String? _selectedLanguage;
-
   final List<String> _languages = [
     'English',
     'Hindi',
     'Telugu',
     'Kannada',
-    'Sanskrit',
     'Tamil',
     'Malayalam',
     'Marathi',
@@ -33,118 +33,138 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(22.w, 28.h, 22.w, 24.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Header
-              Text(
-                'Choose Your Language',
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.w700,
-                  color: primaryBlue,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Container(
-                height: 3.h,
-                width: 70.w,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6.r),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFE26400), Color(0xFF9B0200)],
-                  ),
-                ),
-              ),
-              SizedBox(height: 14.h),
-              Text(
-                'Select your preferred language to receive divine content and continue your spiritual journey.',
-                style: TextStyle(
-                  fontFamily: 'inter',
-                  fontSize: 15.sp,
-                  color: secondaryBlue,
-                  height: 1.6.h,
-                ),
-              ),
-
-              SizedBox(height: 30.h),
-
-              /// Language Grid
-              Expanded(
-                child: GridView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16.w,
-                    mainAxisSpacing: 16.h,
-                    childAspectRatio: 2.8,
-                  ),
-                  itemCount: _languages.length,
-                  itemBuilder: (context, index) {
-                    final language = _languages[index];
-                    final isSelected = _selectedLanguage == language;
-                    return _buildLanguageCard(language, isSelected);
-                  },
-                ),
-              ),
-
-              /// Continue Button
-              SizedBox(
-                width: double.infinity,
-                height: 56.h,
-                child: ElevatedButton(
-                  onPressed: _selectedLanguage != null
-                      ? () async {
-                          HapticFeedback.vibrate();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const WelcomeScreen(),
-                            ),
-                          );
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryOrange,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: primaryOrange.withOpacity(0.45),
-                    elevation: 6.r,
-                    shadowColor: primaryOrange.withOpacity(0.45),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue',
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(22.w, 28.h, 22.w, 24.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Header
+                  const TranslatedText(
+                    'Choose Your Language',
                     style: TextStyle(
                       fontFamily: 'aBeeZee',
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5.sp,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: primaryBlue,
                     ),
                   ),
-                ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    height: 3.h,
+                    width: 70.w,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6.r),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE26400), Color(0xFF9B0200)],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 14.h),
+                  const TranslatedText(
+                    'Select your preferred language to receive divine content and continue your spiritual journey.',
+                    style: TextStyle(
+                      fontFamily: 'inter',
+                      fontSize: 15,
+                      color: secondaryBlue,
+                      height: 1.6,
+                    ),
+                  ),
+
+                  SizedBox(height: 30.h),
+
+                  /// Language Grid
+                  Expanded(
+                    child: GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16.w,
+                        mainAxisSpacing: 16.h,
+                        childAspectRatio: 2.8,
+                      ),
+                      itemCount: _languages.length,
+                      itemBuilder: (context, index) {
+                        final language = _languages[index];
+                        final isSelected =
+                            state.selectedLanguageName == language;
+                        return _buildLanguageCard(
+                          context,
+                          language,
+                          isSelected,
+                        );
+                      },
+                    ),
+                  ),
+
+                  /// Continue Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56.h,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        HapticFeedback.vibrate();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WelcomeScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryOrange,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: primaryOrange.withOpacity(
+                          0.45,
+                        ),
+                        elevation: 6.r,
+                        shadowColor: primaryOrange.withOpacity(0.45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18.r),
+                        ),
+                      ),
+                      child: state.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const TranslatedText(
+                              'Continue',
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildLanguageCard(String language, bool isSelected) {
+  Widget _buildLanguageCard(
+    BuildContext context,
+    String language,
+    bool isSelected,
+  ) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
-        setState(() {
-          _selectedLanguage = language;
-        });
+        context.read<LanguageBloc>().add(ChangeLanguage(language));
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
