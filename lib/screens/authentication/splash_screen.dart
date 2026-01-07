@@ -52,18 +52,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Initialize ScreenUtil here (recommended for individual screens)
-    // Assuming your design is based on a common mobile size like iPhone 14 (390x844) or standard 360x780.
-    // Adjust designSize to match your Figma/Design mockup width & height in logical pixels.
-    ScreenUtil.init(
-      context,
-      designSize: const Size(390, 844), // Change this to your actual design size
-      minTextAdapt: true,
-      splitScreenMode: true,
-    );
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F3E8),
+      // backgroundColor: const Color(0xFFF7F3E8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -86,16 +77,19 @@ class _SplashScreenState extends State<SplashScreen>
                     boxShadow: [
                       BoxShadow(
                         color: Color(0xFFF15A29).withOpacity(0.45),
-                        blurRadius: 22.r, // .r for radius/blur (scales like width)
+                        blurRadius:
+                            22.r, // .r for radius/blur (scales like width)
                         spreadRadius: 3.r,
                       ),
                     ],
                   ),
                   child: Center(
                     child: Icon(
-                      Icons.self_improvement, // Replace with Ganapathi SVG later
+                      Icons
+                          .self_improvement, // Replace with Ganapathi SVG later
                       color: Colors.white,
-                      size: 72.sp, // Use .sp for icons if you want them to scale with text
+                      size: 72
+                          .sp, // Use .sp for icons if you want them to scale with text
                     ),
                   ),
                 ),
@@ -110,7 +104,8 @@ class _SplashScreenState extends State<SplashScreen>
                     fontFamily: 'aBeeZee',
                     fontSize: 26.sp,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF043342),
+                    // color: const Color(0xFF043342),
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.3,
                   ),
                 ),
@@ -123,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                   style: TextStyle(
                     fontFamily: 'inter',
                     fontSize: 14.sp,
-                    color: const Color(0xFF124660),
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -134,10 +129,11 @@ class _SplashScreenState extends State<SplashScreen>
                 SizedBox(
                   width: 32.w,
                   height: 32.h,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 3, // strokeWidth scales less commonly, keep fixed or use .r if needed
+                  child: CircularProgressIndicator(
+                    strokeWidth:
+                        3, // strokeWidth scales less commonly, keep fixed or use .r if needed
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFFF9800),
+                      Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ),

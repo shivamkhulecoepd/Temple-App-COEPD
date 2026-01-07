@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/services/theme_service.dart';
+
 class DonationScreen extends StatefulWidget {
   const DonationScreen({super.key});
 
@@ -11,59 +15,72 @@ class _DonationScreenState extends State<DonationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Donation',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Section
-            _buildHeaderSection(),
-            const SizedBox(height: 32),
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Theme.of(context).appBarTheme.foregroundColor),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              'Donation',
+              style: TextStyle(
+                color: Theme.of(context).appBarTheme.foregroundColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Section
+                _buildHeaderSection(),
+                const SizedBox(height: 32),
 
-            // Donation Options
-            _buildDonationOptions(),
-            const SizedBox(height: 32),
+                // Donation Options
+                _buildDonationOptions(),
+                const SizedBox(height: 32),
 
-            // Proceed Button
-            _buildProceedButton(),
-          ],
-        ),
-      ),
+                // Proceed Button
+                _buildProceedButton(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildHeaderSection() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Center(
           child: Text(
             'Select Donation Type',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16, 
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Center(
           child: Text(
             'Choose how you would like to contribute.',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
             textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14, 
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
           ),
         ),
       ],
@@ -85,7 +102,7 @@ class _DonationScreenState extends State<DonationScreen> {
             });
           },
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _buildDonationCard(
           title: 'For a Specific Deity',
           description: 'Offer your donation to a deity of your choice.',
@@ -96,7 +113,7 @@ class _DonationScreenState extends State<DonationScreen> {
             });
           },
         ),
-SizedBox(height: 16,),        // For a Specific Cause
+        const SizedBox(height: 16), // For a Specific Cause
         _buildDonationCard(
           title: 'For a Specific Cause',
           description:
@@ -124,15 +141,15 @@ SizedBox(height: 16,),        // For a Specific Cause
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.orange.shade50 : Colors.white,
+          color: isSelected ? TempleTheme.primaryOrange.withOpacity(0.1) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
+            color: isSelected ? TempleTheme.primaryOrange : (Theme.of(context).dividerTheme.color ?? Colors.grey.shade300),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: (Theme.of(context).dividerTheme.color ?? Colors.grey).withOpacity(0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -146,7 +163,7 @@ SizedBox(height: 16,),        // For a Specific Cause
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.orange.shade800 : Colors.black87,
+                color: isSelected ? TempleTheme.primaryOrange : Theme.of(context).textTheme.titleMedium?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -155,8 +172,8 @@ SizedBox(height: 16,),        // For a Specific Cause
               style: TextStyle(
                 fontSize: 14,
                 color: isSelected
-                    ? Colors.orange.shade600
-                    : Colors.grey.shade600,
+                    ? TempleTheme.primaryOrange.withOpacity(0.8)
+                    : Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.4,
               ),
             ),
@@ -186,7 +203,7 @@ SizedBox(height: 16,),        // For a Specific Cause
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange.shade700,
+          backgroundColor: TempleTheme.primaryOrange,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

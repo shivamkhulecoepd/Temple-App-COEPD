@@ -5,13 +5,17 @@ class StorageService {
   static const String _keySelectedLanguage = 'selected_language';
   static const String _keyTranslations = 'cached_translations';
 
+  Future<SharedPreferences> getPreferences() async {
+    return await SharedPreferences.getInstance();
+  }
+
   Future<void> saveLanguage(String languageCode) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await getPreferences();
     await prefs.setString(_keySelectedLanguage, languageCode);
   }
 
   Future<String?> getLanguage() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await getPreferences();
     return prefs.getString(_keySelectedLanguage);
   }
 
@@ -19,12 +23,12 @@ class StorageService {
   Future<void> saveTranslations(
     Map<String, Map<String, String>> translations,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await getPreferences();
     await prefs.setString(_keyTranslations, jsonEncode(translations));
   }
 
   Future<Map<String, Map<String, String>>> getTranslations() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await getPreferences();
     final String? jsonString = prefs.getString(_keyTranslations);
 
     if (jsonString != null) {

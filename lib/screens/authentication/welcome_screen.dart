@@ -34,9 +34,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
+                  // colors: [
+                  //   const Color(0xFF043342).withOpacity(0.5),
+                  //   const Color(0xFF9B0200).withOpacity(0.4),
+                  // ],
                   colors: [
-                    const Color(0xFF043342).withOpacity(0.5),
-                    const Color(0xFF9B0200).withOpacity(0.4),
+                    Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.4),
                   ],
                 ),
               ),
@@ -55,6 +59,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Container(
                     padding: EdgeInsets.all(22.w),
                     decoration: BoxDecoration(
+                      // color: Colors.white.withOpacity(0.4),
                       color: Colors.white.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(24.r),
                       boxShadow: [
@@ -75,7 +80,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             fontFamily: 'aBeeZee',
                             fontSize: 26.sp,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            // color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                         SizedBox(height: 12.h),
@@ -86,7 +92,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 15.sp,
-                            color: Colors.white,
+                            // color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             height: 1.6,
                           ),
                         ),
@@ -95,17 +102,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                         /// Feature Highlights
                         _featureRow(
-                          icon: Icons.temple_hindu,
+                          icon: Icons.temple_hindu_outlined,
                           text: 'Book Pujas & Sevas easily',
                         ),
                         SizedBox(height: 12.h),
                         _featureRow(
-                          icon: Icons.notifications_active,
+                          icon: Icons.notifications_active_outlined,
                           text: 'Receive daily divine notifications',
                         ),
                         SizedBox(height: 12.h),
                         _featureRow(
-                          icon: Icons.favorite,
+                          icon: Icons.favorite_border_outlined,
                           text: 'Stay spiritually connected anytime',
                         ),
 
@@ -126,8 +133,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF9800),
-                              foregroundColor: Colors.white,
+                              // backgroundColor: const Color(0xFFFF9800),
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
+                              // foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(context).colorScheme.surface,
+
                               elevation: 6,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16.r),
@@ -165,7 +177,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 fontFamily: 'aBeeZee',
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                                // color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                               ),
                             ),
                           ),
@@ -190,10 +203,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         Container(
           padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: const Color(0xFFFF9800).withOpacity(0.35),
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.35),
             borderRadius: BorderRadius.circular(10.r),
           ),
-          child: Icon(icon, size: 20.sp, color: Colors.white),
+          child: Icon(
+            icon,
+            size: 20.sp,
+            color: Theme.of(context).colorScheme.surface,
+          ),
         ),
         SizedBox(width: 12.w),
         Expanded(
@@ -202,7 +219,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             style: TextStyle(
               fontFamily: 'aBeeZee',
               fontSize: 14.5.sp,
-              color: Colors.white,
+              // color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               fontWeight: FontWeight.w500,
             ),
           ),

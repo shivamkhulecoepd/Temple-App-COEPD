@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pinput/pinput.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/services/theme_service.dart';
 import 'package:temple_app/widgets/translated_text.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -23,83 +26,87 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(390, 844));
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F3E8),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _templeHeader(),
-              SizedBox(height: 30.h),
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _templeHeader(),
+                  SizedBox(height: 30.h),
 
-              /// TITLE
-              TranslatedText(
-                isLogin ? "Sign In" : "Sign Up",
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  fontSize: 30.sp,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF9B0200),
-                ),
+                  /// TITLE
+                  TranslatedText(
+                    isLogin ? "Sign In" : "Sign Up",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 30.sp,
+                      fontWeight: FontWeight.bold,
+                      color: TempleTheme.primaryOrange,
+                    ),
+                  ),
+
+                  SizedBox(height: 6.h),
+
+                  /// SUBTITLE
+                  TranslatedText(
+                    isLogin
+                        // ? "Welcome back, please login to your account"
+                        ? "Welcome back please login to your account"
+                        : "Create an Account",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 15.sp,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+
+                  SizedBox(height: 30.h),
+
+                  if (!isLogin) ...[
+                    _label("Display Name"),
+                    _input(nameCtrl, "Please enter your full name"),
+                    SizedBox(height: 20.h),
+                  ],
+
+                  _label("Mobile Number"),
+                  _input(
+                    phoneCtrl,
+                    "+91 XXXXX XXXXX",
+                    keyboard: TextInputType.phone,
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  _label("Password"),
+                  _input(passCtrl, "Enter your password", obscure: true),
+
+                  SizedBox(height: 20.h),
+
+                  if (!isLogin) ...[
+                    _label("Confirm Password"),
+                    _input(confirmCtrl, "Confirm your password", obscure: true),
+                    SizedBox(height: 20.h),
+                    _termsText(),
+                  ],
+
+                  SizedBox(height: 30.h),
+
+                  _primaryButton(),
+
+                  SizedBox(height: 40.h),
+
+                  _switchAuthMode(),
+                ],
               ),
-
-              SizedBox(height: 6.h),
-
-              /// SUBTITLE
-              TranslatedText(
-                isLogin
-                    // ? "Welcome back, please login to your account"
-                    ? "Welcome back please login to your account"
-                    : "Create an Account",
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  fontSize: 15.sp,
-                  color: Colors.black54,
-                ),
-              ),
-
-              SizedBox(height: 30.h),
-
-              if (!isLogin) ...[
-                _label("Display Name"),
-                _input(nameCtrl, "Please enter your full name"),
-                SizedBox(height: 20.h),
-              ],
-
-              _label("Mobile Number"),
-              _input(
-                phoneCtrl,
-                "+91 XXXXX XXXXX",
-                keyboard: TextInputType.phone,
-              ),
-
-              SizedBox(height: 20.h),
-
-              _label("Password"),
-              _input(passCtrl, "Enter your password", obscure: true),
-
-              SizedBox(height: 20.h),
-
-              if (!isLogin) ...[
-                _label("Confirm Password"),
-                _input(confirmCtrl, "Confirm your password", obscure: true),
-                SizedBox(height: 20.h),
-                _termsText(),
-              ],
-
-              SizedBox(height: 30.h),
-
-              _primaryButton(),
-
-              SizedBox(height: 40.h),
-
-              _switchAuthMode(),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -111,7 +118,7 @@ class _AuthScreenState extends State<AuthScreen> {
         Image.asset(
           'assets/images/temple2.png',
           height: 80.h,
-          color: const Color(0xFFFF9800),
+          color: TempleTheme.yellowButton,
         ),
         SizedBox(height: 10.h),
         Text(
@@ -121,7 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
             fontFamily: 'aBeeZee',
             fontSize: 24.sp,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF043342),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -136,6 +143,7 @@ class _AuthScreenState extends State<AuthScreen> {
         fontFamily: 'aBeeZee',
         fontSize: 15.sp,
         fontWeight: FontWeight.w600,
+        color: Theme.of(context).textTheme.headlineLarge?.color,
       ),
     ),
   );
@@ -157,20 +165,25 @@ class _AuthScreenState extends State<AuthScreen> {
         floatingLabelBehavior: FloatingLabelBehavior.never,
 
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide.none,
         ),
+        focusedBorder: Theme.of(context).inputDecorationTheme.focusedBorder,
+        enabledBorder: Theme.of(context).inputDecorationTheme.enabledBorder,
         // Match the hint style to your label style if needed
         labelStyle: TextStyle(
-          color: Colors.black54,
+          color: Theme.of(context).inputDecorationTheme.labelStyle?.color,
           fontSize: 15.sp,
           fontFamily: 'aBeeZee',
         ),
       ),
-      style: TextStyle(fontSize: 15.sp),
+      style: TextStyle(
+        fontSize: 15.sp,
+        color: Theme.of(context).textTheme.bodyMedium?.color,
+      ),
     );
   }
 
@@ -180,7 +193,7 @@ class _AuthScreenState extends State<AuthScreen> {
     child: ElevatedButton(
       onPressed: isLogin ? _login : _register,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFF15A29),
+        backgroundColor: TempleTheme.primaryOrange,
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -210,9 +223,9 @@ class _AuthScreenState extends State<AuthScreen> {
         onTap: () => setState(() => isLogin = !isLogin),
         child: TranslatedText(
           isLogin ? "Sign Up" : "Sign In",
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'aBeeZee',
-            color: Color(0xFFF15A29),
+            color: TempleTheme.primaryOrange,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -306,18 +319,29 @@ class _OtpSheet extends StatelessWidget {
         children: [
           TranslatedText(
             "Verify OTP",
-            style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 22.sp, 
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.headlineMedium?.color,
+            ),
           ),
           SizedBox(height: 10.h),
           TranslatedText(
             "Enter the 6-digit code sent to your mobile",
             textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
           ),
           SizedBox(height: 30.h),
           Pinput(length: 6),
           SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TempleTheme.primaryOrange,
+              foregroundColor: Colors.white,
+            ),
             child: TranslatedText("Verify"),
           ),
         ],

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/screens/authentication/welcome_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/blocs/language/language_bloc.dart';
+import 'package:temple_app/services/theme_service.dart';
 import 'package:temple_app/widgets/translated_text.dart';
 import 'package:temple_app/services/translation_service.dart';
+import 'package:temple_app/screens/authentication/welcome_screen.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -26,18 +27,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     'Marathi',
   ];
 
-  // Theme Colors
-  static const Color bgColor = Color(0xFFF7F3E8);
-  static const Color primaryBlue = Color(0xFF043342);
-  static const Color secondaryBlue = Color(0xFF124660);
-  static const Color primaryOrange = Color(0xFFFF9800);
+  // Theme Colors - Using TempleTheme for consistency
+  // static const Color bgColor = Color(0xFFF7F3E8);
+  // static const Color primaryBlue = Color(0xFF043342);
+  // static const Color secondaryBlue = Color(0xFF124660);
+  // static const Color primaryOrange = Color(0xFFFF9800);
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: bgColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(22.w, 28.h, 22.w, 24.h),
@@ -45,13 +46,13 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   /// Header
-                  const TranslatedText(
+                  TranslatedText(
                     'Choose Your Language',
                     style: TextStyle(
                       fontFamily: 'aBeeZee',
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: primaryBlue,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(height: 8.h),
@@ -61,17 +62,17 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6.r),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFE26400), Color(0xFF9B0200)],
+                        colors: [TempleTheme.gradientStart, TempleTheme.gradientEnd],
                       ),
                     ),
                   ),
                   SizedBox(height: 14.h),
-                  const TranslatedText(
+                  TranslatedText(
                     'Select your preferred language to receive divine content and continue your spiritual journey.',
                     style: TextStyle(
                       fontFamily: 'inter',
                       fontSize: 15,
-                      color: secondaryBlue,
+                      color: Theme.of(context).colorScheme.onSurface,
                       height: 1.6,
                     ),
                   ),
@@ -118,13 +119,13 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
+                        backgroundColor: TempleTheme.primaryOrange,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: primaryOrange.withOpacity(
+                        disabledBackgroundColor: TempleTheme.primaryOrange.withOpacity(
                           0.45,
                         ),
                         elevation: 6.r,
-                        shadowColor: primaryOrange.withOpacity(0.45),
+                        shadowColor: TempleTheme.primaryOrange.withOpacity(0.45),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18.r),
                         ),
@@ -198,7 +199,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               fontFamily: 'aBeeZee',
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : primaryBlue,
+              color: isSelected ? Colors.white : Theme.of(context).primaryColor,
             ),
           ),
         ),
