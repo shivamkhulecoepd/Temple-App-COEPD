@@ -52,4 +52,24 @@ class TranslationService {
         return 'en';
     }
   }
+
+  static String getLanguageName(String code) {
+    switch (code.toLowerCase()) {
+      case 'hi':
+        return 'Hindi';
+      case 'te':
+        return 'Telugu';
+      case 'kn':
+        return 'Kannada';
+      case 'ta':
+        return 'Tamil';
+      case 'ml':
+        return 'Malayalam';
+      case 'mr':
+        return 'Marathi';
+      case 'en':
+      default:
+        return 'English';
+    }
+  }
 }

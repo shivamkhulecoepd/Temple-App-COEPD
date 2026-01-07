@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:temple_app/services/storage_service.dart';
@@ -46,6 +47,9 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
       emit(
         state.copyWith(
           selectedLanguageCode: savedLangCode,
+          selectedLanguageName: TranslationService.getLanguageName(
+            savedLangCode,
+          ),
           translations: currentTranslations,
           isLoading: false,
         ),
@@ -64,20 +68,19 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
 
     if (languageCode == state.selectedLanguageCode) return;
 
+    // Switch to cached translations for this language
+    final currentTranslations = _allTranslations[languageCode] ?? {};
+
     emit(
       state.copyWith(
         selectedLanguageCode: languageCode,
         selectedLanguageName: languageName,
-        isLoading: true,
+        translations: currentTranslations,
       ),
     );
 
-    await _storageService.saveLanguage(languageCode);
-
-    // Switch to cached translations for this language
-    final currentTranslations = _allTranslations[languageCode] ?? {};
-
-    emit(state.copyWith(translations: currentTranslations, isLoading: false));
+    // Fire and forget storage save to prevent UI blocking on rapid changes
+    unawaited(_storageService.saveLanguage(languageCode));
   }
 
   // Method to be called by UI widgets to get translation
@@ -100,7 +103,7 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     _allTranslations[targetLang]![text] = translated;
 
     // Persist to disk
-    await _storageService.saveTranslations(_allTranslations);
+    unawaited(_storageService.saveTranslations(_allTranslations));
 
     // Update state to trigger UI refresh if they are listening to specific keys
     // Note: Creating a new map to ensure state change

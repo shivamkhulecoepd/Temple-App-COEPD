@@ -5,6 +5,7 @@ import 'package:temple_app/screens/authentication/welcome_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/blocs/language/language_bloc.dart';
 import 'package:temple_app/widgets/translated_text.dart';
+import 'package:temple_app/services/translation_service.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
@@ -91,7 +92,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       itemBuilder: (context, index) {
                         final language = _languages[index];
                         final isSelected =
-                            state.selectedLanguageName == language;
+                            state.selectedLanguageCode ==
+                            TranslationService.getLanguageCode(language);
                         return _buildLanguageCard(
                           context,
                           language,

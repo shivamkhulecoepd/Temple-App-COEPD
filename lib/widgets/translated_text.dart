@@ -41,8 +41,11 @@ class _TranslatedTextState extends State<TranslatedText> {
 
   Future<void> _fetchTranslation() async {
     final bloc = context.read<LanguageBloc>();
+    final requestedLang = bloc.state.selectedLanguageCode;
     final translated = await bloc.getTranslation(widget.text);
-    if (mounted) {
+
+    // Only update if the language hasn't changed while we were fetching
+    if (mounted && bloc.state.selectedLanguageCode == requestedLang) {
       setState(() {
         _translatedText = translated;
       });

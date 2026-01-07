@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:temple_app/widgets/translated_text.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,59 +16,15 @@ class _HomeScreenState extends State<HomeScreen>
   late Timer _timer;
   Timer? _imageTimer;
 
-  // Hero Section Images
   final List<String> _heroImages = [
     'assets/images/dashboard/bg 2.webp',
     'assets/images/dashboard/bg2.jpg',
     'assets/images/dashboard/bg3.jpg',
   ];
 
-  // Petal Logic
-  final List<Petal> _petals = [];
-  late Timer _petalSpawnTimer;
-  late Timer _petalUpdateTimer;
-  final List<String> _petalAssets = [
-    "assets/images/dashboard/flower.png",
-    "assets/images/dashboard/rose1.png",
-    "assets/images/dashboard/rose3.png",
-    "assets/images/dashboard/rose4.png",
-  ];
-
   // Swaying Animation Logic
   late AnimationController _animationController;
   late Animation<double> _rotationAnimation;
-
-  void _spawnPetal() {
-    final random = math.Random();
-    if (mounted) {
-      setState(() {
-        _petals.add(
-          Petal(
-            image: _petalAssets[random.nextInt(_petalAssets.length)],
-            top: -50, // Start above screen
-            left: random.nextDouble() * MediaQuery.of(context).size.width,
-            size: random.nextDouble() * 25 + 20,
-            speed: random.nextDouble() * 2 + 2, // Falling speed
-            rotationSpeed: random.nextDouble() * 0.1,
-            horizontalSway: random.nextDouble() * 2 - 1, // Slight drift
-          ),
-        );
-      });
-    }
-  }
-
-  void _updatePetals() {
-    if (!mounted) return;
-    setState(() {
-      for (var petal in _petals) {
-        petal.top += petal.speed;
-        petal.left += petal.horizontalSway;
-        petal.rotation += petal.rotationSpeed;
-      }
-      // Remove petals that fall off the 250px height hero section
-      _petals.removeWhere((p) => p.top > 250);
-    });
-  }
 
   @override
   void initState() {
@@ -79,20 +34,6 @@ class _HomeScreenState extends State<HomeScreen>
       setState(() {
         _currentIndex = (_currentIndex + 1) % _heroImages.length;
       });
-    });
-
-    // 2. Petal Spawner (Every 300ms like your JS)
-    _petalSpawnTimer = Timer.periodic(const Duration(milliseconds: 300), (
-      timer,
-    ) {
-      _spawnPetal();
-    });
-
-    // 3. Petal Physics Update (60 FPS)
-    _petalUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (
-      timer,
-    ) {
-      _updatePetals();
     });
 
     // 2. Setup Leaf Swaying Animation
@@ -109,8 +50,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _imageTimer?.cancel();
-    _petalSpawnTimer.cancel();
-    _petalUpdateTimer.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -125,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               // _buildHeader(),
               _buildNavBar(),
-              // _buildHeroSection(),
+              _buildHeroSection(),
               // _buildQuickActionGrid(),
               // _buildAboutSection(),
               // _buildMarqueeBar(),
@@ -229,22 +168,8 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFE65C23),
-          ),
-          child: Icon(icon, size: 20, color: Colors.white),
-        ),
-        TranslatedText(
-          label,
-          style: const TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 10,
-            color: Colors.brown,
-          ),
-        ),
+        Icon(icon, size: 20, color: Colors.brown),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.brown)),
       ],
     );
   }
@@ -253,7 +178,6 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildHeroSection() {
     return SizedBox(
       height: 250,
-      width: double.infinity,
       child: Stack(
         children: [
           // 1. IMAGE TRANSITION (Ease-In Fade)
@@ -287,31 +211,16 @@ class _HomeScreenState extends State<HomeScreen>
           ),
 
           // 2. Radial Glow Overlay
-          // IgnorePointer(
-          //   child: Container(
-          //     decoration: BoxDecoration(
-          //       gradient: RadialGradient(
-          //         colors: [Colors.yellow.withOpacity(0.2), Colors.transparent],
-          //         radius: 0.8,
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // 2. Falling Petals Layer (The script replication)
-          ..._petals.map((petal) {
-            return Positioned(
-              top: petal.top,
-              left: petal.left,
-              child: Transform.rotate(
-                angle: petal.rotation,
-                child: Image.asset(
-                  petal.image,
-                  width: petal.size,
-                  height: petal.size,
+          IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [Colors.yellow.withOpacity(0.2), Colors.transparent],
+                  radius: 0.8,
                 ),
               ),
-            );
-          }),
+            ),
+          ),
 
           // 3. Left Swaying Leaf
           Positioned(
@@ -545,24 +454,256 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// 1. Define a Petal Model to hold individual state
-class Petal {
-  final String image;
-  double top;
-  double left;
-  final double size;
-  final double speed;
-  final double rotationSpeed;
-  double rotation = 0;
-  final double horizontalSway;
+// import 'package:flutter/material.dart';
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
+// import 'package:provider/provider.dart';
+// import 'package:temple_app/screens/dashboard/book_pooja.dart';
+// import 'package:temple_app/screens/dashboard/donation_screen.dart';
+// import 'package:temple_app/screens/dashboard/livedarshan_screen.dart';
+// import 'package:temple_app/screens/dashboard/panchangan_screen.dart';
+// import 'package:temple_app/screens/dashboard/prasadammenu_screen.dart';
+// import 'package:temple_app/screens/dashboard/templecalender_screen.dart';
 
-  Petal({
-    required this.image,
-    required this.top,
-    required this.left,
-    required this.size,
-    required this.speed,
-    required this.rotationSpeed,
-    required this.horizontalSway,
-  });
-}
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({super.key});
+
+//   @override
+//   State<HomeScreen> createState() => _HomeScreenState();
+// }
+
+// class _HomeScreenState extends State<HomeScreen> {
+//   void _navigateToLiveDarshan() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => LiveDarshanScreen()),
+//     );
+//   }
+
+//   void _navigateToLivebookpooja() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => BookPoojaScreen()),
+//     );
+//   }
+
+//   void _navigateToprasadamitems() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => PrasadamMenuScreen()),
+//     );
+//   }
+
+//   // TempleCalendarScreen(),
+//   void _navigatecalender() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => TempleCalendarScreen()),
+//     );
+//   }
+
+//   void _navigatedonation() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => DonationScreen()),
+//     );
+//   }
+
+//   void _navigatepanchangan() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (context) => PanchangamScreen()),
+//     );
+//   }
+
+//   List<ServiceItem> get _serviceItems => [
+//     ServiceItem(
+//       image: 'assets/images/tv.png',
+//       title: 'Daily Darshan',
+//       subtitle: 'Live temple view',
+//       ontap: _navigateToLiveDarshan,
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/kalasha.png',
+//       title: 'Book Pooja',
+//       subtitle: 'Schedule a ritual',
+//       ontap: _navigateToLivebookpooja,
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/kindness.png',
+//       title: 'Book Seva',
+//       subtitle: 'Offer a service',
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/cutlery.png',
+//       title: 'Prasadam',
+//       subtitle: 'Order blessed food',
+//       ontap: _navigateToprasadamitems,
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/donation.png',
+//       title: 'Donation',
+//       subtitle: 'Contribute to temple',
+//       ontap: _navigatedonation,
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/calendar.png',
+//       title: 'Calendar',
+//       subtitle: 'Important dates',
+//       ontap: _navigatecalender,
+//     ),
+//     ServiceItem(
+//       image: 'assets/images/anahata.png',
+//       title: 'Panchangam',
+//       subtitle: 'Vedic almanac',
+//       ontap: _navigatepanchangan,
+//     ),
+//   ];
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: const Color.fromARGB(
+//         255,
+//         214,
+//         210,
+//         210,
+//       ).withValues(alpha: 0.999),
+//       appBar: AppBar(
+//         backgroundColor: Colors.amberAccent.withValues(alpha: 0.4),
+//         foregroundColor: Color.fromARGB(255, 77, 7, 5),
+//         title: Text(
+//           'Deva Seva',
+//           style: TextStyle(
+//             fontSize: 20.sp,
+//             color: Color.fromARGB(255, 77, 7, 5),
+//             fontWeight: FontWeight.bold,
+//           ),
+//         ),
+//         elevation: 0,
+//         actions: [
+//           IconButton(
+//             icon: Icon(
+//               Icons.person_outline,
+//               size: 24.sp,
+//               color: Color.fromARGB(255, 77, 7, 5),
+//             ),
+//             onPressed: () {
+//               // Navigate to profile screen
+//             },
+//           ),
+//           SizedBox(width: 10.w),
+//         ],
+//       ),
+//       body: SingleChildScrollView(
+//         child: Padding(
+//           padding: EdgeInsets.all(20.w),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               // Om Namah Shivay Text
+//               Center(
+//                 child: Text(
+//                   'Om Namah Shivaya',
+//                   style: TextStyle(
+//                     fontSize: 32.sp,
+//                     color: Color.fromARGB(255, 77, 7, 5),
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                   textAlign: TextAlign.center,
+//                 ),
+//               ),
+//               SizedBox(height: 30.h),
+//               // GridView of Service Items
+//               GridView.builder(
+//                 shrinkWrap: true,
+//                 physics: const NeverScrollableScrollPhysics(),
+//                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//                   crossAxisCount: 2,
+//                   crossAxisSpacing: 16.w,
+//                   mainAxisSpacing: 16.h,
+//                   childAspectRatio: 0.9,
+//                 ),
+//                 itemCount: _serviceItems.length,
+//                 itemBuilder: (context, index) {
+//                   return _buildServiceCard(_serviceItems[index]);
+//                 },
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildServiceCard(ServiceItem item) {
+//     return GestureDetector(
+//       onTap: item.ontap,
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: const Color.fromARGB(255, 248, 239, 218),
+//           borderRadius: BorderRadius.circular(12),
+//           border: Border.all(color: Color.fromARGB(255, 187, 182, 182)),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.grey.withValues(alpha: 0.3),
+//               blurRadius: 10,
+//               spreadRadius: 2,
+//               offset: const Offset(0, 4),
+//             ),
+//           ],
+//         ),
+//         child: Padding(
+//           padding: EdgeInsets.all(16.h),
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               // Image instead of Icon
+//               Image.asset(
+//                 item.image,
+//                 height: 40.h,
+//                 width: 40.w,
+//                 color: Color.fromARGB(255, 77, 7, 5), // You
+//               ),
+//               SizedBox(height: 12.h),
+//               // Title
+//               Text(
+//                 item.title,
+//                 style: TextStyle(
+//                   fontSize: 16.sp,
+//                   color: Color.fromARGB(255, 77, 7, 5),
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//                 textAlign: TextAlign.center,
+//                 maxLines: 1,
+//                 overflow: TextOverflow.ellipsis,
+//               ),
+//               SizedBox(height: 6.h),
+//               // Subtitle
+//               Text(
+//                 item.subtitle,
+//                 style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
+//                 textAlign: TextAlign.center,
+//                 maxLines: 2,
+//                 overflow: TextOverflow.ellipsis,
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// class ServiceItem {
+//   final String image;
+//   final String title;
+//   final String subtitle;
+//   final VoidCallback? ontap;
+
+//   ServiceItem({
+//     required this.image,
+//     required this.title,
+//     required this.subtitle,
+//     this.ontap,
+//   });
+// }
