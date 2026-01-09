@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/screens/authentication/auth_screen.dart';
 import 'package:temple_app/screens/dashboard/home_screen.dart';
+import 'package:temple_app/widgets/layout_screen.dart';
 
 import 'package:temple_app/widgets/translated_text.dart';
 
@@ -167,7 +168,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
+                                  // builder: (context) => const HomeScreen(),
+                                  builder: (context) => const LayoutScreen(),
                                 ),
                               );
                             },

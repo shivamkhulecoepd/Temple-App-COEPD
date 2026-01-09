@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:temple_app/screens/dashboard/devoteesdetails_screen.dart';
+import 'package:temple_app/screens/previous/devoteesdetails_screen.dart';
 
 class PujaDetailsScreen extends StatefulWidget {
   const PujaDetailsScreen({super.key});

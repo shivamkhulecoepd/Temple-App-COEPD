@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:translator/translator.dart';
 
 /// A service class to handle text translations with caching
@@ -33,7 +35,7 @@ class TranslationLanguageService {
       return translation.text;
     } catch (e) {
       // Return original text if translation fails
-      print('Translation error: $e');
+      log('Translation error: $e');
       return text;
     }
   }
@@ -81,9 +83,9 @@ class TranslationLanguageService {
   /// Gets the size of the cache
   int getCacheSize() {
     int size = 0;
-    _translationCache.values.forEach((languageCache) {
+    for (var languageCache in _translationCache.values) {
       size += languageCache.length;
-    });
+    }
     return size;
   }
   

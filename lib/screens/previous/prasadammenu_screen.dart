@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:temple_app/screens/dashboard/prasadambasket_screen.dart';
+import 'package:temple_app/screens/previous/prasadambasket_screen.dart';
 
 class PrasadamMenuScreen extends StatefulWidget {
   const PrasadamMenuScreen({super.key});

@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/screens/dashboard/poojadetails_screen.dart';
+import 'package:temple_app/screens/previous/poojadetails_screen.dart';
 
 class BookPoojaScreen extends StatefulWidget {
   const BookPoojaScreen({super.key});

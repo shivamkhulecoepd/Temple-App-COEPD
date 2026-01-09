@@ -8,6 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/models/petal.model.dart';
+import 'package:temple_app/screens/dashboard/about_screen.dart';
 import 'package:temple_app/services/theme_service.dart';
 import 'package:temple_app/widgets/theme_toggle_widget.dart';
 import 'package:temple_app/widgets/translated_text.dart';
@@ -262,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen>
                   _buildMarqueeBar(apiNews),
                   _buildBannerSection(myBanners),
                   _buildGallerySection(),
+                  SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -275,57 +278,61 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       width: double.infinity,
       color: Theme.of(context).primaryColor,
-      padding: const EdgeInsets.only(top: 15, bottom: 0, left: 12, right: 12),
+      padding: EdgeInsets.only(top: 15.h, left: 6.w, right: 6.w),
       child: Column(
         children: [
           // 1. DATE AND TIME
           TranslatedText(
             _timeString,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'aBeeZee',
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w500,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
 
           // 2. SOCIAL ICONS
           Row(
-            spacing: 20,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _socialIcon(FontAwesomeIcons.instagram, "https://instagram.com"),
+              SizedBox(width: 20.w),
               _socialIcon(FontAwesomeIcons.facebook, "https://facebook.com"),
+              SizedBox(width: 20.w),
               _socialIcon(FontAwesomeIcons.xTwitter, "https://x.com"),
+              SizedBox(width: 20.w),
               _socialIcon(FontAwesomeIcons.youtube, "https://youtube.com"),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
 
-          // 3. TEMPLE TIMING (with FutureBuilder for API simulation)
+          // 3. TEMPLE TIMING (with FutureBuilder)
           FutureBuilder<String>(
             future: _templeTimingFuture,
             builder: (context, snapshot) {
-              String timingText = "Timing: Loading...";
+              String timingText = "Loading...";
               if (snapshot.hasData) {
-                timingText = "Timing: ${snapshot.data}";
+                timingText = snapshot.data!;
               } else if (snapshot.hasError) {
-                timingText = "Timing: 6:00 AM – 8:00 PM (Fallback)";
+                timingText = "6:00 AM – 8:00 PM (Fallback)";
               }
 
               return RichText(
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'aBeeZee',
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                   ),
                   children: [
-                    const TextSpan(
+                    TextSpan(
                       text: "Timing: ",
                       style: TextStyle(
                         fontFamily: 'aBeeZee',
@@ -333,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     TextSpan(
-                      text: timingText.replaceAll("Timing: ", ""),
+                      text: timingText,
                       style: TextStyle(fontFamily: 'aBeeZee'),
                     ),
                   ],
@@ -341,15 +348,13 @@ class _HomeScreenState extends State<HomeScreen>
               );
             },
           ),
-          // const SizedBox(height: 8),
+          // SizedBox(height: 10.h),
 
-          // 4. BOTTOM ACTION ROW
+          // 4. BOTTOM ACTION ROW (Horizontal scrollable on small screens)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              // spacing: 20,
               children: [
                 // Sound/Mute Toggle
                 IconButton(
@@ -357,22 +362,29 @@ class _HomeScreenState extends State<HomeScreen>
                   icon: Icon(
                     _isMuted ? Icons.volume_off : Icons.volume_up,
                     size: 24.sp,
+                    color: Colors.white,
                   ),
-                  color: Colors.white,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
+
+                SizedBox(width: 10.w),
 
                 // Language Dropdown
                 DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedLanguage,
                     dropdownColor: const Color(0xFF00333D),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.keyboard_arrow_down,
                       color: Colors.white,
+                      size: 20.sp,
                     ),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
                     onChanged: (String? newValue) {
                       if (newValue != null) {
                         setState(() => _selectedLanguage = newValue);
@@ -392,37 +404,50 @@ class _HomeScreenState extends State<HomeScreen>
                             value: value,
                             child: Text(
                               value,
-                              style: TextStyle(fontFamily: 'aBeeZee'),
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                fontSize: 14.sp,
+                              ),
                             ),
                           );
                         }).toList(),
                   ),
                 ),
 
+                SizedBox(width: 10.w),
+
                 // Login Button
                 TextButton(
-                  onPressed: () {},
-                  child: const TranslatedText(
+                  onPressed: () {
+                    // Navigate to AuthScreen or show login modal
+                  },
+                  child: TranslatedText(
                     "Login",
                     style: TextStyle(
                       fontFamily: 'aBeeZee',
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
 
+                SizedBox(width: 6.w),
+
                 // Contact Us Button
                 TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.phone, color: Colors.white, size: 16),
-                  label: const TranslatedText(
+                  onPressed: () {
+                    // Handle contact action (phone call, email, etc.)
+                  },
+                  icon: Icon(Icons.phone, color: Colors.white, size: 16.sp),
+                  label: TranslatedText(
                     "Contact",
                     style: TextStyle(
                       fontFamily: 'aBeeZee',
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -437,15 +462,18 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _socialIcon(IconData icon, String url) {
     return GestureDetector(
-      onTap: () => log("Redirect to $url"),
-      child: FaIcon(icon, color: Colors.white, size: 20),
+      onTap: () {
+        // Use url_launcher or your preferred method to open URL
+        log("Redirect to $url");
+      },
+      child: FaIcon(icon, color: Colors.white, size: 20.sp),
     );
   }
 
   // 1. HEADER SECTION
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
@@ -458,11 +486,11 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // Image.asset(
           //   'assets/images/dashboard/footer-logo.jpg',
-          //   height: 70,
+          //   height: 70.h,
           //   fit: BoxFit.contain,
           // ),
-          // const SizedBox(width: 10),
-          const Expanded(
+          // const SizedBox(width: 10.w),
+          Expanded(
             child: Column(
               children: [
                 Text(
@@ -470,23 +498,25 @@ class _HomeScreenState extends State<HomeScreen>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'aBeeZee',
-                    fontSize: 22,
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
+                SizedBox(height: 4.h),
                 Text(
                   "Kanajiguda, Secunderabad, Telangana",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'aBeeZee',
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: Colors.white,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           const ThemeToggleWidget(),
         ],
       ),
@@ -496,36 +526,47 @@ class _HomeScreenState extends State<HomeScreen>
   // 2. NAV BAR
   Widget _buildNavBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+        color: Theme.of(
+          context,
+        ).cardColor, // Updated to cardColor (more standard)
         border: Border(
-          top: BorderSide(color: TempleTheme.primaryOrange, width: 4),
+          top: BorderSide(color: TempleTheme.primaryOrange, width: 4.h),
         ),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          spacing: 5.sp,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
-                _navItem(Icons.home, "Home"),
-                const SizedBox(width: 15),
-                _navItem(Icons.temple_hindu, "About Temple"),
-                const SizedBox(width: 15),
-                _navItem(Icons.currency_rupee, "Donations"),
+                _navItem(Icons.home, "Home", null),
+                SizedBox(width: 15.w),
+                _navItem(
+                  Icons.temple_hindu,
+                  "About Temple",
+                  const AboutScreen(),
+                ),
+                SizedBox(width: 15.w),
+                _navItem(Icons.currency_rupee, "Donations", null),
               ],
             ),
+            SizedBox(width: 20.w), // Space before button
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Handle donation navigation or action
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: TempleTheme.primaryOrange,
                 foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(6.r),
                 ),
+                elevation: 4,
               ),
               child: TranslatedText(
                 "DONATE NOW",
@@ -534,6 +575,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: Colors.white,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
                 ),
               ),
             ),
@@ -543,28 +585,36 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _navItem(IconData icon, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: TempleTheme.primaryBlue,
+  Widget _navItem(IconData icon, String label, Widget? screen) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => screen!));
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: TempleTheme.secondaryBlue,
+            ),
+            child: Icon(icon, size: 20.sp, color: Colors.white),
           ),
-          child: Icon(icon, size: 20, color: Colors.white),
-        ),
-        TranslatedText(
-          label,
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 12.sp,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
+          SizedBox(height: 6.h),
+          TranslatedText(
+            label,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 12.sp,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -709,46 +759,49 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  // color: Theme.of(context).dividerTheme.color ?? Colors.grey,
-                  color: Theme.of(context).dividerTheme.color ?? Colors.grey,
-                  blurRadius: 1,
-                  offset: Offset(1, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Image.asset(items[index]['icon']!),
+          return InkWell(
+            onTap: () {},
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    // color: Theme.of(context).dividerTheme.color ?? Colors.grey,
+                    color: Theme.of(context).dividerTheme.color ?? Colors.grey,
+                    blurRadius: 1,
+                    offset: Offset(1, 2),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4.0,
-                    vertical: 8.0,
-                  ),
-                  child: TranslatedText(
-                    items[index]['label']!,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'aBeeZee',
-                      fontSize: 12.sp,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                ],
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset(items[index]['icon']!),
                     ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4.0,
+                      vertical: 8.0,
+                    ),
+                    child: TranslatedText(
+                      items[index]['label']!,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'aBeeZee',
+                        fontSize: 12.sp,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -1023,6 +1076,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 Text(
                                   item['date']!,
                                   style: TextStyle(
+                                    fontFamily: 'aBeeZee',
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey[800],
@@ -1064,6 +1118,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: TranslatedText(
                     "View All Events",
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       color: TempleTheme.primaryOrange,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1140,23 +1195,3 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // 1. Define a Petal Model to hold individual state
-class Petal {
-  final String image;
-  double top;
-  double left;
-  final double size;
-  final double speed;
-  final double rotationSpeed;
-  double rotation = 0;
-  final double horizontalSway;
-
-  Petal({
-    required this.image,
-    required this.top,
-    required this.left,
-    required this.size,
-    required this.speed,
-    required this.rotationSpeed,
-    required this.horizontalSway,
-  });
-}
