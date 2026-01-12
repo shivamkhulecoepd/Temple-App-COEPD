@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/blocs/language/language_bloc.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/screens/dashboard/about_screen.dart';
 import 'package:temple_app/screens/dashboard/home_screen.dart';
 import 'package:temple_app/screens/previous/main_navigations.dart';
 import 'package:temple_app/services/storage_service.dart';
@@ -61,7 +62,7 @@ class MyApp extends StatelessWidget {
                     builder: (_, child) {
                       // return const OldScreensNavigations();
                       // return const SplashScreen();
-                      return const HomeScreen();
+                      return const AboutScreen();
                     },
                   );
                 },
