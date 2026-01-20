@@ -221,9 +221,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> loadTimings() async {
     try {
-      final fetched = await DBFunctions().fetchTempleTimings();
-      log("Fetched timings: $fetched");
-      setState(() => timings = fetched);
+      final fetchedTimings = await DBFunctions().fetchTempleTimings();
+      log("Fetched timings: $fetchedTimings");
+      setState(() => timings = fetchedTimings);
     } catch (_) {
       log("Failed to load timings");
       setState(() => timings = 'Timings unavailable');
@@ -233,8 +233,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    loadData();
-    loadTimings();
     // 1. Image Change Timer
     _timer = Timer.periodic(const Duration(seconds: 6), (timer) {
       if (!mounted) return;
@@ -259,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen>
       _updatePetals();
     });
 
-    // 2. Setup Leaf Swaying Animation
+    // 4. Setup Leaf Swaying Animation
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -269,15 +267,18 @@ class _HomeScreenState extends State<HomeScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    // Initialize Clock
+    // 5. Initialize Clock
     _timeString = _formatDateTime(DateTime.now());
     _clockTimer = Timer.periodic(
       const Duration(seconds: 1),
       (Timer t) => _updateTime(),
     );
 
-    // Initialize API fetch
-    _templeTimingFuture = _fetchTempleTimings();
+    // 6. Fetch temple timings
+    loadTimings();
+
+    // 7. Load Data
+    loadData();
   }
 
   @override
@@ -358,41 +359,29 @@ class _HomeScreenState extends State<HomeScreen>
           SizedBox(height: 8.h),
 
           // 3. TEMPLE TIMING (with FutureBuilder)
-          FutureBuilder<String>(
-            future: _templeTimingFuture,
-            builder: (context, snapshot) {
-              String timingText = "Loading...";
-              if (snapshot.hasData) {
-                timingText = snapshot.data!;
-              } else if (snapshot.hasError) {
-                timingText = "6:00 AM – 8:00 PM (Fallback)";
-              }
-
-              return RichText(
-                maxLines: 2,
-                textAlign: TextAlign.center,
-                text: TextSpan(
+          RichText(
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                color: Colors.white,
+                fontSize: 14.sp,
+              ),
+              children: [
+                TextSpan(
+                  text: "Timing: ",
                   style: TextStyle(
                     fontFamily: 'aBeeZee',
-                    color: Colors.white,
-                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
                   ),
-                  children: [
-                    TextSpan(
-                      text: "Timing: ",
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: timingText,
-                      style: TextStyle(fontFamily: 'aBeeZee'),
-                    ),
-                  ],
                 ),
-              );
-            },
+                TextSpan(
+                  text: timings,
+                  style: TextStyle(fontFamily: 'aBeeZee'),
+                ),
+              ],
+            ),
           ),
           // SizedBox(height: 10.h),
 
