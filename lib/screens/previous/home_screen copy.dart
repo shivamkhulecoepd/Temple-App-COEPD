@@ -396,7 +396,7 @@ class _TopInfoBarState extends State<TopInfoBar> {
 //             child: Container(
 //               decoration: BoxDecoration(
 //                 gradient: RadialGradient(
-//                   colors: [Colors.yellow.withOpacity(0.2), Colors.transparent],
+//                   colors: [Colors.yellow.withValues(alpha: 0.2), Colors.transparent],
 //                   radius: 0.8,
 //                 ),
 //               ),

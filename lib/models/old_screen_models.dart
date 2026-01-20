@@ -82,11 +82,14 @@ class Trustee {
 
 class TempleImageInfo { // Renamed to avoid conflict
   final String url;
+  final String? title;
   final String caption;
+
 
   TempleImageInfo({
     required this.url,
     required this.caption,
+    this.title,  
   });
 }
 

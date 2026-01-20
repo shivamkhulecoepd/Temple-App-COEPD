@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle, Uint8List;
+import 'package:open_filex/open_filex.dart'; // optional
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/models/old_screen_models.dart';
 import 'package:temple_app/widgets/translated_text.dart';
@@ -20,10 +29,127 @@ class _AboutScreenState extends State<AboutScreen>
   late Animation<double> _fadeAnimation;
 
   /// Auth-style theme colors
-  final Color primaryOrange = const Color(0xFFF26B2C);
+  // final Color primaryOrange = const Color(0xFFF26B2C);
   final Color softGrey = const Color(0xFFF7F7F7);
-  final Color textDark = const Color(0xFF1C1C1C);
+  // final Color textDark = const Color(0xFF1C1C1C);
   final Color textMuted = const Color(0xFF7A7A7A);
+
+  // ── Audio Player ───────────────────────────────────────────────
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  bool _isAudioInitialized = false;
+
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
+
+  Future<void> _initAudioPlayer() async {
+    try {
+      // Preload the audio (optional but recommended)
+      await _audioPlayer.setSource(AssetSource('audio/mslg_song_3.mp3'));
+
+      // Listen to player state changes
+      _audioPlayer.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = state == PlayerState.playing;
+          });
+        }
+      });
+
+      // Optional: track duration & position
+      _audioPlayer.onDurationChanged.listen((d) {
+        if (mounted) setState(() => _duration = d);
+      });
+
+      _audioPlayer.onPositionChanged.listen((p) {
+        if (mounted) setState(() => _position = p);
+      });
+
+      _isAudioInitialized = true;
+    } catch (e) {
+      debugPrint('Audio initialization error: $e');
+    }
+  }
+
+  Future<void> _togglePlayPause() async {
+    if (!_isAudioInitialized) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: TranslatedText('Audio not ready yet...')),
+      );
+      return;
+    }
+
+    if (_isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer
+          .resume(); // or .play() if you want to restart from beginning
+      // If you want to always start from beginning when pressing play:
+      // await _audioPlayer.play(AssetSource('audio/mslg song 3.mp3'));
+    }
+  }
+
+  // -------------------- Download PDF  -----------------------------------------
+
+  bool _isPdfDownloading = false;
+
+  Future<void> _handlePdfAction() async {
+    setState(() => _isPdfDownloading = true);
+
+    try {
+      // Request storage permission (mainly Android)
+      if (Platform.isAndroid) {
+        var status = await Permission.storage.status;
+        if (!status.isGranted) {
+          status = await Permission.storage.request();
+          if (!status.isGranted) {
+            _snack('Storage permission denied');
+            return;
+          }
+        }
+      }
+
+      // Option A: View PDF inside app (recommended first step)
+      // Uncomment to navigate to full-screen viewer
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PdfViewerScreen()),
+      );
+
+      // Option B: Save to device & optionally open in external viewer
+      // await _saveAndOpenPdf();
+
+      _snack('PDF saved successfully!');
+    } catch (e) {
+      _snack('Error: ${e.toString()}');
+      debugPrint('PDF error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isPdfDownloading = false);
+      }
+    }
+  }
+
+  Future<void> _saveAndOpenPdf() async {
+    // Load from assets
+    final byteData = await rootBundle.load('assets/pdfs/historical_notes.pdf');
+    final Uint8List pdfBytes = byteData.buffer.asUint8List();
+
+    // Get save location (Downloads or Documents)
+    final directory =
+        await getDownloadsDirectory() ??
+        await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/historical_notes.pdf');
+
+    // Save file
+    await file.writeAsBytes(pdfBytes);
+
+    // Optional: Open in external PDF viewer (Adobe, Google PDF, etc.)
+    final result = await OpenFilex.open(file.path);
+    if (result.type != ResultType.done) {
+      _snack('Saved but cannot open automatically: ${result.message}');
+    }
+  }
 
   @override
   void initState() {
@@ -37,13 +163,87 @@ class _AboutScreenState extends State<AboutScreen>
       curve: Curves.easeIn,
     );
     _animationController.forward();
+
+    _initAudioPlayer();
   }
 
   @override
   void dispose() {
+    _audioPlayer.dispose();
     _pageController.dispose();
     _animationController.dispose();
     super.dispose();
+  }
+
+  // ---------------- BUILD ----------------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.grey[900]
+          : softGrey,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        centerTitle: true,
+        title: TranslatedText(
+          'About Us',
+          style: TextStyle(
+            fontFamily: 'aBeeZee',
+            color: Theme.of(context).appBarTheme.foregroundColor,
+            fontSize: 16.sp,
+          ),
+        ),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).appBarTheme.foregroundColor,
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Background image
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background/main_bg1.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Black overlay in dark mode
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withValues(alpha: 0.8)
+                  : Colors.transparent,
+            ),
+          ),
+          // Content
+          Column(
+            children: [
+              _buildSectionSelector(),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: 5, // Changed to hardcoded count
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                      _animationController.forward(from: 0);
+                    });
+                  },
+                  itemBuilder: (_, i) => _buildSectionContent(
+                    _getSectionByIndex(i),
+                  ), // Changed to use helper method
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   // ---------------- TOP SECTION SELECTOR ----------------
@@ -80,7 +280,11 @@ class _AboutScreenState extends State<AboutScreen>
                       // vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected ? primaryOrange : softGrey,
+                      color: isSelected
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[700]
+                          : softGrey,
                       borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Row(
@@ -88,7 +292,11 @@ class _AboutScreenState extends State<AboutScreen>
                         Icon(
                           section.icon,
                           size: 18.sp,
-                          color: isSelected ? Colors.white : textMuted,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
+                              : textMuted,
                         ),
                         SizedBox(width: 6.w),
                         TranslatedText(
@@ -98,7 +306,12 @@ class _AboutScreenState extends State<AboutScreen>
                             fontFamily: 'aBeeZee',
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.white : textMuted,
+                            color: isSelected
+                                ? Colors.white
+                                : Theme.of(context).brightness ==
+                                      Brightness.dark
+                                ? Colors.white70
+                                : textMuted,
                           ),
                         ),
                       ],
@@ -114,12 +327,15 @@ class _AboutScreenState extends State<AboutScreen>
             child: TranslatedText(
               _getSectionByIndex(_currentIndex).subtitle,
               style: TextStyle(
-                fontSize: 13.sp,
-                color: textMuted,
                 fontFamily: 'aBeeZee',
+                fontSize: 13.sp,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : textMuted,
               ),
-              maxLines: 3,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.left,
             ),
           ),
         ],
@@ -154,13 +370,13 @@ class _AboutScreenState extends State<AboutScreen>
               year: '2019',
               title: 'Community Programs',
               details:
-                  'Launch of annadanam (free food distribution) and education schemes for underprivileged children. Regular spiritual discourses and Vedic classes began.',
+                  'Launch of annadanam (free food distribution) and education schemes for underprivileged children.',
             ),
             TimelineEvent(
               year: '2020',
               title: 'Major Renovation',
               details:
-                  'Complete renovation of Gopuram (tower) and Mandapam (hall). Installation of new vigrahas (deities) with proper Agamic rituals.',
+                  'Complete renovation of Gopuram (tower) and Mandapam (hall).',
             ),
           ],
           hasAudio: true,
@@ -204,29 +420,7 @@ Visitors can explore the timeline and download scholarly notes.''',
           audioUrl: '',
           hasDownload: false,
           downloadUrl: '',
-          content: '''
-Details of the main deity, sub-shrines and important rituals.
-
-**Sri Laxmi Ganapathi**
-The main deity of the temple is a unique form of Lord Ganesha with Goddess Lakshmi seated on His lap. This rare form symbolizes prosperity, wisdom, and removal of obstacles. The deity is carved from sacred black stone and measures 3 feet in height.
-
-**Sri Anjaneya Swamy**
-Located to the south of the main shrine, this deity of Lord Hanuman is 4 feet tall and faces south (as Dakshinamukhi Anjaneya). Special pujas are performed on Tuesdays and Saturdays.
-
-**Sri Navagraha**
-The nine planetary deities are installed in a separate shrine facing east. Each deity is represented with their respective vahanas (vehicles) and weapons. Special homams are performed for planetary peace and prosperity.
-
-**Other Sub-Shrines:**
-- Sri Durga Devi
-- Sri Satyanarayana Swamy
-- Sri Subramanya Swamy with Valli and Deivanai
-- Nandeeswara and Mahalakshmi
-
-**Important Rituals:**
-1. Daily: Panchamritabhishekam, Rudrabhishekam
-2. Monthly: Sankatahara Chaturthi, Ekadashi
-3. Annual: Ganesha Chaturthi, Diwali, Maha Shivaratri
-''',
+          content: '',
           deities: [
             Deity(
               name: 'Sri Laxmi Ganapathi',
@@ -234,22 +428,21 @@ The nine planetary deities are installed in a separate shrine facing east. Each 
                   'Main deity, guardian of prosperity and remover of obstacles',
               icon: '🕉️',
               imageUrl:
-                  'https://images.unsplash.com/photo-1613483836768-66fbfc8d3b6d?w=800', // Lakshmi Ganesh beautiful murti
+                  'assets/images/about/abt2.1.jpg', // Lakshmi Ganesh beautiful murti
             ),
             Deity(
               name: 'Sri Anjaneya Swamy',
               description: 'Protector and obstacle remover, south-facing deity',
               icon: '🐒',
               imageUrl:
-                  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800', // Classic Hanuman photo
+                  'assets/images/about/abt2.2.jpg', // Classic Hanuman photo
             ),
             Deity(
               name: 'Sri Navagraha',
               description:
                   'Celestial influence and remedies for planetary positions',
               icon: '☀️',
-              imageUrl:
-                  'https://i.imgur.com/0mK9v7v.jpg', // Navagraha realistic
+              imageUrl: 'assets/images/about/abt2.3.jpg', // Navagraha realistic
             ),
           ],
         );
@@ -285,62 +478,16 @@ The nine planetary deities are installed in a separate shrine facing east. Each 
           audioUrl: '',
           hasDownload: false,
           downloadUrl: '',
-          content: '''
-Photographs and descriptions highlight the Gopuram, Mandapam, Dwajasthambham and temple tank.
-
-**Architectural Style:**
-The temple follows the Dravidian architectural style as prescribed in the Agama Shastras. The entire structure is aligned according to Vastu principles with the main deity facing East.
-
-**Key Architectural Features:**
-
-1. **Gopuram (Tower):**
-   - 5-tier Rajagopuram at the entrance
-   - Height: 45 feet
-   - Features sculptures of Dasavatara (10 incarnations of Vishnu)
-   - Kalasam (golden pinnacle) at the top
-
-2. **Mandapam (Halls):**
-   - **Maha Mandapam:** Main hall for rituals (40x40 feet)
-   - **Artha Mandapam:** Antechamber before sanctum
-   - **Kalyana Mandapam:** For wedding ceremonies
-   - **Ranga Mandapam:** For cultural performances
-
-3. **Dwajasthambham (Flag Post):**
-   - 25-foot tall copper flag post
-   - Weekly flag hoisting on Fridays
-   - Nandi statue facing the sanctum
-
-4. **Temple Tank (Pushkarini):**
-   - 60x40 feet sacred water tank
-   - Steps on all four sides
-   - Used for ritual purification
-
-5. **Prakaram (Circumambulation Path):**
-   - Outer corridor: 150 feet circumference
-   - Inner corridor: 80 feet circumference
-   - Stone flooring with carved designs
-
-**Vastu Considerations:**
-- Main entrance faces East for prosperity
-- Kitchen located in Southeast
-- Water storage in Northeast
-- Administration office in Northwest
-''',
+          content:
+              'Architectural notes explain the vastu consideration of the temple design.',
           images: [
             TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1580130718646-9f694209b207?w=1200',
-              caption: 'Main Rajagopuram - South Indian style',
+              url: 'assets/images/about/abt3.1.jpg',
+              caption: 'Main Gopuram - South Indian style',
             ),
             TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1599669454699-248893623440?w=1200',
-              caption: 'Maha Mandapam with carved pillars',
-            ),
-            TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1620736686487-4e8d0a7d3b5a?w=800',
-              caption: 'Sacred Temple Pushkarini (Tank)',
+              url: 'assets/images/about/abt3.2.jpg',
+              caption: 'Virtual 360° Tour',
             ),
           ],
         );
@@ -376,49 +523,7 @@ The temple follows the Dravidian architectural style as prescribed in the Agama 
           audioUrl: '',
           hasDownload: true,
           downloadUrl: '',
-          content: '''
-Details of the management, governance policies, and contact points for administrative queries.
-
-**Trust Board Structure:**
-The temple is managed by Sri Marakatha Lakshmi Ganapathi Trust, registered under the Societies Registration Act.
-
-**Key Administrative Positions:**
-
-1. **Chairman:** Dr. M. Satyanarayana Shastry
-   - Overall spiritual and administrative guidance
-   - Final authority on ritual matters
-
-2. **Managing Trustee:** Sri R. Krishna Kumar
-   - Day-to-day administration
-   - Financial management
-   - Staff supervision
-
-3. **Secretary:** Smt. Lakshmi Devi
-   - Record keeping
-   - Event coordination
-   - Donor relations
-
-4. **Treasurer:** Sri S. Rajagopal
-   - Financial accounting
-   - Audit compliance
-   - Budget management
-
-**Governance Policies:**
-- Monthly trust meetings
-- Annual financial audit by CA firm
-- Transparent donation system
-- Quarterly newsletter to devotees
-- Grievance redressal committee
-
-**Contact Information:**
-- Email: admin@marakathatemple.org
-- Phone: +91-9876543210
-- Address: Sri Marakatha Lakshmi Ganapathi Devalayam, Temple Street, Vijayawada, Andhra Pradesh - 520001
-
-**Office Hours:**
-- Monday to Saturday: 8:00 AM to 12:00 PM, 4:00 PM to 8:00 PM
-- Sunday: 8:00 AM to 1:00 PM
-''',
+          content: '',
           trustees: [
             Trustee(
               name: 'Dr. M. Satyanarayana Shastry',
@@ -439,6 +544,16 @@ The temple is managed by Sri Marakatha Lakshmi Ganapathi Trust, registered under
               name: 'Sri S. Rajagopal',
               position: 'Treasurer',
               contact: 'treasurer@marakathatemple.org',
+            ),
+            Trustee(
+              name: 'Sri R. Krishna Kumar',
+              position: 'Managing Trustee',
+              contact: 'trustee@marakathatemple.org',
+            ),
+            Trustee(
+              name: 'Dr. M. Satyanarayana Shastry',
+              position: 'Chairman & Chief Priest',
+              contact: 'chairman@marakathatemple.org',
             ),
           ],
         );
@@ -473,51 +588,20 @@ The temple is managed by Sri Marakatha Lakshmi Ganapathi Trust, registered under
           audioUrl: '',
           hasDownload: false,
           downloadUrl: '',
-          content: '''
-Dr. M. Satyanarayana Shastry Garu is a highly respected Vedic scholar, spiritual mentor, and steadfast upholder of Sanatana Dharma.
-
-**Early Life & Education:**
-Born into a traditional Vedic family, Shastry Garu was immersed in spiritual learning from a young age. Under the guidance of eminent gurus, he received rigorous training in Vedic scriptures, Agamas, temple rituals, and sacred traditions. His deep scholarship, combined with strict spiritual discipline and daily sadhana, laid a strong foundation for his lifelong commitment to Dharma and divine service.
-
-**Academic Qualifications:**
-- Vedavishaarada in Rigveda
-- Agama Shastra Visharada
-- PhD in Vedic Studies from Sampurnanand Sanskrit University
-- Author of 15 books on Vedic rituals and temple architecture
-
-**Contribution to the Temple:**
-Dr. M. Satyanarayana Shastry Garu\'s divine vision and leadership were instrumental in the conception and development of Marakatha Sri Lakshmi Ganapathi Devalayam. He guided every aspect of the temple—its Agamic architecture, ritual procedures, daily worship, festivals, and spiritual programs—ensuring strict adherence to Vedic and Agamic principles.
-
-**Spiritual Philosophy:**
-Shastry Garu emphasizes:
-1. **Bhakti Marga:** Path of devotion through regular worship
-2. **Jnana Marga:** Spiritual knowledge through Vedic study
-3. **Seva:** Selfless service to society
-4. **Samskaras:** Preserving traditional rituals
-
-**Other Contributions:**
-- Established Veda Patashala for young students
-- Regular spiritual discourses across India
-- Guidance for temple construction and restoration
-- Mentorship to hundreds of priests and scholars
-
-Through his inspiration, the Devalayam has become not only a place of worship but also a vibrant spiritual and cultural center, nurturing devotion, tradition, and service among devotees.
-''',
+          content:
+              'Dr. M. Satyanarayana Shastry Garu is a highly respected Vedic scholar, spiritual mentor, and steadfast upholder of Sanātana Dharma. With profound knowledge in Vedas, Agamas, and Shastras, he has dedicated his life to spiritual teaching, divine worship, and selfless service to society. He is the guiding force and spiritual inspiration behind the establishment of Marakatha Sri Lakshmi Ganapathi Devalayam, shaping it into a center of devotion, discipline, and dharmic values.',
           images: [
             TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-              caption: 'Vedic scholar performing traditional rituals',
+              url: 'assets/images/dashboard/gurujia.jpg',
+              title: 'Early Life & Education',
+              caption:
+                  'Born into a traditional Vedic family, Shastry Garu was immersed in spiritual learning from a young age. Under the guidance of eminent gurus, he received rigorous training in Vedic scriptures, Agamas, temple rituals, and sacred traditions. His deep scholarship, combined with strict spiritual discipline and daily sādhanā, laid a strong foundation for his lifelong commitment to Dharma and divine service.',
             ),
             TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800',
-              caption: 'Spiritual discourse with devotees',
-            ),
-            TempleImageInfo(
-              url:
-                  'https://images.unsplash.com/photo-1584553421349-355a77773a3e?w=800',
-              caption: 'Priest during important temple ceremony',
+              url: 'assets/images/about/bappanguru.png',
+              title: 'Contribution to the Temple',
+              caption:
+                  'Dr. M. Satyanarayana Shastry Garu’s divine vision and leadership were instrumental in the conception and development of Marakatha Sri Lakshmi Ganapathi Devalayam. He guided every aspect of the temple—its Agamic architecture, ritual procedures, daily worship, festivals, and spiritual programs—ensuring strict adherence to Vedic and Agamic principles. Through his inspiration, the Devalayam has become not only a place of worship but also a vibrant spiritual and cultural center, nurturing devotion, tradition, and service among devotees.',
             ),
           ],
         );
@@ -574,31 +658,35 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    section.color.withOpacity(0.1),
-                    section.color.withOpacity(0.3),
+                    section.color.withValues(alpha: 0.1),
+                    section.color.withValues(alpha: 0.3),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: section.color.withOpacity(0.5)),
+                border: Border.all(color: section.color.withValues(alpha: 0.5)),
               ),
               child: Column(
                 children: [
                   TranslatedText(
                     section.title,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: section.color,
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     'A journey through time and tradition',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
-                      color: textMuted,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -607,20 +695,25 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
             ),
             SizedBox(height: 16.h),
 
-            _buildAuthCard(
-              child: Text(
-                section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ),
-            ),
-
-            SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Historical Timeline',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
@@ -642,9 +735,10 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                         border: Border.all(color: Colors.white, width: 2.w),
                       ),
                       child: Center(
-                        child: Text(
+                        child: TranslatedText(
                           event.year,
                           style: TextStyle(
+                            fontFamily: 'aBeeZee',
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 12.sp,
@@ -657,34 +751,42 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                       child: Container(
                         padding: EdgeInsets.all(12.w),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[800]!.withValues(alpha: 0.7)
+                              : Colors.white.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.only(
                             topRight: Radius.circular(12.r),
                             bottomLeft: Radius.circular(12.r),
                             bottomRight: Radius.circular(12.r),
                           ),
                           border: Border.all(
-                            color: section.color.withOpacity(0.3),
+                            color: section.color.withValues(alpha: 0.3),
                             width: 1.w,
                           ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            TranslatedText(
                               event.title,
                               style: TextStyle(
+                                fontFamily: 'aBeeZee',
                                 fontSize: 15.sp,
                                 fontWeight: FontWeight.w600,
-                                color: textDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             SizedBox(height: 4.h),
-                            Text(
+                            TranslatedText(
                               event.details,
                               style: TextStyle(
+                                fontFamily: 'aBeeZee',
                                 fontSize: 12.sp,
-                                color: textMuted,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white60
+                                    : textMuted,
                                 height: 1.4,
                               ),
                             ),
@@ -720,31 +822,35 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF8E44AD).withOpacity(0.1),
-                    Color(0xFF9B59B6).withOpacity(0.1),
+                    Color(0xFF8E44AD).withValues(alpha: 0.1),
+                    Color(0xFF9B59B6).withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF8E44AD).withOpacity(0.5)),
+                border: Border.all(color: Color(0xFF8E44AD).withValues(alpha: 0.5)),
               ),
               child: Column(
                 children: [
                   TranslatedText(
                     section.title,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF8E44AD),
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     'Sacred forms of divinity',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
-                      color: textMuted,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -753,20 +859,25 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
             ),
             SizedBox(height: 16.h),
 
-            _buildAuthCard(
-              child: Text(
-                section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ),
-            ),
-
-            SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Sacred Deities',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
@@ -785,75 +896,84 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                 final deity = section.deities![i];
                 return Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]!.withValues(alpha: 0.7)
+                        : Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(
-                      color: Color(0xFF8E44AD).withOpacity(0.3),
+                      color: Color(0xFF8E44AD).withValues(alpha: 0.3),
                       width: 1.w,
                     ),
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.all(16.w),
-                    child: Row(
-                      children: [
-                        // Show deity image if available, otherwise show the icon
-                        if (deity.imageUrl != null &&
-                            deity.imageUrl!.isNotEmpty)
-                          Container(
-                            width: 60.w,
-                            height: 60.h,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF8E44AD).withOpacity(0.1),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Color(0xFF8E44AD),
-                                width: 1.w,
-                              ),
-                              image: DecorationImage(
-                                image: NetworkImage(deity.imageUrl!),
-                                fit: BoxFit.cover,
-                              ),
+                  child: Row(
+                    children: [
+                      // Show deity image if available, otherwise show the icon
+                      if (deity.imageUrl != null && deity.imageUrl!.isNotEmpty)
+                        Container(
+                          width: 100.w,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF8E44AD).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12.r),
+                              bottomLeft: Radius.circular(12.r),
+                              topRight: Radius.circular(12.r),
+                              bottomRight: Radius.circular(12.r),
                             ),
-                          )
-                        else
-                          Container(
-                            width: 60.w,
-                            height: 60.h,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF8E44AD).withOpacity(0.1),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Color(0xFF8E44AD),
-                                width: 1.w,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                deity.icon,
-                                style: TextStyle(fontSize: 30.sp),
-                              ),
+                            image: DecorationImage(
+                              image: AssetImage(deity.imageUrl!),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        SizedBox(width: 12.w),
-                        Expanded(
+                        )
+                      else
+                        Container(
+                          width: 100.w,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF8E44AD).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12.r),
+                              bottomLeft: Radius.circular(12.r),
+                              topRight: Radius.circular(12.r),
+                              bottomRight: Radius.circular(12.r),
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              color: Color(0xFF8E44AD),
+                            ),
+                          ),
+                        ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              TranslatedText(
                                 deity.name,
                                 style: TextStyle(
+                                  fontFamily: 'aBeeZee',
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: textDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                 ),
                               ),
                               SizedBox(height: 4.h),
-                              Text(
+                              TranslatedText(
                                 deity.description,
                                 style: TextStyle(
+                                  fontFamily: 'aBeeZee',
                                   fontSize: 12.sp,
-                                  color: textMuted,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white60
+                                      : textMuted,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -861,20 +981,20 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
-
             SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Daily Rituals',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
@@ -884,10 +1004,12 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                 margin: EdgeInsets.only(bottom: 12.h),
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: Color(0xFF8E44AD).withOpacity(0.3),
+                    color: Color(0xFF8E44AD).withValues(alpha: 0.3),
                     width: 1.w,
                   ),
                 ),
@@ -902,16 +1024,17 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                             vertical: 6.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(0xFF8E44AD).withOpacity(0.1),
+                            color: Color(0xFF8E44AD).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8.r),
                             border: Border.all(
                               color: Color(0xFF8E44AD),
                               width: 1.w,
                             ),
                           ),
-                          child: Text(
+                          child: TranslatedText(
                             event.year,
                             style: TextStyle(
+                              fontFamily: 'aBeeZee',
                               color: Color(0xFF8E44AD),
                               fontWeight: FontWeight.bold,
                               fontSize: 12.sp,
@@ -919,20 +1042,27 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                           ),
                         ),
                         SizedBox(width: 12.w),
-                        Text(
+                        TranslatedText(
                           event.title,
                           style: TextStyle(
+                            fontFamily: 'aBeeZee',
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w600,
-                            color: textDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 8.h),
-                    Text(
+                    TranslatedText(
                       event.details,
-                      style: TextStyle(fontSize: 12.sp, color: textMuted),
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 12.sp,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white60
+                            : textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -959,31 +1089,35 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF27AE60).withOpacity(0.1),
-                    Color(0xFF2ECC71).withOpacity(0.1),
+                    Color(0xFF27AE60).withValues(alpha: 0.1),
+                    Color(0xFF2ECC71).withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF27AE60).withOpacity(0.5)),
+                border: Border.all(color: Color(0xFF27AE60).withValues(alpha: 0.5)),
               ),
               child: Column(
                 children: [
                   TranslatedText(
                     section.title,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF27AE60),
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     'Sacred architecture and spiritual spaces',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
-                      color: textMuted,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -992,22 +1126,28 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
             ),
             SizedBox(height: 16.h),
 
-            _buildAuthCard(
-              child: Text(
-                section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ),
-            ),
 
             // Show images if available
             if (section.images != null && section.images!.isNotEmpty) ...[
-              SizedBox(height: 16.h),
-              Text(
+              TranslatedText(
                 'Architectural Highlights',
                 style: TextStyle(
+                  fontFamily: 'aBeeZee',
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
-                  color: textDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               SizedBox(height: 12.h),
@@ -1015,10 +1155,12 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                 (imageInfo) => Container(
                   margin: EdgeInsets.only(bottom: 12.h),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]!.withValues(alpha: 0.7)
+                        : Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(
-                      color: Color(0xFF27AE60).withOpacity(0.3),
+                      color: Color(0xFF27AE60).withValues(alpha: 0.3),
                       width: 1.w,
                     ),
                   ),
@@ -1029,22 +1171,27 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                       children: [
                         Container(
                           width: double.infinity,
-                          height: 150.h,
+                          height: 180.h,
                           decoration: BoxDecoration(
+                            // image: DecorationImage(
+                            //   image: NetworkImage(imageInfo.url),
+                            //   fit: BoxFit.cover,
+                            // ),
                             image: DecorationImage(
-                              image: NetworkImage(imageInfo.url),
-                              fit: BoxFit.cover,
+                              image: AssetImage(imageInfo.url),
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
                         Padding(
                           padding: EdgeInsets.all(12.w),
-                          child: Text(
+                          child: TranslatedText(
                             imageInfo.caption,
                             style: TextStyle(
+                              fontFamily: 'aBeeZee',
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
-                              color: textDark,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -1056,12 +1203,13 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
             ],
 
             SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Architectural Features',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
@@ -1070,10 +1218,12 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               (feature) => Container(
                 margin: EdgeInsets.only(bottom: 12.h),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: Color(0xFF27AE60).withOpacity(0.3),
+                    color: Color(0xFF27AE60).withValues(alpha: 0.3),
                     width: 1.w,
                   ),
                 ),
@@ -1088,19 +1238,21 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                           size: 20.sp,
                         ),
                         SizedBox(width: 8.w),
-                        Text(
+                        TranslatedText(
                           feature.title,
                           style: TextStyle(
+                            fontFamily: 'aBeeZee',
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w600,
-                            color: textDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
-                    subtitle: Text(
+                    subtitle: TranslatedText(
                       feature.year,
                       style: TextStyle(
+                        fontFamily: 'aBeeZee',
                         fontSize: 12.sp,
                         color: Color(0xFF27AE60),
                       ),
@@ -1108,11 +1260,15 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                     children: [
                       Padding(
                         padding: EdgeInsets.all(16.w),
-                        child: Text(
+                        child: TranslatedText(
                           feature.details,
                           style: TextStyle(
+                            fontFamily: 'aBeeZee',
                             fontSize: 13.sp,
-                            color: textMuted,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white60
+                                : textMuted,
                             height: 1.5,
                           ),
                         ),
@@ -1145,53 +1301,63 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF2980B9).withOpacity(0.1),
-                    Color(0xFF3498DB).withOpacity(0.1),
+                    Color(0xFF2980B9).withValues(alpha: 0.1),
+                    Color(0xFF3498DB).withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF2980B9).withOpacity(0.5)),
+                border: Border.all(color: Color(0xFF2980B9).withValues(alpha: 0.5)),
               ),
               child: Column(
                 children: [
                   TranslatedText(
                     section.title,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF2980B9),
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     'Management and governance',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
-                      color: textMuted,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 16.h),
 
-            _buildAuthCard(
-              child: Text(
-                section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
               ),
-            ),
 
             SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Trust Board Members',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
@@ -1200,19 +1366,21 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               (trustee) => Container(
                 margin: EdgeInsets.only(bottom: 12.h),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: Color(0xFF2980B9).withOpacity(0.3),
+                    color: Color(0xFF2980B9).withValues(alpha: 0.3),
                     width: 1.w,
                   ),
                 ),
                 child: ListTile(
                   leading: Container(
-                    width: 48.w,
-                    height: 48.h,
+                    width: 50.w,
+                    height: 50.h,
                     decoration: BoxDecoration(
-                      color: Color(0xFF2980B9).withOpacity(0.1),
+                      color: Color(0xFF2980B9).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                       border: Border.all(color: Color(0xFF2980B9), width: 1.w),
                     ),
@@ -1222,31 +1390,28 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                       size: 24.sp,
                     ),
                   ),
-                  title: Text(
+                  title: TranslatedText(
                     trustee.name,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
-                      color: textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  subtitle: Text(
+                  subtitle: TranslatedText(
                     trustee.position,
-                    style: TextStyle(fontSize: 12.sp, color: textMuted),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.email,
-                      color: Color(0xFF2980B9),
-                      size: 20.sp,
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 12.sp,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white60
+                          : textMuted,
                     ),
-                    onPressed: () => _sendEmail(trustee.contact),
                   ),
                 ),
               ),
             ),
-
-            if (section.hasDownload) _buildDownloadCard(),
           ],
         ),
       ),
@@ -1268,31 +1433,35 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFFC0392B).withOpacity(0.1),
-                    Color(0xFFE74C3C).withOpacity(0.1),
+                    Color(0xFFC0392B).withValues(alpha: 0.1),
+                    Color(0xFFE74C3C).withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFFC0392B).withOpacity(0.5)),
+                border: Border.all(color: Color(0xFFC0392B).withValues(alpha: 0.5)),
               ),
               child: Column(
                 children: [
                   TranslatedText(
                     section.title,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFC0392B),
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     'Spiritual mentor and guiding force',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
-                      color: textMuted,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -1300,6 +1469,18 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               ),
             ),
             SizedBox(height: 16.h),
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
 
             // Show images if available
             if (section.images != null && section.images!.isNotEmpty) ...[
@@ -1307,10 +1488,12 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                 (imageInfo) => Container(
                   margin: EdgeInsets.only(bottom: 12.h),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]!.withValues(alpha: 0.7)
+                        : Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(
-                      color: Color(0xFFC0392B).withOpacity(0.3),
+                      color: Color(0xFFC0392B).withValues(alpha: 0.3),
                       width: 1.w,
                     ),
                   ),
@@ -1323,21 +1506,44 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                           width: double.infinity,
                           height: 150.h,
                           decoration: BoxDecoration(
+                            // image: DecorationImage(
+                            //   image: NetworkImage(imageInfo.url),
+                            //   fit: BoxFit.cover,
+                            // ),
                             image: DecorationImage(
-                              image: NetworkImage(imageInfo.url),
-                              fit: BoxFit.cover,
+                              image: AssetImage(imageInfo.url),
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
                         Padding(
                           padding: EdgeInsets.all(12.w),
-                          child: Text(
-                            imageInfo.caption,
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                              color: textDark,
-                            ),
+                          child: Column(
+                            spacing: 10.h,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TranslatedText(
+                                imageInfo.title!,
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFC0392B),
+                                ),
+                              ),
+
+                              TranslatedText(
+                                imageInfo.caption,
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w400,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1352,7 +1558,7 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                 height: 100.h,
                 margin: EdgeInsets.only(bottom: 16.h),
                 decoration: BoxDecoration(
-                  color: Color(0xFFC0392B).withOpacity(0.1),
+                  color: Color(0xFFC0392B).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(color: Color(0xFFC0392B), width: 2.w),
                 ),
@@ -1365,33 +1571,30 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               SizedBox(height: 16.h),
             ],
 
-            _buildAuthCard(
-              child: Text(
-                section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
-              ),
-            ),
-
             SizedBox(height: 16.h),
-            Text(
+            TranslatedText(
               'Academic Journey',
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
 
             ...section.timelineEvents.map(
               (milestone) => Container(
+                width: double.infinity,
                 margin: EdgeInsets.only(bottom: 12.h),
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]!.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: Color(0xFFC0392B).withOpacity(0.3),
+                    color: Color(0xFFC0392B).withValues(alpha: 0.3),
                     width: 1.w,
                   ),
                 ),
@@ -1404,16 +1607,17 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                         vertical: 6.h,
                       ),
                       decoration: BoxDecoration(
-                        color: Color(0xFFC0392B).withOpacity(0.1),
+                        color: Color(0xFFC0392B).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8.r),
                         border: Border.all(
                           color: Color(0xFFC0392B),
                           width: 1.w,
                         ),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         milestone.year,
                         style: TextStyle(
+                          fontFamily: 'aBeeZee',
                           color: Color(0xFFC0392B),
                           fontWeight: FontWeight.bold,
                           fontSize: 12.sp,
@@ -1421,18 +1625,25 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    Text(
+                    TranslatedText(
                       milestone.title,
                       style: TextStyle(
+                        fontFamily: 'aBeeZee',
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
-                        color: textDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: 4.h),
-                    Text(
+                    TranslatedText(
                       milestone.details,
-                      style: TextStyle(fontSize: 12.sp, color: textMuted),
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 12.sp,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white60
+                            : textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -1456,17 +1667,23 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
             TranslatedText(
               section.title,
               style: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
-                color: textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 12.h),
 
             _buildAuthCard(
-              child: Text(
+              child: TranslatedText(
                 section.content,
-                style: TextStyle(fontSize: 14.sp, height: 1.6, color: textDark),
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 14.sp,
+                  height: 1.6,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
 
@@ -1490,11 +1707,15 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
       margin: EdgeInsets.only(bottom: 16.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[800]!.withValues(alpha: 0.6)
+            : Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1510,12 +1731,13 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        TranslatedText(
           'Deities',
           style: TextStyle(
+            fontFamily: 'aBeeZee',
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: textDark,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 12.h),
@@ -1535,21 +1757,31 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(d.icon, style: TextStyle(fontSize: 30.sp)),
+                  TranslatedText(
+                    d.icon,
+                    style: TextStyle(fontFamily: 'aBeeZee', fontSize: 30.sp),
+                  ),
                   SizedBox(height: 8.h),
-                  Text(
+                  TranslatedText(
                     d.name,
                     textAlign: TextAlign.center,
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 4.h),
-                  Text(
+                  TranslatedText(
                     d.description,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11.sp, color: textMuted),
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 11.sp,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -1566,12 +1798,13 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        TranslatedText(
           'Trust Board',
           style: TextStyle(
+            fontFamily: 'aBeeZee',
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: textDark,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 12.h),
@@ -1579,14 +1812,16 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
           (t) => _buildAuthCard(
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: softGrey,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[700]
+                    : softGrey,
                 child: const Icon(Icons.person),
               ),
-              title: Text(
+              title: TranslatedText(
                 t.name,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text(t.position),
+              subtitle: TranslatedText(t.position),
               trailing: IconButton(
                 icon: const Icon(Icons.email),
                 onPressed: () => _sendEmail(t.contact),
@@ -1599,28 +1834,74 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
   }
 
   // ---------------- AUDIO / DOWNLOAD CARDS ----------------
+  // ── Updated Audio Card ─────────────────────────────────────────
+  Widget _buildAudioCard() {
+    return _buildAuthCard(
+      child: Column(
+        children: [
+          ElevatedButton.icon(
+            style: _primaryButtonStyle(),
+            onPressed: _togglePlayPause,
+            icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+            label: TranslatedText(_isPlaying ? 'Pause Audio' : 'Play Audio'),
+          ),
 
-  Widget _buildAudioCard() => _buildAuthCard(
-    child: ElevatedButton.icon(
-      style: _primaryButtonStyle(),
-      onPressed: _playAudio,
-      icon: const Icon(Icons.play_arrow),
-      label: const Text('Play Audio'),
-    ),
-  );
+          // Optional: simple progress bar
+          if (_duration != Duration.zero) ...[
+            SizedBox(height: 12.h),
+            Slider(
+              value: _position.inSeconds.toDouble(),
+              max: _duration.inSeconds.toDouble(),
+              onChanged: (value) async {
+                final position = Duration(seconds: value.toInt());
+                await _audioPlayer.seek(position);
+              },
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TranslatedText(_formatDuration(_position)),
+                  TranslatedText(_formatDuration(_duration)),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
-  Widget _buildDownloadCard() => _buildAuthCard(
-    child: ElevatedButton.icon(
-      style: _primaryButtonStyle(),
-      onPressed: _downloadPDF,
-      icon: const Icon(Icons.download),
-      label: const Text('Download PDF'),
-    ),
-  );
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Widget _buildDownloadCard() {
+    return _buildAuthCard(
+      child: ElevatedButton.icon(
+        style: _primaryButtonStyle(),
+        onPressed: _isPdfDownloading ? null : _handlePdfAction,
+        icon: _isPdfDownloading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              )
+            : const Icon(Icons.download),
+        label: TranslatedText(
+          _isPdfDownloading ? 'Processing...' : 'Download Historical Notes',
+        ),
+      ),
+    );
+  }
 
   ButtonStyle _primaryButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: primaryOrange,
+      backgroundColor: Theme.of(context).primaryColor,
+      foregroundColor: Colors.white,
       minimumSize: Size(double.infinity, 48.h),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
     );
@@ -1630,8 +1911,9 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
 
   void _playAudio() => _snack('Playing audio...');
   void _downloadPDF() => _snack('Downloading PDF...');
-  void _snack(String msg) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  void _snack(String msg) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: TranslatedText(msg)));
 
   void _sendEmail(String email) async {
     final uri = Uri.parse('mailto:$email');
@@ -1639,52 +1921,20 @@ Through his inspiration, the Devalayam has become not only a place of worship bu
       await launchUrl(uri);
     }
   }
+}
 
-  // ---------------- BUILD ----------------
+class PdfViewerScreen extends StatelessWidget {
+  const PdfViewerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: softGrey,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        title: Text(
-          'About Us',
-          style: TextStyle(color: textDark, fontSize: 16.sp),
-        ),
-        iconTheme: IconThemeData(color: textDark),
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background/main_bg1.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          children: [
-            _buildSectionSelector(),
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: 5, // Changed to hardcoded count
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                    _animationController.forward(from: 0);
-                  });
-                },
-                itemBuilder: (_, i) => _buildSectionContent(
-                  _getSectionByIndex(i),
-                ), // Changed to use helper method
-              ),
-            ),
-          ],
-        ),
+      appBar: AppBar(title: const TranslatedText('Historical Notes')),
+      body: SfPdfViewer.asset(
+        'assets/pdfs/historical_notes.pdf',
+        canShowPaginationDialog: true,
+        canShowScrollStatus: true,
+        enableDoubleTapZooming: true,
       ),
     );
   }

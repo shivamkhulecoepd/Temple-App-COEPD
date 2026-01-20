@@ -27,12 +27,6 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     'Marathi',
   ];
 
-  // Theme Colors - Using TempleTheme for consistency
-  // static const Color bgColor = Color(0xFFF7F3E8);
-  // static const Color primaryBlue = Color(0xFF043342);
-  // static const Color secondaryBlue = Color(0xFF124660);
-  // static const Color primaryOrange = Color(0xFFFF9800);
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LanguageBloc, LanguageState>(
@@ -121,11 +115,11 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TempleTheme.primaryOrange,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: TempleTheme.primaryOrange.withOpacity(
+                        disabledBackgroundColor: TempleTheme.primaryOrange.withValues(alpha: 
                           0.45,
                         ),
                         elevation: 6.r,
-                        shadowColor: TempleTheme.primaryOrange.withOpacity(0.45),
+                        shadowColor: TempleTheme.primaryOrange.withValues(alpha: 0.45),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18.r),
                         ),
@@ -185,8 +179,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? const Color(0xFFF15A29).withOpacity(0.45)
-                  : Colors.black.withOpacity(0.06),
+                  ? const Color(0xFFF15A29).withValues(alpha: 0.45)
+                  : Colors.black.withValues(alpha: 0.06),
               blurRadius: 12.r,
               offset: const Offset(0, 6),
             ),

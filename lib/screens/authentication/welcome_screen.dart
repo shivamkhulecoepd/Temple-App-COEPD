@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/screens/authentication/auth_screen.dart';
-import 'package:temple_app/screens/dashboard/home_screen.dart';
 import 'package:temple_app/widgets/layout_screen.dart';
 
 import 'package:temple_app/widgets/translated_text.dart';
@@ -36,12 +35,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   // colors: [
-                  //   const Color(0xFF043342).withOpacity(0.5),
-                  //   const Color(0xFF9B0200).withOpacity(0.4),
+                  //   const Color(0xFF043342).withValues(alpha: 0.5),
+                  //   const Color(0xFF9B0200).withValues(alpha: 0.4),
                   // ],
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.4),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                    Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -60,12 +59,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Container(
                     padding: EdgeInsets.all(22.w),
                     decoration: BoxDecoration(
-                      // color: Colors.white.withOpacity(0.4),
-                      color: Colors.white.withOpacity(0.4),
+                      // color: Colors.white.withValues(alpha: 0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(24.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
+                          color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 18.r,
                           offset: Offset(0, 10.h),
                         ),
@@ -168,7 +167,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  // builder: (context) => const HomeScreen(),
                                   builder: (context) => const LayoutScreen(),
                                 ),
                               );
@@ -205,7 +203,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         Container(
           padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.35),
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Icon(

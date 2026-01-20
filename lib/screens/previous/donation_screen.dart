@@ -141,7 +141,7 @@ class _DonationScreenState extends State<DonationScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? TempleTheme.primaryOrange.withOpacity(0.1) : Theme.of(context).cardTheme.color,
+          color: isSelected ? TempleTheme.primaryOrange.withValues(alpha: 0.1) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? TempleTheme.primaryOrange : (Theme.of(context).dividerTheme.color ?? Colors.grey.shade300),
@@ -149,7 +149,7 @@ class _DonationScreenState extends State<DonationScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: (Theme.of(context).dividerTheme.color ?? Colors.grey).withOpacity(0.1),
+              color: (Theme.of(context).dividerTheme.color ?? Colors.grey).withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -172,7 +172,7 @@ class _DonationScreenState extends State<DonationScreen> {
               style: TextStyle(
                 fontSize: 14,
                 color: isSelected
-                    ? TempleTheme.primaryOrange.withOpacity(0.8)
+                    ? TempleTheme.primaryOrange.withValues(alpha: 0.8)
                     : Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.4,
               ),

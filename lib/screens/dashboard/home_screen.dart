@@ -1,16 +1,21 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
+import 'package:temple_app/blocs/language/language_bloc.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/core/services/db_functions.dart';
 import 'package:temple_app/models/petal.model.dart';
+import 'package:temple_app/screens/authentication/auth_screen.dart';
 import 'package:temple_app/screens/dashboard/about_screen.dart';
 import 'package:temple_app/services/theme_service.dart';
+import 'package:temple_app/widgets/common/gallery_widget.dart';
 import 'package:temple_app/widgets/theme_toggle_widget.dart';
 import 'package:temple_app/widgets/translated_text.dart';
 
@@ -25,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   // Image Transition Logic
   int _currentIndex = 0;
-  late Timer _timer;
+  Timer? _timer;
   Timer? _imageTimer;
 
   List<String> apiNews = [
@@ -190,11 +195,49 @@ class _HomeScreenState extends State<HomeScreen>
     return "6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM";
   }
 
+  List<String> marqueeNews = [];
+  List<Map<String, dynamic>> banners = [];
+
+  // DB data
+  Future<void> loadData() async {
+    try {
+      final data = await DBFunctions().fetchMarqueeAndBanners();
+
+      setState(() {
+        marqueeNews = List<String>.from(data['marquee_news'] ?? []);
+        banners = List<Map<String, dynamic>>.from(data['banners'] ?? []);
+      });
+      log(marqueeNews.toString());
+      log(banners.toString());
+    } catch (e) {
+      log(e.toString());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load data: $e')));
+    }
+  }
+
+  String timings = 'Loading...';
+
+  Future<void> loadTimings() async {
+    try {
+      final fetched = await DBFunctions().fetchTempleTimings();
+      log("Fetched timings: $fetched");
+      setState(() => timings = fetched);
+    } catch (_) {
+      log("Failed to load timings");
+      setState(() => timings = 'Timings unavailable');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    loadData();
+    loadTimings();
     // 1. Image Change Timer
     _timer = Timer.periodic(const Duration(seconds: 6), (timer) {
+      if (!mounted) return;
       setState(() {
         _currentIndex = (_currentIndex + 1) % _heroImages.length;
       });
@@ -204,6 +247,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalSpawnTimer = Timer.periodic(const Duration(milliseconds: 300), (
       timer,
     ) {
+      if (!mounted) return;
       _spawnPetal();
     });
 
@@ -211,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (
       timer,
     ) {
+      if (!mounted) return;
       _updatePetals();
     });
 
@@ -242,6 +287,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalUpdateTimer.cancel();
     _animationController.dispose();
     _clockTimer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -263,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen>
                   _buildAboutSection(),
                   _buildMarqueeBar(apiNews),
                   _buildBannerSection(myBanners),
-                  _buildGallerySection(),
+                  GalleryWidget(title: 'Sri Devi Sharan Navratri 2025'),
                   SizedBox(height: 20.h),
                 ],
               ),
@@ -371,47 +417,55 @@ class _HomeScreenState extends State<HomeScreen>
                 SizedBox(width: 10.w),
 
                 // Language Dropdown
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedLanguage,
-                    dropdownColor: const Color(0xFF00333D),
-                    icon: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.white,
-                      size: 20.sp,
-                    ),
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                    ),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        setState(() => _selectedLanguage = newValue);
-                      }
-                    },
-                    items:
-                        <String>[
-                          'English',
-                          'Hindi',
-                          'Telugu',
-                          'Kannada',
-                          'Tamil',
-                          'Malayalam',
-                          'Marathi',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              value,
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                  ),
+                BlocBuilder<LanguageBloc, LanguageState>(
+                  builder: (context, state) {
+                    return DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedLanguage,
+                        dropdownColor: const Color(0xFF00333D),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                        ),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            HapticFeedback.selectionClick();
+                            context.read<LanguageBloc>().add(
+                              ChangeLanguage(newValue),
+                            );
+                            // setState(() => _selectedLanguage = newValue);
+                          }
+                        },
+                        items:
+                            <String>[
+                              'English',
+                              'Hindi',
+                              'Telugu',
+                              'Kannada',
+                              'Tamil',
+                              'Malayalam',
+                              'Marathi',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: TextStyle(
+                                    fontFamily: 'aBeeZee',
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    );
+                  },
                 ),
 
                 SizedBox(width: 10.w),
@@ -419,7 +473,11 @@ class _HomeScreenState extends State<HomeScreen>
                 // Login Button
                 TextButton(
                   onPressed: () {
-                    // Navigate to AuthScreen or show login modal
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => AuthScreen()),
+                      (route) => route.isFirst,
+                    );
                   },
                   child: TranslatedText(
                     "Login",
@@ -551,7 +609,11 @@ class _HomeScreenState extends State<HomeScreen>
                   const AboutScreen(),
                 ),
                 SizedBox(width: 15.w),
-                _navItem(Icons.currency_rupee, "Donations", null),
+                _navItem(
+                  Icons.currency_rupee,
+                  "Sevaa and Darshan",
+                  const SizedBox(),
+                ),
               ],
             ),
             SizedBox(width: 20.w), // Space before button
@@ -569,7 +631,7 @@ class _HomeScreenState extends State<HomeScreen>
                 elevation: 4,
               ),
               child: TranslatedText(
-                "DONATE NOW",
+                "Donate Now",
                 style: TextStyle(
                   fontFamily: 'aBeeZee',
                   color: Colors.white,
@@ -870,7 +932,7 @@ class _HomeScreenState extends State<HomeScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -907,8 +969,8 @@ class _HomeScreenState extends State<HomeScreen>
           // 2. Marquee Bar (The moving part)
           Container(
             height: 35,
-            color: TempleTheme.primaryOrange.withOpacity(
-              0.1,
+            color: TempleTheme.primaryOrange.withValues(
+              alpha: 0.1,
             ), // Light background for contrast
             child: Marquee(
               text: marqueeText,
@@ -999,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),
@@ -1137,59 +1199,6 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ],
-    );
-  }
-
-  // 8. GALLERY SECTION
-  Widget _buildGallerySection() {
-    return Column(
-      children: [
-        SizedBox(height: 20.h),
-        TranslatedText(
-          "Sri Devi Sharan Navratri 2025",
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.titleLarge?.color,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _galleryImage('assets/images/dashboard/gallery1.jpg'),
-              _galleryImage('assets/images/dashboard/gallery2.jpg'),
-              _galleryImage('assets/images/dashboard/gallery3.jpg'),
-              _galleryImage('assets/images/dashboard/gallery4.jpg'),
-              _galleryImage('assets/images/dashboard/gallery5.jpg'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _galleryImage(String path) {
-    // return ClipRRect(
-    //   borderRadius: BorderRadius.circular(8),
-    //   child: Image.asset(path, width: 100, height: 100, fit: BoxFit.cover),
-    // );
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).cardTheme.color,
-        border: Border.all(color: Colors.white, width: 3),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.asset(path, width: 100, height: 100, fit: BoxFit.cover),
-      ),
     );
   }
 }
