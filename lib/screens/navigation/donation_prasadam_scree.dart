@@ -13,18 +13,18 @@ enum DonationSection {
   institutional,
 }
 
-class DonationsPublicationScreen extends StatefulWidget {
+class DonationsPrasadamScreen extends StatefulWidget {
   final DonationSection initialSection;
 
-  const DonationsPublicationScreen({super.key, required this.initialSection});
+  const DonationsPrasadamScreen({super.key, required this.initialSection});
 
   @override
-  State<DonationsPublicationScreen> createState() =>
+  State<DonationsPrasadamScreen> createState() =>
       _DonationsPublicationScreenState();
 }
 
 class _DonationsPublicationScreenState
-    extends State<DonationsPublicationScreen> {
+    extends State<DonationsPrasadamScreen> {
   late DonationSection _currentSection;
 
   @override
@@ -343,7 +343,7 @@ class _DonationsPublicationScreenState
                     if (amount < 10) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Minimum donation amount is ₹10'),
+                          content: TranslatedText('Minimum donation amount is ₹10'),
                         ),
                       );
                       return;
@@ -497,7 +497,7 @@ class _DonationsPublicationScreenState
                     if (amount < 10) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Minimum donation amount is ₹10'),
+                          content: TranslatedText('Minimum donation amount is ₹10'),
                         ),
                       );
                       return;

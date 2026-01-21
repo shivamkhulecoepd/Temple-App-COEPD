@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
 import 'package:temple_app/screens/dashboard/donations_screen.dart';
+import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:temple_app/screens/navigation/accommodation_screen.dart';
 import 'package:temple_app/screens/navigation/donation_prasadam_scree.dart';
 import 'package:temple_app/screens/user/booking_history_screen.dart';
 import 'package:temple_app/screens/user/my_donations_screen.dart';
@@ -106,29 +108,29 @@ class UserDashboardState extends State<UserDashboard> {
                     spacing: 16.w,
                     runSpacing: 16.h,
                     children: [
-                      // _buildDashboardCard(
-                      //   title: 'Seva & Darshan',
-                      //   subtitle: 'Book temple seva and darshan slot',
-                      //   buttonText: 'Book Now',
-                      //   buttonColor: const Color(0xFF8B0000),
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (_) => SevaLiveDarshanScreen(),
-                      //       ),
-                      //     );
-                      //   },
-                      //   theme: theme,
-                      //   isDark: isDark,
-                      // ),
+                      _buildDashboardCard(
+                        title: 'Seva & Darshan',
+                        subtitle: 'Book temple seva and darshan slot',
+                        buttonText: 'Book Now',
+                        buttonColor: const Color(0xFF8B0000),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SevaLiveDarshanScreen(),
+                            ),
+                          );
+                        },
+                        theme: theme,
+                        isDark: isDark,
+                      ),
                       _buildDashboardCard(
                         title: 'Accommodation',
                         subtitle: 'Book temple accommodation facilities',
                         buttonText: 'Book Now',
                         buttonColor: const Color(0xFF8B0000),
                         onPressed: () {
-                          // Navigator.push(context, MaterialPageRoute(builder: (_) => AccommodationScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => AccommodationScreen(initialSection: AccommodationSection.accommodationBooking)));
                         },
                         theme: theme,
                         isDark: isDark,
@@ -158,7 +160,7 @@ class UserDashboardState extends State<UserDashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => DonationsPublicationScreen(
+                              builder: (_) => DonationsPrasadamScreen(
                                 initialSection: DonationSection.publications,
                               ),
                             ),
@@ -176,7 +178,7 @@ class UserDashboardState extends State<UserDashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => DonationsPublicationScreen(
+                              builder: (_) => DonationsPrasadamScreen(
                                 initialSection: DonationSection.eHundi,
                               ),
                             ),
@@ -222,6 +224,8 @@ class UserDashboardState extends State<UserDashboard> {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'aBeeZee',
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

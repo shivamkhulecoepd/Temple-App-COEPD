@@ -13,7 +13,9 @@ class GalleryWidget extends StatefulWidget {
 class _GalleryWidgetState extends State<GalleryWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(child: _buildGallerySection(widget.title));
+    return SafeArea(
+      child: Container(child: _buildGallerySection(widget.title)),
+    );
   }
 
   // 8. GALLERY SECTION

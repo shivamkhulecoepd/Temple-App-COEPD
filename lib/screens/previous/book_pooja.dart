@@ -20,6 +20,7 @@ class _BookPoojaScreenState extends State<BookPoojaScreen> {
         title: const Text(
           'Book Pooja',
           style: TextStyle(
+            fontFamily: 'aBeeZee',
             color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -167,6 +168,7 @@ class _BookPoojaScreenState extends State<BookPoojaScreen> {
                 Text(
                   title,
                   style: const TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -178,6 +180,7 @@ class _BookPoojaScreenState extends State<BookPoojaScreen> {
                 Text(
                   description,
                   style: TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 14.sp,
                     color: Colors.grey.shade700,
                     height: 1.4,

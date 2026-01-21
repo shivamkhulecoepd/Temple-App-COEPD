@@ -25,14 +25,12 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
       "type": "Donation",
       "amount": 5000,
       "date": "2026-01-19 12:23:53",
-
       "status": "Success",
     },
     {
       "type": "Publication",
       "amount": 251,
       "date": "2026-01-19 12:23:53",
-
       "status": "Success",
     },
     {
@@ -95,14 +93,16 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                     TranslatedText(
                       'Total Donated',
                       style: TextStyle(
+                        fontFamily: 'aBeeZee',
                         fontSize: 16.sp,
                         color: Colors.grey[600],
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    Text(
+                    TranslatedText(
                       '₹ ${NumberFormat('#,##0').format(_totalDonated)}',
                       style: TextStyle(
+                        fontFamily: 'aBeeZee',
                         fontSize: 28.sp,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF8B0000),
@@ -117,7 +117,10 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                     ? Center(
                         child: TranslatedText(
                           'No donations yet',
-                          style: TextStyle(fontSize: 18.sp),
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 18.sp,
+                          ),
                         ),
                       )
                     : ListView.builder(
@@ -143,21 +146,23 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                                   color: const Color(0xFF8B0000),
                                   size: 28.w,
                                 ),
+                              ),
+                              title: TranslatedText(
+                                donation['type'],
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                title: Text(
-                                  donation['type'],
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                              ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   SizedBox(height: 4.h),
-                                  Text(
+                                  TranslatedText(
                                     '${donation['date']}',
                                     style: TextStyle(
+                                      fontFamily: 'aBeeZee',
                                       fontSize: 13.sp,
                                       color: Colors.grey[600],
                                     ),
@@ -168,15 +173,15 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(
+                                  TranslatedText(
                                     '₹ ${NumberFormat('#,###').format(donation['amount'])}',
                                     style: TextStyle(
-                                      fontSize: 18.sp,
+                                      fontFamily: 'aBeeZee',
+                                      fontSize: 16.sp,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF8B0000),
                                     ),
                                   ),
-                                  SizedBox(height: 4.h),
                                   _statusChip(donation['status']),
                                 ],
                               ),
@@ -194,16 +199,17 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
 
   Widget _statusChip(String status) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: status == 'Success'
             ? Colors.green.shade100
             : Colors.grey.shade200,
         borderRadius: BorderRadius.circular(12.r),
       ),
-      child: Text(
+      child: TranslatedText(
         status,
         style: TextStyle(
+          fontFamily: 'aBeeZee',
           fontSize: 12.sp,
           color: status == 'Success'
               ? Colors.green.shade800

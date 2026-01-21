@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:temple_app/blocs/theme/theme_bloc.dart';
+import 'package:temple_app/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/services/theme_service.dart';
-import 'package:temple_app/widgets/translated_text.dart';
 
 class SevaLiveDarshanScreen extends StatefulWidget {
   const SevaLiveDarshanScreen({super.key});
 
   @override
-  State<SevaLiveDarshanScreen> createState() => _LiveDarshanScreenState();
+  State<SevaLiveDarshanScreen> createState() => _SevaLiveDarshanScreenState();
 }
 
-class _LiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
+class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   String? liveUrl;
   String? title;
   String? description;
@@ -329,7 +328,8 @@ class _LiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                             child: FloatingActionButton(
                               mini: true,
                               backgroundColor: Colors.white,
-                              onPressed: () => _launchYouTube(liveUrl!, context),
+                              onPressed: () =>
+                                  _launchYouTube(liveUrl!, context),
                               child: Icon(Icons.open_in_new, color: Colors.red),
                             ),
                           ),
@@ -735,7 +735,10 @@ class _LiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
               crossAxisCount: 2,
               crossAxisSpacing: 12.w,
               mainAxisSpacing: 14.h,
-              childAspectRatio: 0.58.h, // ← tune this (smaller = taller cards)
+              childAspectRatio:
+                  0.56 *
+                  MediaQuery.of(context).size.height *
+                  0.00125, // ← tune this (smaller = taller cards)
             ),
             itemCount: sevas.length,
             itemBuilder: (context, index) {
@@ -1187,7 +1190,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
 
             Expanded(
               child: Stepper(
-                type: StepperType.horizontal,
+                type: StepperType.vertical,
                 currentStep: currentStep,
                 controlsBuilder: (context, details) {
                   return Padding(
@@ -1195,14 +1198,20 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                     child: Row(
                       children: [
                         if (currentStep > 0)
-                          OutlinedButton(
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey,
+                              foregroundColor: Colors.white,
+                            ),
                             onPressed: details.onStepCancel,
                             child: TranslatedText("Back"),
                           ),
                         SizedBox(width: 12.w),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.secondary,
                             foregroundColor: Colors.white,
                           ),
                           onPressed: details.onStepContinue,
@@ -1375,18 +1384,42 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             _buildSectionTitle("Time Slot"),
                             DropdownButtonFormField<String>(
                               initialValue: selectedTimeSlot,
-                              items: const [
+                              items: [
                                 DropdownMenuItem(
                                   value: "Morning",
-                                  child: TranslatedText("Morning"),
+                                  child: TranslatedText(
+                                    "Morning",
+                                    style: TextStyle(
+                                      fontFamily: 'aBeeZee',
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                                  ),
                                 ),
                                 DropdownMenuItem(
                                   value: "Afternoon",
-                                  child: TranslatedText("Afternoon"),
+                                  child: TranslatedText(
+                                    "Afternoon",
+                                    style: TextStyle(
+                                      fontFamily: 'aBeeZee',
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                                  ),
                                 ),
                                 DropdownMenuItem(
                                   value: "Evening",
-                                  child: TranslatedText("Evening"),
+                                  child: TranslatedText(
+                                    "Evening",
+                                    style: TextStyle(
+                                      fontFamily: 'aBeeZee',
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                                  ),
                                 ),
                               ],
                               onChanged: (v) =>
@@ -1398,28 +1431,23 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 16.h),
 
-                            Row(
+                            Column(
                               children: [
-                                Expanded(
-                                  child: CheckboxListTile(
-                                    title: TranslatedText("In Person"),
-                                    value: inPerson,
-                                    onChanged: (v) =>
-                                        setState(() => inPerson = v ?? false),
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                  ),
+                                CheckboxListTile(
+                                  title: TranslatedText("In Person"),
+                                  value: inPerson,
+                                  onChanged: (v) =>
+                                      setState(() => inPerson = v ?? false),
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
                                 ),
-                                Expanded(
-                                  child: CheckboxListTile(
-                                    title: TranslatedText("Proxy (Priest)"),
-                                    value: proxyPriest,
-                                    onChanged: (v) => setState(
-                                      () => proxyPriest = v ?? false,
-                                    ),
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                  ),
+                                CheckboxListTile(
+                                  title: TranslatedText("Proxy (Priest)"),
+                                  value: proxyPriest,
+                                  onChanged: (v) =>
+                                      setState(() => proxyPriest = v ?? false),
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
                                 ),
                               ],
                             ),
@@ -1436,7 +1464,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             SizedBox(height: 12.h),
                             TextFormField(
                               decoration: InputDecoration(
-                                labelText: "Purpose / Prayer",
+                                labelText: "Purpose/Prayer",
                                 border: OutlineInputBorder(),
                               ),
                               maxLines: 3,
@@ -1461,6 +1489,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             RadioListTile<String>(
                               title: TranslatedText("In Person"),
                               value: "In person",
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
                               // ignore: deprecated_member_use
                               groupValue: selectedDelivery,
                               // ignore: deprecated_member_use
@@ -1470,6 +1501,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             RadioListTile<String>(
                               title: TranslatedText("Courier (Paid)"),
                               value: "Courier",
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
                               // ignore: deprecated_member_use
                               groupValue: selectedDelivery,
                               // ignore: deprecated_member_use
@@ -1502,6 +1536,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             RadioListTile<String>(
                               title: TranslatedText("UPI"),
                               value: "UPI",
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
                               // ignore: deprecated_member_use
                               groupValue: selectedPayment,
                               // ignore: deprecated_member_use
@@ -1511,6 +1548,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             RadioListTile<String>(
                               title: TranslatedText("Debit / Credit Card"),
                               value: "Card",
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
                               // ignore: deprecated_member_use
                               groupValue: selectedPayment,
                               // ignore: deprecated_member_use
@@ -1520,6 +1560,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             RadioListTile<String>(
                               title: TranslatedText("Net Banking"),
                               value: "Net Banking",
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
                               // ignore: deprecated_member_use
                               groupValue: selectedPayment,
                               // ignore: deprecated_member_use

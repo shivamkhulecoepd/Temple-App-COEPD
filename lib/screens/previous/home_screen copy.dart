@@ -17,7 +17,7 @@ class _TopInfoBarState extends State<TopInfoBar> {
   // State variables for toggles
   bool _isMuted = true;
   String _selectedLanguage = 'English';
-  
+
   // Simulated API data
   Future<String>? _templeTimingFuture;
 
@@ -26,7 +26,10 @@ class _TopInfoBarState extends State<TopInfoBar> {
     super.initState();
     // Initialize Clock
     _timeString = _formatDateTime(DateTime.now());
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateTime());
+    _clockTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer t) => _updateTime(),
+    );
 
     // Initialize API fetch
     _templeTimingFuture = _fetchTempleTimings();
@@ -70,7 +73,11 @@ class _TopInfoBarState extends State<TopInfoBar> {
           // 1. DATE AND TIME
           Text(
             _timeString,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w400),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -104,8 +111,16 @@ class _TopInfoBarState extends State<TopInfoBar> {
                 text: TextSpan(
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   children: [
-                    const TextSpan(text: "Temple Timing: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(text: timingText.replaceAll("Temple Timing: ", "")),
+                    const TextSpan(
+                      text: "Temple Timing: ",
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: timingText.replaceAll("Temple Timing: ", ""),
+                    ),
                   ],
                 ),
               );
@@ -134,32 +149,43 @@ class _TopInfoBarState extends State<TopInfoBar> {
                 child: DropdownButton<String>(
                   value: _selectedLanguage,
                   dropdownColor: const Color(0xFF00333D),
-                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.white,
+                  ),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   onChanged: (String? newValue) {
-                    if (newValue != null) setState(() => _selectedLanguage = newValue);
+                    if (newValue != null)
+                      setState(() => _selectedLanguage = newValue);
                   },
                   items: <String>['English', 'Telugu', 'Hindi']
                       .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      })
+                      .toList(),
                 ),
               ),
 
               // Login Button
               TextButton(
                 onPressed: () {},
-                child: const Text("Login", style: TextStyle(color: Colors.white, fontSize: 14)),
+                child: const Text(
+                  "Login",
+                  style: TextStyle(fontFamily: 'aBeeZee',color: Colors.white, fontSize: 14),
+                ),
               ),
 
               // Contact Us Button
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.phone, color: Colors.white, size: 16),
-                label: const Text("Contact Us", style: TextStyle(color: Colors.white, fontSize: 14)),
+                label: const Text(
+                  "Contact Us",
+                  style: TextStyle(fontFamily: 'aBeeZee',color: Colors.white, fontSize: 14),
+                ),
               ),
             ],
           ),
@@ -175,9 +201,6 @@ class _TopInfoBarState extends State<TopInfoBar> {
     );
   }
 }
-
-
-
 
 // import 'dart:async';
 
@@ -456,7 +479,7 @@ class _TopInfoBarState extends State<TopInfoBar> {
 //       {"icon": "assets  /img/DarshanBooking.png", "label": "Darshan Booking"},
 //       {"icon": "assets/img/Festivals.png", "label": "Festivals"},
 //       {"icon": "assets/img/Ehundi_Donations.png", "label": "E-Hundi"},
-//       {"icon": "assets/img/Accomadation.png", "label": "Accommodation"},
+//       {"icon": "assets/img/double-bed.png", "label": "Accommodation"},
 //       {"icon": "assets/img/Livestraming.png", "label": "Live Stream"},
 //       {"icon": "assets/img/eventcalander.png", "label": "Calendar"},
 //       {"icon": "assets/img/Annadanam.png", "label": "Annadanam"},

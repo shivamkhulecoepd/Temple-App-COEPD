@@ -79,7 +79,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
               ? Center(
                   child: TranslatedText(
                     'No bookings found',
-                    style: TextStyle(fontSize: 18.sp, color: Colors.grey[600]),
+                    style: TextStyle(fontFamily: 'aBeeZee', fontSize: 18.sp),
                   ),
                 )
               : ListView.builder(
@@ -88,8 +88,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                   itemBuilder: (context, index) {
                     final booking = _bookings[index];
                     final isCancelled = booking['status'] == 'Cancelled';
-                    final isPending =
-                        booking['status'] == 'Pending';
+                    final isPending = booking['status'] == 'Pending';
 
                     return Card(
                       margin: EdgeInsets.only(bottom: 16.h),
@@ -107,7 +106,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: Text(
+                                  child: TranslatedText(
                                     booking['service'],
                                     style: TextStyle(
                                       fontFamily: 'aBeeZee',
@@ -149,9 +148,10 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                TranslatedText(
                                   '₹ ${NumberFormat('#,###').format(booking['amount'])}',
                                   style: TextStyle(
+                                    fontFamily: 'aBeeZee',
                                     fontSize: 18.sp,
                                     fontWeight: FontWeight.bold,
                                     color: isDark
@@ -177,6 +177,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                                     child: TranslatedText(
                                       'Pay Now',
                                       style: TextStyle(
+                                        fontFamily: 'aBeeZee',
                                         color: const Color(0xFF8B0000),
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -223,9 +224,10 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         color: bgColor,
         borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Text(
+      child: TranslatedText(
         status,
         style: TextStyle(
+          fontFamily: 'aBeeZee',
           fontSize: 12.sp,
           color: textColor,
           fontWeight: FontWeight.w600,
@@ -241,14 +243,22 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         children: [
           Icon(icon, size: 18.w, color: Colors.grey[600]),
           SizedBox(width: 10.w),
-          Text(
+          TranslatedText(
             '$label: ',
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[700]),
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 14.sp,
+              color: Colors.grey[700],
+            ),
           ),
           Expanded(
-            child: Text(
+            child: TranslatedText(
               value,
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.right,
             ),
           ),

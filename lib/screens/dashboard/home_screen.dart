@@ -13,7 +13,11 @@ import 'package:temple_app/blocs/theme/theme_bloc.dart';
 import 'package:temple_app/core/services/db_functions.dart';
 import 'package:temple_app/models/petal.model.dart';
 import 'package:temple_app/screens/authentication/auth_screen.dart';
-import 'package:temple_app/screens/dashboard/about_screen.dart';
+import 'package:temple_app/screens/navigation/about_screen.dart';
+import 'package:temple_app/screens/dashboard/donations_screen.dart';
+import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:temple_app/screens/navigation/accommodation_screen.dart';
+import 'package:temple_app/screens/navigation/donation_prasadam_scree.dart';
 import 'package:temple_app/services/theme_service.dart';
 import 'package:temple_app/widgets/common/gallery_widget.dart';
 import 'package:temple_app/widgets/theme_toggle_widget.dart';
@@ -189,12 +193,6 @@ class _HomeScreenState extends State<HomeScreen>
     return DateFormat('EEEE, d MMMM yyyy - hh:mm a').format(dateTime);
   }
 
-  Future<String> _fetchTempleTimings() async {
-    // Simulate API Delay
-    await Future.delayed(const Duration(seconds: 2));
-    return "6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM";
-  }
-
   List<String> marqueeNews = [];
   List<Map<String, dynamic>> banners = [];
 
@@ -298,7 +296,13 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (context, themeState) {
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: SafeArea(
+          body: RefreshIndicator.adaptive(
+            color: Theme.of(context).colorScheme.secondary,
+            backgroundColor: Theme.of(context).primaryColor,
+            onRefresh: () async {
+              await loadTimings();
+              await loadData();
+            },
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -328,6 +332,8 @@ class _HomeScreenState extends State<HomeScreen>
       padding: EdgeInsets.only(top: 15.h, left: 6.w, right: 6.w),
       child: Column(
         children: [
+          // 0. Safe Area Height
+          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
           // 1. DATE AND TIME
           TranslatedText(
             _timeString,
@@ -347,13 +353,13 @@ class _HomeScreenState extends State<HomeScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _socialIcon(FontAwesomeIcons.instagram, "https://instagram.com"),
+              _socialIcon(FontAwesomeIcons.instagram, "https://www.instagram.com/markatha_sri_laxmi_ganpathi/"),
               SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.facebook, "https://facebook.com"),
+              _socialIcon(FontAwesomeIcons.facebook, "https://www.facebook.com/marakathaganapathi/"),
               SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.xTwitter, "https://x.com"),
+              _socialIcon(FontAwesomeIcons.xTwitter, "https://x.com/mslgdt"),
               SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.youtube, "https://youtube.com"),
+              _socialIcon(FontAwesomeIcons.youtube, "https://www.youtube.com/@mslgdevasthanam"),
             ],
           ),
           SizedBox(height: 8.h),
@@ -574,7 +580,6 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildNavBar() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: Theme.of(
           context,
@@ -585,6 +590,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -771,57 +777,80 @@ class _HomeScreenState extends State<HomeScreen>
 
   // 4. QUICK ACTION GRID
   Widget _buildQuickActionGrid() {
-    final List<Map<String, String>> items = [
+    final List<Map<String, dynamic>> items = [
       {
         "icon": "assets/images/dashboard/DarshanBooking.png",
         "label": "Darshan Booking",
+        "route": SevaLiveDarshanScreen(),
       },
       {"icon": "assets/images/dashboard/Festivals.png", "label": "Festivals"},
       {
         "icon": "assets/images/dashboard/Ehundi_Donations.png",
         "label": "E-Hundi",
+        "route": DonationsPrasadamScreen(
+          initialSection: DonationSection.eHundi,
+        ),
       },
       {
-        "icon": "assets/images/dashboard/Accomadation.png",
+        "icon": "assets/images/dashboard/double-bed.png",
         "label": "Accommodation",
+        "route": AccommodationScreen(
+          initialSection: AccommodationSection.accommodationBooking,
+        ),
       },
       {
         "icon": "assets/images/dashboard/Livestraming.png",
         "label": "Live Stream",
+        "route": SevaLiveDarshanScreen(),
       },
       {
         "icon": "assets/images/dashboard/eventcalander.png",
         "label": "Calendar",
       },
-      {"icon": "assets/images/dashboard/Annadanam.png", "label": "Annadanam"},
+      {
+        "icon": "assets/images/dashboard/Annadanam.png",
+        "label": "Annadanam",
+        "route": DonationsPrasadamScreen(
+          initialSection: DonationSection.nityaAnna,
+        ),
+      },
       {"icon": "assets/images/dashboard/MediaGallery.png", "label": "Gallery"},
       {"icon": "assets/images/dashboard/VisitorsGuide.png", "label": "Guide"},
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          mainAxisSpacing: 18,
-          crossAxisSpacing: 18,
+          mainAxisSpacing: 18.h,
+          crossAxisSpacing: 18.w,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
           return InkWell(
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      items[index]['route'] ??
+                      Scaffold(body: Center(child: Text("Coming Soon"))),
+                ),
+              );
+            },
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
                     // color: Theme.of(context).dividerTheme.color ?? Colors.grey,
                     color: Theme.of(context).dividerTheme.color ?? Colors.grey,
-                    blurRadius: 1,
-                    offset: Offset(1, 2),
+                    blurRadius: 1.r,
+                    offset: Offset(1.w, 2.h),
                   ),
                 ],
               ),
@@ -829,14 +858,14 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.w),
                       child: Image.asset(items[index]['icon']!),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4.0,
-                      vertical: 8.0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 4.w,
+                      vertical: 8.h,
                     ),
                     child: TranslatedText(
                       items[index]['label']!,
@@ -863,19 +892,19 @@ class _HomeScreenState extends State<HomeScreen>
   // 5. ABOUT SECTION
   Widget _buildAboutSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.w),
             child: Image.asset('assets/images/dashboard/gurujia.jpg'),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
+            padding: EdgeInsets.symmetric(vertical: 10.h),
             child: Text(
               "Shri. Dr. M. Satyanarayan Shastriji\n(Founder and Administrator)",
               textAlign: TextAlign.center,
@@ -915,15 +944,15 @@ class _HomeScreenState extends State<HomeScreen>
         : "Getting latest updates...";
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -932,20 +961,20 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 1. Heading
           Padding(
-            padding: const EdgeInsets.only(left: 16, top: 12, bottom: 8),
+            padding: EdgeInsets.only(left: 16.w, top: 12.h, bottom: 8.h),
             child: Row(
               children: [
                 Icon(
                   Icons.campaign,
                   color: TempleTheme.primaryOrange,
-                  size: 20,
+                  size: 20.sp,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 TranslatedText(
                   "Temple News",
                   style: TextStyle(
                     fontFamily: 'aBeeZee',
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -957,7 +986,7 @@ class _HomeScreenState extends State<HomeScreen>
 
           // 2. Marquee Bar (The moving part)
           Container(
-            height: 35,
+            height: 35.h,
             color: TempleTheme.primaryOrange.withValues(
               alpha: 0.1,
             ), // Light background for contrast
@@ -968,8 +997,8 @@ class _HomeScreenState extends State<HomeScreen>
                 color: TempleTheme.primaryOrange,
                 fontWeight: FontWeight.w500,
               ),
-              velocity: 30.0,
-              blankSpace: 60.0,
+              velocity: 30.0.w,
+              blankSpace: 60.0.w,
             ),
           ),
 
@@ -979,17 +1008,17 @@ class _HomeScreenState extends State<HomeScreen>
               // Navigate to news page
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.62,
+                    width: MediaQuery.of(context).size.width * 0.62.w,
                     child: TranslatedText(
                       "View All News",
                       style: TextStyle(
                         fontFamily: 'aBeeZee',
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         color: Colors.grey[600],
                       ),
                       maxLines: 2,
@@ -998,7 +1027,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   Icon(
                     Icons.arrow_forward_ios,
-                    size: 14,
+                    size: 14.sp,
                     color: Colors.grey[600],
                   ),
                 ],
@@ -1016,16 +1045,16 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         // 1. Content/aSection header
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           child: Row(
             children: [
-              Icon(Icons.event, color: TempleTheme.primaryOrange, size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.event, color: TempleTheme.primaryOrange, size: 20.sp),
+              SizedBox(width: 8.w),
               TranslatedText(
                 "Current Event",
                 style: TextStyle(
                   fontFamily: 'aBeeZee',
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -1035,24 +1064,24 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         // 2. Horizontal Scrollable Banners
         SizedBox(
-          height: 280, // Increased height to accommodate the white content area
+          height: 280.h, // Increased height to accommodate the white content area
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             itemCount: bannerData.length,
             itemBuilder: (context, index) {
               final item = bannerData[index];
               return Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                width: MediaQuery.of(context).size.width * 0.8.w,
+                margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 5.h),
                     ),
                   ],
                 ),
@@ -1063,8 +1092,8 @@ class _HomeScreenState extends State<HomeScreen>
                     Expanded(
                       flex: 3,
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16.r),
                         ),
                         child: Image.network(
                           item['image']!,
@@ -1083,7 +1112,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Expanded(
                       flex: 2,
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: EdgeInsets.all(12.w),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1095,20 +1124,20 @@ class _HomeScreenState extends State<HomeScreen>
                                   item['title']!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
                                     fontFamily: 'aBeeZee',
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4.h),
                                 TranslatedText(
                                   item['description']!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.sp,
                                     color: Colors.grey[600],
                                     fontFamily: 'aBeeZee',
                                   ),
@@ -1120,15 +1149,15 @@ class _HomeScreenState extends State<HomeScreen>
                               children: [
                                 Icon(
                                   Icons.calendar_month_outlined,
-                                  size: 14,
+                                  size: 14.sp,
                                   color: TempleTheme.primaryOrange,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: 4.w),
                                 Text(
                                   item['date']!,
                                   style: TextStyle(
                                     fontFamily: 'aBeeZee',
-                                    fontSize: 11,
+                                    fontSize: 11.sp,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey[800],
                                   ),
@@ -1148,7 +1177,7 @@ class _HomeScreenState extends State<HomeScreen>
 
         // 3. View All Button Below
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           child: OutlinedButton(
             onPressed: () {
               // Handle view all navigation
@@ -1156,16 +1185,16 @@ class _HomeScreenState extends State<HomeScreen>
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: TempleTheme.primaryOrange),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              minimumSize: const Size(double.infinity, 45),
+              minimumSize: Size(double.infinity, 45.h),
             ),
             child: Row(
-              spacing: 10.sp,
+              spacing: 10.w,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.62,
+                  width: MediaQuery.of(context).size.width * 0.62.w,
                   child: TranslatedText(
                     "View All Events",
                     style: TextStyle(
@@ -1177,10 +1206,10 @@ class _HomeScreenState extends State<HomeScreen>
                     maxLines: 2,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 Icon(
                   Icons.arrow_forward_ios,
-                  size: 16,
+                  size: 16.sp,
                   color: TempleTheme.primaryOrange,
                 ),
               ],
@@ -1191,5 +1220,3 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
-
-// 1. Define a Petal Model to hold individual state

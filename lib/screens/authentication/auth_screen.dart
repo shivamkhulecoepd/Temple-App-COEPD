@@ -181,6 +181,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
       style: TextStyle(
+        fontFamily: 'aBeeZee',
         fontSize: 15.sp,
         color: Theme.of(context).textTheme.bodyMedium?.color,
       ),
@@ -255,6 +256,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: TranslatedText(
                   "Terms & Conditions",
                   style: TextStyle(
+                    fontFamily: 'aBeeZee',
                     color: Colors.amber,
                     fontWeight: FontWeight.w600,
                     fontSize: 13.sp, // Match the parent font size
@@ -273,6 +275,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: TranslatedText(
                   "Privacy Policy",
                   style: TextStyle(
+                    fontFamily: 'aBeeZee',
                     color: Colors.amber,
                     fontWeight: FontWeight.w600,
                     fontSize: 13.sp,
@@ -320,7 +323,8 @@ class _OtpSheet extends StatelessWidget {
           TranslatedText(
             "Verify OTP",
             style: TextStyle(
-              fontSize: 22.sp, 
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.headlineMedium?.color,
             ),
@@ -330,6 +334,7 @@ class _OtpSheet extends StatelessWidget {
             "Enter the 6-digit code sent to your mobile",
             textAlign: TextAlign.center,
             style: TextStyle(
+              fontFamily: 'aBeeZee',
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),

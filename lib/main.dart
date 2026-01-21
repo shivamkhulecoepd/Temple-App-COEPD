@@ -3,10 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/blocs/language/language_bloc.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/screens/dashboard/about_screen.dart';
+import 'package:temple_app/screens/navigation/about_screen.dart';
 import 'package:temple_app/screens/dashboard/donations_screen.dart';
 import 'package:temple_app/screens/dashboard/home_screen.dart';
-// import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:temple_app/screens/navigation/accommodation_screen.dart';
 import 'package:temple_app/screens/previous/main_navigations.dart';
 import 'package:temple_app/screens/user/booking_history_screen.dart';
 import 'package:temple_app/screens/user/my_donations_screen.dart';
@@ -72,6 +72,7 @@ class TempleApp extends StatelessWidget {
                       // return const AboutScreen();
                       // return const SevaLiveDarshanScreen();
                       // return const DonationsScreen();
+                      // return AccommodationScreen(initialSection: AccommodationSection.howToReach);
                     },
                   );
                 },

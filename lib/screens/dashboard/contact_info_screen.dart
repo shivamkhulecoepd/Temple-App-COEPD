@@ -1,10 +1,9 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:temple_app/widgets/common/gallery_widget.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:temple_app/blocs/language/language_bloc.dart';
 import 'package:temple_app/blocs/theme/theme_bloc.dart';
 import 'package:temple_app/widgets/translated_text.dart';
 
@@ -420,8 +419,6 @@ class _ContactScreenState extends State<ContactScreen> {
                           ],
                         ),
                       ),
-
-                      SizedBox(height: 20.h),
                       GalleryWidget(title: 'Image Gallery'),
                     ],
                   ),
@@ -495,40 +492,50 @@ class _ContactScreenState extends State<ContactScreen> {
     int minLines = 1,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      minLines: minLines,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          fontFamily: 'aBeeZee',
-          fontSize: 15.sp,
-          color: Colors.grey[600],
-        ),
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-        filled: true,
-        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: Colors.grey.shade500),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.secondary,
-            width: 2,
-          ),
-        ),
-      ),
-      style: TextStyle(fontSize: 16.sp, fontFamily: 'aBeeZee'),
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return FutureBuilder<String>(
+          future: context.read<LanguageBloc>().getTranslation(label),
+          builder: (context, snapshot) {
+            String displayLabel = snapshot.data ?? label;
+            return TextFormField(
+              controller: controller,
+              keyboardType: keyboardType,
+              maxLines: maxLines,
+              minLines: minLines,
+              validator: validator,
+              decoration: InputDecoration(
+                labelText: displayLabel,
+                labelStyle: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 15.sp,
+                  color: Colors.grey[600],
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                filled: true,
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: Colors.grey.shade500),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.secondary,
+                    width: 2,
+                  ),
+                ),
+              ),
+              style: TextStyle(fontSize: 16.sp, fontFamily: 'aBeeZee'),
+            );
+          },
+        );
+      },
     );
   }
 

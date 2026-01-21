@@ -19,6 +19,7 @@ class _LiveDarshanScreenState extends State<LiveDarshanScreen> {
         title: const Text(
           'Live Darshan',
           style: TextStyle(
+            fontFamily: 'aBeeZee',
             color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -100,6 +101,7 @@ class _LiveDarshanScreenState extends State<LiveDarshanScreen> {
                           const Text(
                             'LIVE',
                             style: TextStyle(
+                              fontFamily: 'aBeeZee',
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -124,6 +126,7 @@ class _LiveDarshanScreenState extends State<LiveDarshanScreen> {
                   const Text(
                     'Today, the daily is adorned in a magnificent fajia Alankaram, decorated with garlands of jasmine and marigold.',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 16,
                       color: Colors.black87,
                       height: 1.4,
@@ -160,6 +163,7 @@ class _LiveDarshanScreenState extends State<LiveDarshanScreen> {
                   const Text(
                     'Upcoming Events',
                     style: TextStyle(
+                      fontFamily: 'aBeeZee',
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
@@ -198,6 +202,7 @@ SizedBox(height: 10,),            Container(
               child: Center(
                 child: Text('Show all events',
                 style: TextStyle(
+                  fontFamily: 'aBeeZee',
                   color: const Color.fromARGB(255, 235, 109, 70),
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -242,6 +247,7 @@ SizedBox(height: 10,),            Container(
                 Text(
                   title,
                   style: const TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
@@ -250,6 +256,7 @@ SizedBox(height: 10,),            Container(
                 Text(
                   time,
                   style: TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 14,
                     color: Colors.grey.shade700,
                   ),
@@ -292,6 +299,7 @@ SizedBox(height: 10,),            Container(
                 Text(
                   title,
                   style: const TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
@@ -300,6 +308,7 @@ SizedBox(height: 10,),            Container(
                 Text(
                   date,
                   style: TextStyle(
+                    fontFamily: 'aBeeZee',
                     fontSize: 14,
                     color: Colors.grey.shade700,
                   ),

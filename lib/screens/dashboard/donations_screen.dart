@@ -81,7 +81,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => DonationsPublicationScreen(
+                                    builder: (_) => DonationsPrasadamScreen(
                                       initialSection: DonationSection.nityaAnna,
                                     ),
                                   ),
@@ -100,7 +100,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => DonationsPublicationScreen(
+                                    builder: (_) => DonationsPrasadamScreen(
                                       initialSection: DonationSection.specificScheme,
                                     ),
                                   ),
@@ -119,7 +119,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => DonationsPublicationScreen(
+                                    builder: (_) => DonationsPrasadamScreen(
                                       initialSection: DonationSection.eHundi,
                                     ),
                                   ),
@@ -131,7 +131,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                       ),
                       Container(
                         width: double.infinity,
-                        height: 115.h, // ✅ controls banner height
+                        height: 120.h, // ✅ controls banner height
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage(
@@ -143,8 +143,8 @@ class _DonationsScreenState extends State<DonationsScreen> {
                         padding: EdgeInsets.only(
                           left: 20.w,
                           right: 20.w,
-                          top: 7.h,
-                          bottom: 12.h,
+                          top: 9.h,
+                          bottom: 15.h,
                         ), // ✅ spacing from edges
                         alignment: Alignment.center, // ✅ centers text
                         child: TranslatedText(
