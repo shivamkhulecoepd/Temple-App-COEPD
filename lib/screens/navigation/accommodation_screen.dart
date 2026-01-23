@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -51,20 +51,20 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     Navigator.pop(context);
   }
 
-  String get _title {
-    switch (_currentSection) {
-      case AccommodationSection.accommodationBooking:
-        return 'Accommodation Booking';
-      case AccommodationSection.pilgrimAmenities:
-        return 'Pilgrim Amenities';
-      case AccommodationSection.howToReach:
-        return 'How to Reach';
-      case AccommodationSection.localServiceDirectory:
-        return 'Local Service Directory';
-      case AccommodationSection.volunteering:
-        return 'Volunteering';
-    }
-  }
+  // String get _title {
+  //   switch (_currentSection) {
+  //     case AccommodationSection.accommodationBooking:
+  //       return 'Accommodation Booking';
+  //     case AccommodationSection.pilgrimAmenities:
+  //       return 'Pilgrim Amenities';
+  //     case AccommodationSection.howToReach:
+  //       return 'How to Reach';
+  //     case AccommodationSection.localServiceDirectory:
+  //       return 'Local Service Directory';
+  //     case AccommodationSection.volunteering:
+  //       return 'Volunteering';
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -309,6 +309,29 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
   }
 
   Widget _pilgrimAmenitiesSection(ThemeData theme, bool isDark) {
+    final List<Map<String, dynamic>> amenities = [
+      {
+        'title': 'Lockers',
+        'image':
+            'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI1LTA2L3NyLWltYWdlLTE4MDUyNS1iYWExMi1zLTA4NS5qcGc.jpg',
+      },
+      {
+        'title': 'Food/Annadanam',
+        'image':
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLTzK_7hGPMVE_l3Gfgmlu_GRSzsmK76ul9w&s',
+      },
+      {
+        'title': 'Medical Aid',
+        'image':
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRimxzJKMVP-2CmOy_jzMwzhNoR57ONAkTQXw&s',
+      },
+      {
+        'title': 'Toilets & Hygiene',
+        'image':
+            'https://housing.com/news/wp-content/uploads/2023/04/modular-bathroom-shutterstock_609094331-1200x700-compressed.jpg',
+      },
+    ];
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -331,32 +354,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
           ),
         ),
         SizedBox(height: 20.h),
-        _amenitiesCardSection(
-          [
-            {
-              'title': 'Lockers',
-              'image':
-                  'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI1LTA2L3NyLWltYWdlLTE4MDUyNS1iYWExMi1zLTA4NS5qcGc.jpg',
-            },
-            {
-              'title': 'Food/Annadanam',
-              'image':
-                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLTzK_7hGPMVE_l3Gfgmlu_GRSzsmK76ul9w&s',
-            },
-            {
-              'title': 'Medical Aid',
-              'image':
-                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRimxzJKMVP-2CmOy_jzMwzhNoR57ONAkTQXw&s',
-            },
-            {
-              'title': 'Toilets & Hygiene',
-              'image':
-                  'https://housing.com/news/wp-content/uploads/2023/04/modular-bathroom-shutterstock_609094331-1200x700-compressed.jpg',
-            },
-          ],
-          theme,
-          isDark,
-        ),
+        _amenitiesCardSection(amenities, theme, isDark),
       ],
     );
   }
@@ -365,7 +363,6 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     // Extract coordinates from your map_embed (hardcoded for simplicity)
     const double templeLat = 17.485286;
     const double templeLng = 78.491953;
-    const String templeName = "Marakatha Sri Lakshmi Ganapathi Temple";
 
     // Build directions URL (opens Google Maps app with directions from current location)
     final Uri directionsUri = Uri.parse(
@@ -409,7 +406,9 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: TranslatedText('Could not open Google Maps')),
+                const SnackBar(
+                  content: TranslatedText('Could not open Google Maps'),
+                ),
               );
             }
           },
@@ -421,8 +420,8 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.15),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.15),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -598,23 +597,11 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTranslatedTextField(
-                'Full Name',
-                theme,
-                isDark,
-              ),
+              _buildTranslatedTextField('Full Name', theme, isDark),
               SizedBox(height: 16.h),
-              _buildTranslatedTextField(
-                'Email',
-                theme,
-                isDark,
-              ),
+              _buildTranslatedTextField('Email', theme, isDark),
               SizedBox(height: 16.h),
-              _buildTranslatedTextField(
-                'Mobile Number',
-                theme,
-                isDark,
-              ),
+              _buildTranslatedTextField('Mobile Number', theme, isDark),
               SizedBox(height: 16.h),
               _buildDropdownField(theme, isDark),
               SizedBox(height: 24.h),
@@ -672,9 +659,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide(
-                    color: isDark
-                        ? Colors.grey.shade700
-                        : Colors.grey.shade300,
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                     width: 1.2,
                   ),
                 ),

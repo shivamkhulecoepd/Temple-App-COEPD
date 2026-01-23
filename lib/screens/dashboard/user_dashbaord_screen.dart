@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/screens/dashboard/donations_screen.dart';
-import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
-import 'package:temple_app/screens/navigation/accommodation_screen.dart';
-import 'package:temple_app/screens/navigation/donation_prasadam_scree.dart';
-import 'package:temple_app/screens/user/booking_history_screen.dart';
-import 'package:temple_app/screens/user/my_donations_screen.dart';
-import 'package:temple_app/screens/user/user_profile_screen.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/screens/dashboard/donations_screen.dart';
+import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:mslgd/screens/navigation/accommodation_screen.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/user/booking_history_screen.dart';
+import 'package:mslgd/screens/user/my_donations_screen.dart';
+import 'package:mslgd/screens/user/user_profile_screen.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -65,7 +65,7 @@ class UserDashboardState extends State<UserDashboard> {
                       borderRadius: BorderRadius.circular(16.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -299,7 +299,7 @@ class UserDashboardState extends State<UserDashboard> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

@@ -9,8 +9,8 @@ import 'package:flutter/services.dart' show rootBundle, Uint8List;
 import 'package:open_filex/open_filex.dart'; // optional
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/models/old_screen_models.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/models/old_screen_models.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -111,13 +111,13 @@ class _AboutScreenState extends State<AboutScreen>
 
       // Option A: View PDF inside app (recommended first step)
       // Uncomment to navigate to full-screen viewer
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PdfViewerScreen()),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (_) => const PdfViewerScreen()),
+      // );
 
       // Option B: Save to device & optionally open in external viewer
-      // await _saveAndOpenPdf();
+      await _saveAndOpenPdf();
 
       _snack('PDF saved successfully!');
     } catch (e) {
@@ -149,6 +149,10 @@ class _AboutScreenState extends State<AboutScreen>
     if (result.type != ResultType.done) {
       _snack('Saved but cannot open automatically: ${result.message}');
     }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PdfViewerScreen()),
+    );
   }
 
   @override
@@ -341,11 +345,6 @@ class _AboutScreenState extends State<AboutScreen>
         ],
       ),
     );
-  }
-
-  String _getShortTitle(String title) {
-    final words = title.split(' ');
-    return words.length > 2 ? words.take(2).join(' ') : title;
   }
 
   // Helper method to get section by index without using the list
@@ -719,7 +718,6 @@ Visitors can explore the timeline and download scholarly notes.''',
             SizedBox(height: 12.h),
 
             ...section.timelineEvents.asMap().entries.map((entry) {
-              int index = entry.key;
               TimelineEvent event = entry.value;
               return Container(
                 margin: EdgeInsets.only(bottom: 12.h),
@@ -829,7 +827,9 @@ Visitors can explore the timeline and download scholarly notes.''',
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF8E44AD).withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: Color(0xFF8E44AD).withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [
@@ -1096,7 +1096,9 @@ Visitors can explore the timeline and download scholarly notes.''',
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF27AE60).withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: Color(0xFF27AE60).withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [
@@ -1308,7 +1310,9 @@ Visitors can explore the timeline and download scholarly notes.''',
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFF2980B9).withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: Color(0xFF2980B9).withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [
@@ -1440,7 +1444,9 @@ Visitors can explore the timeline and download scholarly notes.''',
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: Color(0xFFC0392B).withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: Color(0xFFC0392B).withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [
@@ -1909,8 +1915,6 @@ Visitors can explore the timeline and download scholarly notes.''',
 
   // ---------------- ACTIONS ----------------
 
-  void _playAudio() => _snack('Playing audio...');
-  void _downloadPDF() => _snack('Downloading PDF...');
   void _snack(String msg) => ScaffoldMessenger.of(
     context,
   ).showSnackBar(SnackBar(content: TranslatedText(msg)));

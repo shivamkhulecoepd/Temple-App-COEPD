@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:temple_app/services/storage_service.dart';
-import 'package:temple_app/services/theme_service.dart';
+import 'package:mslgd/services/storage_service.dart';
+import 'package:mslgd/services/theme_service.dart';
 
 part 'theme_event.dart';
 part 'theme_state.dart';

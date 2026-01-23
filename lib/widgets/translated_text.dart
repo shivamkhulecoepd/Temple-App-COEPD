@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
 
 class TranslatedText extends StatefulWidget {
   final String text;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -99,7 +99,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         borderRadius: BorderRadius.circular(20.r),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(
+                            color: Colors.black.withValues(alpha: 
                               isDark ? 0.35 : 0.12,
                             ),
                             blurRadius: 16,

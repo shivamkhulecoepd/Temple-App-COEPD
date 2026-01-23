@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:intl/intl.dart';
 
 class UserDonationsScreen extends StatefulWidget {
@@ -82,7 +82,7 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                   borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -139,7 +139,7 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                               leading: CircleAvatar(
                                 backgroundColor: const Color(
                                   0xFF8B0000,
-                                ).withOpacity(0.15),
+                                ).withValues(alpha: 0.15),
                                 radius: 28.r,
                                 child: Icon(
                                   Icons.volunteer_activism,

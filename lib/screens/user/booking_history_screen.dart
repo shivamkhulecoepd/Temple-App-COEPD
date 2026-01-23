@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:intl/intl.dart';
 
 class BookingHistoryScreen extends StatefulWidget {

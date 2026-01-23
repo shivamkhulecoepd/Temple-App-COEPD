@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/widgets/common/gallery_widget.dart';
+import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 // ── TEMPORARY: In future → fetch from API / Bloc / Firebase ──
 const Map<String, dynamic> contactInfo = {
@@ -170,8 +170,8 @@ class _ContactScreenState extends State<ContactScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.12),
+                                  ? Colors.black.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.12),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -319,8 +319,8 @@ class _ContactScreenState extends State<ContactScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.12),
+                                  ? Colors.black.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.12),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),

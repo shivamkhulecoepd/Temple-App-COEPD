@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/screens/authentication/auth_screen.dart';
-import 'package:temple_app/widgets/layout_screen.dart';
+import 'package:mslgd/screens/authentication/auth_screen.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
 
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -39,8 +39,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   //   const Color(0xFF9B0200).withValues(alpha: 0.4),
                   // ],
                   colors: [
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                    Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4),
+                    Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.5),
+                    Theme.of(
+                      context,
+                    ).colorScheme.secondary.withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -125,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: ElevatedButton(
                             onPressed: () {
                               HapticFeedback.vibrate();
-                              Navigator.push(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const AuthScreen(),
@@ -138,7 +142,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 context,
                               ).colorScheme.secondary,
                               // foregroundColor: Colors.white,
-                              foregroundColor: Theme.of(context).colorScheme.surface,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surface,
 
                               elevation: 6,
                               shape: RoundedRectangleBorder(
@@ -164,11 +170,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: TextButton(
                             onPressed: () {
                               HapticFeedback.heavyImpact();
-                              Navigator.push(
+                              Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const LayoutScreen(),
                                 ),
+                                (Route<dynamic> route) => false,
                               );
                             },
                             child: TranslatedText(
@@ -203,7 +210,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         Container(
           padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35),
+            color: Theme.of(
+              context,
+            ).colorScheme.secondary.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Icon(

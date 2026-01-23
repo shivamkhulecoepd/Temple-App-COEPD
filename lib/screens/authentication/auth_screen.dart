@@ -1,11 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mslgd/screens/dashboard/home_screen.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/services/theme_service.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/services/theme_service.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -115,11 +118,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _templeHeader() => Center(
     child: Column(
       children: [
-        Image.asset(
-          'assets/images/temple2.png',
-          height: 80.h,
-          color: TempleTheme.yellowButton,
-        ),
+        Image.asset('assets/images/about/temple_logo.png', height: 80.h),
         SizedBox(height: 10.h),
         Text(
           "Marakatha Sri Lakshmi \nGanapathi Devalayam",
@@ -252,7 +251,7 @@ class _AuthScreenState extends State<AuthScreen> {
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: GestureDetector(
-                onTap: () => print("Terms tapped"),
+                onTap: () => log("Terms tapped"),
                 child: TranslatedText(
                   "Terms & Conditions",
                   style: TextStyle(
@@ -271,7 +270,7 @@ class _AuthScreenState extends State<AuthScreen> {
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: GestureDetector(
-                onTap: () => print("Privacy tapped"),
+                onTap: () => log("Privacy tapped"),
                 child: TranslatedText(
                   "Privacy Policy",
                   style: TextStyle(
@@ -291,7 +290,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
   // ================= LOGIC =================
 
-  void _login() {}
+  void _login() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => HomeScreen()),
+      (route) => false,
+    );
+  }
 
   void _register() {
     if (passCtrl.text != confirmCtrl.text) {
@@ -342,7 +346,10 @@ class _OtpSheet extends StatelessWidget {
           Pinput(length: 6),
           SizedBox(height: 30.h),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: TempleTheme.primaryOrange,
               foregroundColor: Colors.white,

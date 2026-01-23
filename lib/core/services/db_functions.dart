@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class DBFunctions {
@@ -57,7 +58,7 @@ class DBFunctions {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      print('Timings fetch error: $e');
+      log('Timings fetch error: $e');
       // Always return a fallback string — never let it crash the UI
       return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
     }

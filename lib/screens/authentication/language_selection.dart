@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
-import 'package:temple_app/services/theme_service.dart';
-import 'package:temple_app/widgets/translated_text.dart';
-import 'package:temple_app/services/translation_service.dart';
-import 'package:temple_app/screens/authentication/welcome_screen.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
+import 'package:mslgd/services/theme_service.dart';
+import 'package:mslgd/widgets/translated_text.dart';
+import 'package:mslgd/services/translation_service.dart';
+import 'package:mslgd/screens/authentication/welcome_screen.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});

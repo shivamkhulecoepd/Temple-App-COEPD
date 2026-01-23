@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -368,7 +368,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                     ),
                     _buildPastVideos(),
                     _buildSevas(),
-                    // SizedBox(height: 40.h),
                   ],
                 ),
               ),
@@ -1020,58 +1019,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSevaItem(String name, String description, int price) {
-    return Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.book_online, color: Colors.orange),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TranslatedText(
-                  name,
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                TranslatedText(
-                  description,
-                  style: TextStyle(fontFamily: 'aBeeZee', fontSize: 14.sp),
-                ),
-                TranslatedText(
-                  '₹$price',
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => _showBookingBottomSheet(context, {
-              'name': name,
-              'description': description,
-              'price': price,
-            }),
-            child: TranslatedText('Book'),
           ),
         ],
       ),

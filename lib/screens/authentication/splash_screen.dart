@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/screens/authentication/language_selection.dart';
+import 'package:mslgd/screens/authentication/language_selection.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate after splash
     Timer(const Duration(seconds: 5), () {
-      Navigator.of(context).push(
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const LanguageSelectionScreen(),
         ),
@@ -64,33 +64,11 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Ganapathi / Temple Symbol
-                Container(
-                  height: 140.h,
-                  width: 140.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE26400), Color(0xFF9B0200)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFFF15A29).withValues(alpha: 0.45),
-                        blurRadius:
-                            22.r, // .r for radius/blur (scales like width)
-                        spreadRadius: 3.r,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons
-                          .self_improvement, // Replace with Ganapathi SVG later
-                      color: Colors.white,
-                      size: 72
-                          .sp, // Use .sp for icons if you want them to scale with text
-                    ),
+                Center(
+                  child: Image.asset(
+                    'assets/images/about/temple_logo.png',
+                    height: 72.h,
+                    fit: BoxFit.cover,
                   ),
                 ),
 

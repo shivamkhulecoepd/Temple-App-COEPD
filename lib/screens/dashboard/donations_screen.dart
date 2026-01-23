@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/screens/navigation/donation_prasadam_scree.dart';
-import 'package:temple_app/widgets/common/gallery_widget.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/widgets/common/gallery_widget.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class DonationsScreen extends StatefulWidget {
   const DonationsScreen({super.key});

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/screens/dashboard/contact_info_screen.dart';
-import 'package:temple_app/screens/dashboard/donations_screen.dart';
-import 'package:temple_app/screens/dashboard/home_screen.dart';
-import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
-import 'package:temple_app/screens/dashboard/user_dashbaord_screen.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
+import 'package:mslgd/screens/dashboard/donations_screen.dart';
+import 'package:mslgd/screens/dashboard/home_screen.dart';
+import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:mslgd/screens/dashboard/user_dashbaord_screen.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class LayoutScreen extends StatefulWidget {
-  const LayoutScreen({super.key});
+  final int? index;
+  const LayoutScreen({super.key, this.index});
 
   @override
   State<LayoutScreen> createState() => _LayoutScreenState();
@@ -36,6 +37,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.index ?? 0;
     _pageController = PageController(initialPage: _selectedIndex);
   }
 
@@ -106,7 +108,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.orange.withOpacity(0.1)
+              ? Colors.orange.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16.r),
         ),

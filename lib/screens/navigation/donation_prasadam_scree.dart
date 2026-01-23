@@ -1,9 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 enum DonationSection {
   eHundi,
@@ -36,21 +38,6 @@ class _DonationsPublicationScreenState
   void _selectSection(DonationSection section) {
     setState(() => _currentSection = section);
     Navigator.pop(context);
-  }
-
-  String get _title {
-    switch (_currentSection) {
-      case DonationSection.eHundi:
-        return 'E-Hundi (Online Donations)';
-      case DonationSection.nityaAnna:
-        return 'Nitya Anna Prasadam';
-      case DonationSection.specificScheme:
-        return 'Specific Donation Scheme';
-      case DonationSection.publications:
-        return 'Publications & Prasadam';
-      case DonationSection.institutional:
-        return 'Institutional Contributions';
-    }
   }
 
   @override
@@ -291,7 +278,7 @@ class _DonationsPublicationScreenState
                   ),
                   filled: true,
                   fillColor: isDark
-                      ? theme.cardColor.withOpacity(0.7)
+                      ? theme.cardColor.withValues(alpha: 0.7)
                       : Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -351,7 +338,7 @@ class _DonationsPublicationScreenState
 
                     // TODO: proceed to payment gateway / next screen
                     // Example: context.read<DonationBloc>().add(InitPayment(amount));
-                    print('Donating: ₹$amount'); // temporary
+                    log('Donating: ₹$amount'); // temporary
                   },
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(
@@ -445,7 +432,7 @@ class _DonationsPublicationScreenState
                   ),
                   filled: true,
                   fillColor: isDark
-                      ? theme.cardColor.withOpacity(0.7)
+                      ? theme.cardColor.withValues(alpha: 0.7)
                       : Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -505,7 +492,7 @@ class _DonationsPublicationScreenState
 
                     // TODO: proceed to payment gateway / next screen
                     // Example: context.read<DonationBloc>().add(InitPayment(amount));
-                    print('Donating: ₹$amount'); // temporary
+                    log('Donating: ₹$amount'); // temporary
                   },
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(

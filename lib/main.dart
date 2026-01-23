@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/screens/navigation/about_screen.dart';
-import 'package:temple_app/screens/dashboard/donations_screen.dart';
-import 'package:temple_app/screens/dashboard/home_screen.dart';
-import 'package:temple_app/screens/navigation/accommodation_screen.dart';
-import 'package:temple_app/screens/previous/main_navigations.dart';
-import 'package:temple_app/screens/user/booking_history_screen.dart';
-import 'package:temple_app/screens/user/my_donations_screen.dart';
-import 'package:temple_app/screens/user/user_profile_screen.dart';
-import 'package:temple_app/services/storage_service.dart';
-import 'package:temple_app/services/translation_service.dart';
-import 'package:temple_app/services/theme_service.dart';
-import 'package:temple_app/screens/authentication/splash_screen.dart';
-import 'package:temple_app/widgets/layout_screen.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/screens/navigation/about_screen.dart';
+import 'package:mslgd/screens/dashboard/donations_screen.dart';
+import 'package:mslgd/screens/dashboard/home_screen.dart';
+import 'package:mslgd/screens/navigation/accommodation_screen.dart';
+import 'package:mslgd/screens/navigation/guide_screen.dart';
+import 'package:mslgd/screens/user/booking_history_screen.dart';
+import 'package:mslgd/screens/user/my_donations_screen.dart';
+import 'package:mslgd/screens/user/user_profile_screen.dart';
+import 'package:mslgd/services/storage_service.dart';
+import 'package:mslgd/services/translation_service.dart';
+import 'package:mslgd/services/theme_service.dart';
+import 'package:mslgd/screens/authentication/splash_screen.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
 
 void main() {
   runApp(TempleApp());
@@ -65,14 +65,14 @@ class TempleApp extends StatelessWidget {
                     designSize: Size(screenSize.width, screenSize.height),
                     minTextAdapt: true,
                     builder: (_, child) {
-                      // return const OldScreensNavigations();
-                      // return const SplashScreen();
-                      return LayoutScreen();
+                      return const SplashScreen();
+                      // return LayoutScreen();
                       // return const HomeScreen();
                       // return const AboutScreen();
                       // return const SevaLiveDarshanScreen();
                       // return const DonationsScreen();
                       // return AccommodationScreen(initialSection: AccommodationSection.howToReach);
+                      // return const GuideScreen();
                     },
                   );
                 },

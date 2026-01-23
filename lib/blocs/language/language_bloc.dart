@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:temple_app/services/storage_service.dart';
-import 'package:temple_app/services/translation_service.dart';
+import 'package:mslgd/services/storage_service.dart';
+import 'package:mslgd/services/translation_service.dart';
 
 part 'language_event.dart';
 part 'language_state.dart';

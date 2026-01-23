@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class GalleryWidget extends StatefulWidget {
   final String? title;

@@ -8,20 +8,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
-import 'package:temple_app/blocs/language/language_bloc.dart';
-import 'package:temple_app/blocs/theme/theme_bloc.dart';
-import 'package:temple_app/core/services/db_functions.dart';
-import 'package:temple_app/models/petal.model.dart';
-import 'package:temple_app/screens/authentication/auth_screen.dart';
-import 'package:temple_app/screens/navigation/about_screen.dart';
-import 'package:temple_app/screens/dashboard/donations_screen.dart';
-import 'package:temple_app/screens/dashboard/seva_livedarshan_screen.dart';
-import 'package:temple_app/screens/navigation/accommodation_screen.dart';
-import 'package:temple_app/screens/navigation/donation_prasadam_scree.dart';
-import 'package:temple_app/services/theme_service.dart';
-import 'package:temple_app/widgets/common/gallery_widget.dart';
-import 'package:temple_app/widgets/theme_toggle_widget.dart';
-import 'package:temple_app/widgets/translated_text.dart';
+import 'package:mslgd/blocs/language/language_bloc.dart';
+import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/models/petal.model.dart';
+import 'package:mslgd/screens/authentication/auth_screen.dart';
+import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
+import 'package:mslgd/screens/navigation/about_screen.dart';
+import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:mslgd/screens/navigation/accommodation_screen.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/navigation/festivals_screen.dart';
+import 'package:mslgd/screens/navigation/gallery_screen.dart';
+import 'package:mslgd/screens/navigation/guide_screen.dart';
+import 'package:mslgd/services/theme_service.dart';
+import 'package:mslgd/widgets/common/gallery_widget.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
+import 'package:mslgd/widgets/theme_toggle_widget.dart';
+import 'package:mslgd/widgets/translated_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -142,9 +147,6 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isMuted = true;
   String _selectedLanguage = 'English';
 
-  // Simulated API data
-  Future<String>? _templeTimingFuture;
-
   void _spawnPetal() {
     final random = math.Random();
     if (mounted) {
@@ -200,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> loadData() async {
     try {
       final data = await DBFunctions().fetchMarqueeAndBanners();
-
       setState(() {
         marqueeNews = List<String>.from(data['marquee_news'] ?? []);
         banners = List<Map<String, dynamic>>.from(data['banners'] ?? []);
@@ -312,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen>
                   _buildHeroSection(),
                   _buildQuickActionGrid(),
                   _buildAboutSection(),
-                  _buildMarqueeBar(apiNews),
+                  _buildMarqueeBar(marqueeNews),
                   _buildBannerSection(myBanners),
                   GalleryWidget(title: 'Sri Devi Sharan Navratri 2025'),
                   SizedBox(height: 20.h),
@@ -351,15 +352,29 @@ class _HomeScreenState extends State<HomeScreen>
 
           // 2. SOCIAL ICONS
           Row(
+            spacing: 26.h,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _socialIcon(FontAwesomeIcons.instagram, "https://www.instagram.com/markatha_sri_laxmi_ganpathi/"),
-              SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.facebook, "https://www.facebook.com/marakathaganapathi/"),
-              SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.xTwitter, "https://x.com/mslgdt"),
-              SizedBox(width: 20.w),
-              _socialIcon(FontAwesomeIcons.youtube, "https://www.youtube.com/@mslgdevasthanam"),
+              _socialIcon(
+                FontAwesomeIcons.instagram,
+                "https://www.instagram.com/markatha_sri_laxmi_ganpathi/",
+                Colors.pink.withValues(alpha: 0.7),
+              ),
+              _socialIcon(
+                FontAwesomeIcons.facebook,
+                "https://www.facebook.com/marakathaganapathi/",
+                Colors.blue.withValues(alpha: 0.7),
+              ),
+              _socialIcon(
+                FontAwesomeIcons.xTwitter,
+                "https://x.com/mslgdt",
+                Colors.blue,
+              ),
+              _socialIcon(
+                FontAwesomeIcons.youtube,
+                "https://www.youtube.com/@mslgdevasthanam",
+                Colors.red,
+              ),
             ],
           ),
           SizedBox(height: 8.h),
@@ -399,7 +414,10 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 // Sound/Mute Toggle
                 IconButton(
-                  onPressed: () => setState(() => _isMuted = !_isMuted),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _isMuted = !_isMuted);
+                  },
                   icon: Icon(
                     _isMuted ? Icons.volume_off : Icons.volume_up,
                     size: 24.sp,
@@ -417,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen>
                     return DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedLanguage,
-                        dropdownColor: const Color(0xFF00333D),
+                        dropdownColor: Theme.of(context).colorScheme.primary,
                         icon: Icon(
                           Icons.keyboard_arrow_down,
                           color: Colors.white,
@@ -468,6 +486,7 @@ class _HomeScreenState extends State<HomeScreen>
                 // Login Button
                 TextButton(
                   onPressed: () {
+                    HapticFeedback.selectionClick();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => AuthScreen()),
@@ -491,7 +510,11 @@ class _HomeScreenState extends State<HomeScreen>
                 // Contact Us Button
                 TextButton.icon(
                   onPressed: () {
-                    // Handle contact action (phone call, email, etc.)
+                    HapticFeedback.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => ContactScreen()),
+                    );
                   },
                   icon: Icon(Icons.phone, color: Colors.white, size: 16.sp),
                   label: TranslatedText(
@@ -513,13 +536,28 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _socialIcon(IconData icon, String url) {
+  Widget _socialIcon(IconData icon, String url, Color? color) {
     return GestureDetector(
-      onTap: () {
-        // Use url_launcher or your preferred method to open URL
-        log("Redirect to $url");
+      onTap: () async {
+        final Uri uri = Uri.parse(url);
+
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          log("Could not launch $url");
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Invalid link or no browser found"),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
       },
-      child: FaIcon(icon, color: Colors.white, size: 20.sp),
+      child: FaIcon(icon, color: color, size: 20.sp),
     );
   }
 
@@ -595,26 +633,19 @@ class _HomeScreenState extends State<HomeScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
+              spacing: 15.w,
               children: [
                 _navItem(Icons.home, "Home", null),
-                SizedBox(width: 15.w),
-                _navItem(
-                  Icons.temple_hindu,
-                  "About Temple",
-                  const AboutScreen(),
-                ),
-                SizedBox(width: 15.w),
-                _navItem(
-                  Icons.currency_rupee,
-                  "Sevaa and Darshan",
-                  const SizedBox(),
-                ),
+                _navItem(Icons.temple_hindu, "About Temple", const AboutScreen()),
+                _navItem(Icons.currency_rupee, "Sevaa and Darshan", LayoutScreen(index: 2), isReplacement: true),
               ],
             ),
-            SizedBox(width: 20.w), // Space before button
+            SizedBox(width: 18.w),
             ElevatedButton(
               onPressed: () {
-                // Handle donation navigation or action
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => LayoutScreen(index: 1)),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: TempleTheme.primaryOrange,
@@ -642,12 +673,23 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _navItem(IconData icon, String label, Widget? screen) {
+  Widget _navItem(
+    IconData icon,
+    String label,
+    Widget? screen, {
+    bool? isReplacement = false,
+  }) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (context) => screen!));
+        isReplacement!
+            ? Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => screen!),
+              )
+            : Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => screen!),
+              );
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -783,7 +825,11 @@ class _HomeScreenState extends State<HomeScreen>
         "label": "Darshan Booking",
         "route": SevaLiveDarshanScreen(),
       },
-      {"icon": "assets/images/dashboard/Festivals.png", "label": "Festivals"},
+      {
+        "icon": "assets/images/dashboard/Festivals.png",
+        "label": "Festivals",
+        "route": FestivalsScreen(),
+      },
       {
         "icon": "assets/images/dashboard/Ehundi_Donations.png",
         "label": "E-Hundi",
@@ -806,6 +852,9 @@ class _HomeScreenState extends State<HomeScreen>
       {
         "icon": "assets/images/dashboard/eventcalander.png",
         "label": "Calendar",
+        "route": FestivalsScreen(
+          initialSection: FestivalsSection.annualFestivals,
+        ),
       },
       {
         "icon": "assets/images/dashboard/Annadanam.png",
@@ -814,8 +863,16 @@ class _HomeScreenState extends State<HomeScreen>
           initialSection: DonationSection.nityaAnna,
         ),
       },
-      {"icon": "assets/images/dashboard/MediaGallery.png", "label": "Gallery"},
-      {"icon": "assets/images/dashboard/VisitorsGuide.png", "label": "Guide"},
+      {
+        "icon": "assets/images/dashboard/MediaGallery.png",
+        "label": "Gallery",
+        "route": GalleryScreen(),
+      },
+      {
+        "icon": "assets/images/dashboard/VisitorsGuide.png",
+        "label": "Guide",
+        "route": GuideScreen(),
+      },
     ];
 
     return Padding(
@@ -1064,7 +1121,8 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         // 2. Horizontal Scrollable Banners
         SizedBox(
-          height: 280.h, // Increased height to accommodate the white content area
+          height:
+              280.h, // Increased height to accommodate the white content area
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 12.w),
