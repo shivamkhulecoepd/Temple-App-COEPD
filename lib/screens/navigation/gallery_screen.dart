@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
-import 'package:mslgd/widgets/common/InlineVideoPlayer_widget.dart';
+import 'package:mslgd/widgets/common/inlinevideoplayer_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,7 +77,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Container(
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.black.withOpacity(0.8)
+                      ? Colors.black.withValues(alpha: 0.8)
                       : Colors.transparent,
                 ),
               ),
@@ -255,7 +255,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           height: 220.h,
           width: double.infinity,
           child: Shimmer.fromColors(
-            baseColor: theme.colorScheme.surfaceVariant,
+            baseColor: theme.colorScheme.surface,
             highlightColor: theme.colorScheme.surface,
             child: Container(color: Colors.white),
           ),
@@ -285,7 +285,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 return Container(
                   height: 220.h,
                   alignment: Alignment.center,
-                  color: theme.colorScheme.surfaceVariant,
+                  color: theme.colorScheme.surface,
                   child: const Icon(Icons.broken_image),
                 );
               },
@@ -653,7 +653,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             width: 90.w,
             height: 90.w, // 🔒 fixed height prevents layout jump
             decoration: BoxDecoration(
-              color: theme.colorScheme.secondary.withOpacity(0.15),
+              color: theme.colorScheme.secondary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: ClipRRect(
@@ -667,7 +667,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   if (loadingProgress == null) return child;
 
                   return Shimmer.fromColors(
-                    baseColor: theme.colorScheme.surfaceVariant,
+                    baseColor: theme.colorScheme.surface,
                     highlightColor: theme.colorScheme.surface,
                     child: Container(color: Colors.white),
                   );
@@ -677,7 +677,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     alignment: Alignment.center,
-                    color: theme.colorScheme.surfaceVariant,
+                    color: theme.colorScheme.surface,
                     child: Icon(
                       Icons.broken_image,
                       color: Colors.grey,
@@ -757,8 +757,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       boxShadow: [
         BoxShadow(
           color: isDark
-              ? Colors.black.withOpacity(0.3)
-              : Colors.black.withOpacity(0.15),
+              ? Colors.black.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.15),
           blurRadius: 12,
           offset: const Offset(0, 6),
         ),

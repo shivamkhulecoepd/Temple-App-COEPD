@@ -120,7 +120,7 @@ class _GuideScreenState extends State<GuideScreen> {
               Container(
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.black.withOpacity(0.8)
+                      ? Colors.black.withValues(alpha: 0.8)
                       : Colors.transparent,
                 ),
               ),
@@ -316,7 +316,7 @@ class _GuideScreenState extends State<GuideScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10.r),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10.r),
         ],
         borderRadius: BorderRadius.circular(12.r),
         border: (isBorder && !isDark)
@@ -671,13 +671,13 @@ class _GuideScreenState extends State<GuideScreen> {
           decoration: BoxDecoration(
             // Subtle green for Does, subtle red for Donts
             color: isDoes
-                ? Colors.green.withOpacity(0.1)
-                : Colors.red.withOpacity(0.1),
+                ? Colors.green.withValues(alpha: 0.1)
+                : Colors.red.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: isDoes
-                  ? Colors.green.withOpacity(0.3)
-                  : Colors.red.withOpacity(0.3),
+                  ? Colors.green.withValues(alpha: 0.3)
+                  : Colors.red.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -695,8 +695,8 @@ class _GuideScreenState extends State<GuideScreen> {
               ),
               Divider(
                 color: isDoes
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.red.withOpacity(0.2),
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : Colors.red.withValues(alpha: 0.2),
               ),
               SizedBox(height: 8.h),
 
@@ -828,8 +828,8 @@ class _GuideScreenState extends State<GuideScreen> {
       boxShadow: [
         BoxShadow(
           color: isDark
-              ? Colors.black.withOpacity(0.3)
-              : Colors.black.withOpacity(0.15),
+              ? Colors.black.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.15),
           blurRadius: 12,
           offset: const Offset(0, 6),
         ),

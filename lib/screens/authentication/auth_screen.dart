@@ -1,9 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:mslgd/screens/dashboard/home_screen.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
@@ -292,7 +291,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _login() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => LayoutScreen()),
       (route) => false,
     );
   }
@@ -347,7 +346,7 @@ class _OtpSheet extends StatelessWidget {
           SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => HomeScreen()),
+              MaterialPageRoute(builder: (context) => LayoutScreen()),
               (route) => false,
             ),
             style: ElevatedButton.styleFrom(

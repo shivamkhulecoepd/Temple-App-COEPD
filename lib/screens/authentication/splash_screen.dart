@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/screens/authentication/language_selection.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
+import 'package:mslgd/services/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,13 +37,27 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate after splash
-    Timer(const Duration(seconds: 5), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LanguageSelectionScreen(),
-        ),
-      );
+    // Navigate after splash based on first launch status
+    Timer(const Duration(seconds: 3), () async {
+      final storageService = context.read<StorageService>();
+      final isFirstLaunch = await storageService.isFirstLaunch();
+      
+      if (isFirstLaunch) {
+        // Mark as not first launch anymore
+        await storageService.setFirstLaunch(false);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LanguageSelectionScreen(),
+          ),
+        );
+      } else {
+        // Go directly to main app
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LayoutScreen(),
+          ),
+        );
+      }
     });
   }
 

@@ -1,17 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle, Uint8List;
 import 'package:open_filex/open_filex.dart'; // optional
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:mslgd/models/old_screen_models.dart';
 import 'package:mslgd/widgets/translated_text.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -103,7 +104,8 @@ class _AboutScreenState extends State<AboutScreen>
         if (!status.isGranted) {
           status = await Permission.storage.request();
           if (!status.isGranted) {
-            _snack('Storage permission denied');
+            // _snack('Storage permission denied');
+            AppSnackbar.error(context, 'Storage permission denied');
             return;
           }
         }
@@ -118,10 +120,9 @@ class _AboutScreenState extends State<AboutScreen>
 
       // Option B: Save to device & optionally open in external viewer
       await _saveAndOpenPdf();
-
-      _snack('PDF saved successfully!');
     } catch (e) {
-      _snack('Error: ${e.toString()}');
+      // _snack('Error: ${e.toString()}');
+      AppSnackbar.error(context, 'Error: ${e.toString()}');
       debugPrint('PDF error: $e');
     } finally {
       if (mounted) {
@@ -147,7 +148,8 @@ class _AboutScreenState extends State<AboutScreen>
     // Optional: Open in external PDF viewer (Adobe, Google PDF, etc.)
     final result = await OpenFilex.open(file.path);
     if (result.type != ResultType.done) {
-      _snack('Saved but cannot open automatically: ${result.message}');
+      // _snack('Saved but cannot open automatically: ${result.message}');
+      AppSnackbar.warning(context, 'Saved but cannot open automatically: ${result.message}');
     }
     Navigator.push(
       context,

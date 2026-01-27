@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class StorageService {
   static const String _keySelectedLanguage = 'selected_language';
   static const String _keyTranslations = 'cached_translations';
+  static const String _keyFirstLaunch = 'first_launch';
 
   Future<SharedPreferences> getPreferences() async {
     return await SharedPreferences.getInstance();
@@ -45,5 +46,15 @@ class StorageService {
       }
     }
     return {};
+  }
+
+  Future<void> setFirstLaunch(bool firstLaunch) async {
+    final prefs = await getPreferences();
+    await prefs.setBool(_keyFirstLaunch, firstLaunch);
+  }
+
+  Future<bool> isFirstLaunch() async {
+    final prefs = await getPreferences();
+    return prefs.getBool(_keyFirstLaunch) ?? true;
   }
 }

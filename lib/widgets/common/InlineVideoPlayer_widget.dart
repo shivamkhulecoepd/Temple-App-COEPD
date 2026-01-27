@@ -25,8 +25,8 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
   void initState() {
     super.initState();
 
-    _controller = VideoPlayerController.network(
-      widget.videoUrl,
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.videoUrl),
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
     );
 
@@ -59,7 +59,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
             if (snapshot.connectionState != ConnectionState.done) {
               /// 🔹 SHIMMER WHILE VIDEO LOADS
               return Shimmer.fromColors(
-                baseColor: theme.colorScheme.surfaceVariant,
+                baseColor: theme.colorScheme.surface,
                 highlightColor: theme.colorScheme.surface,
                 child: Container(
                   width: double.infinity,
