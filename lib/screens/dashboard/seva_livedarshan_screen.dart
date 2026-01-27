@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/core/services/db_functions.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -15,6 +19,16 @@ class SevaLiveDarshanScreen extends StatefulWidget {
 }
 
 class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
+  // Static variables to persist data across widget recreations
+  static bool _firstLoad = true;
+  static String? _staticLiveUrl;
+  static String? _staticTitle;
+  static String? _staticDescription;
+  static List<Map<String, dynamic>> _staticTimings = [];
+  static List<Map<String, dynamic>> _staticUpcomingEvents = [];
+  static List<Map<String, dynamic>> _staticPastVideos = [];
+  static List<Map<String, dynamic>> _staticSevas = [];
+
   String? liveUrl;
   String? title;
   String? description;
@@ -30,96 +44,32 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   @override
   void initState() {
     super.initState();
-    fetchData();
-  }
 
-  Future<void> fetchData() async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
+    // Set local state from static variables
     setState(() {
-      liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
-      title = 'Daily Divine Darshan';
-      description = 'Live from MSLGD temple, Secunderabad';
-
-      timings = [
-        {
-          'title': 'Morning Darshan',
-          'time': '5:00 AM - 12:00 PM',
-          'icon': Icons.wb_sunny_outlined,
-        },
-        {
-          'title': 'Evening Darshan',
-          'time': '4:00 PM - 9:00 PM',
-          'icon': Icons.nightlight_outlined,
-        },
-      ];
-
-      upcomingEvents = [
-        {'title': 'Special Pooja', 'date': 'Nov 20, 2025 | 6:00 AM'},
-        {'title': 'Festival Celebration', 'date': 'Nov 22, 2025 | 7:00 PM'},
-        {'title': 'Monthly Ritual', 'date': 'Nov 25, 2025 | 5:30 AM'},
-      ];
-
-      pastVideos = [
-        {
-          'title': 'Past Darshan 1',
-          'date': 'Oct 15, 2025',
-          'url': 'https://www.youtube.com/shorts/yNBh5-arDaw',
-        },
-        {
-          'title': 'Past Darshan 2',
-          'date': 'Oct 10, 2025',
-          'url': 'https://www.youtube.com/shorts/5ksioZM5NC8',
-        },
-        {
-          'title': 'Past Darshan 2',
-          'date': 'Oct 10, 2025',
-          'url': 'https://www.youtube.com/shorts/-jWu9VS2Xls',
-        },
-      ];
-
-      sevas = [
-        {
-          'name': 'Daily Seva',
-          'imageUrl': 'assets/images/live_seva/seva1.jpg',
-          'description':
-              'Participate in the morning rituals including lighting lamps and offering fresh flowers to the deity as part of the everyday worship routine.',
-          'price': 100,
-        },
-        {
-          'name': 'Special Seva',
-          'imageUrl': 'assets/images/live_seva/seva2.jpg',
-          'description':
-              'Exclusive access to inner sanctum for personalized darshan and blessings during peak festival hours with priority entry.',
-          'price': 200,
-        },
-        {
-          'name': 'Abhishekam Seva',
-          'imageUrl': 'assets/images/live_seva/seva3.jpg',
-          'description':
-              'Sacred bathing ceremony of the deity using milk, honey, curd, ghee, and holy water while chanting Vedic mantras for divine purification.',
-          'price': 500,
-        },
-        {
-          'name': 'Archana Seva',
-          'imageUrl': 'assets/images/live_seva/seva4.jpg',
-          'description':
-              'Devotional offering of flowers, fruits, and leaves accompanied by chanting the 108 sacred names of the deity for personal wishes.',
-          'price': 150,
-        },
-        {
-          'name': 'Lakshmi Kalyanam',
-          'imageUrl': 'assets/images/live_seva/seva1.jpg',
-          'description':
-              'Elaborate celestial wedding ceremony reenacting the divine marriage of Goddess Lakshmi and Lord Vishnu with rituals, music, and feasts.',
-          'price': 1000,
-        },
-      ];
+      liveUrl = _staticLiveUrl;
+      title = _staticTitle;
+      description = _staticDescription;
+      timings = List.from(_staticTimings);
+      upcomingEvents = List.from(_staticUpcomingEvents);
+      pastVideos = List.from(_staticPastVideos);
+      sevas = List.from(_staticSevas);
     });
 
-    if (liveUrl != null) {
-      final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
+    // Load data only on first app open
+    if (_firstLoad) {
+      fetchData();
+      _firstLoad = false;
+    } else {
+      // Initialize YouTube controller if live URL exists (for subsequent visits)
+      _initializeYouTubeController();
+    }
+  }
+
+  // New method to initialize YouTube controller
+  void _initializeYouTubeController() {
+    if (_staticLiveUrl != null && _controller == null) {
+      final videoId = YoutubePlayer.convertUrlToId(_staticLiveUrl!);
       if (videoId != null) {
         _controller = YoutubePlayerController(
           initialVideoId: videoId,
@@ -131,6 +81,218 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         )..addListener(_playerListener);
         setState(() {});
       }
+    }
+  }
+
+  Future<void> fetchData() async {
+    try {
+      // Fetch all API data concurrently
+      final results = await Future.wait([
+        DBFunctions().fetchLiveStream(),
+        DBFunctions().fetchUpcomingEvent(),
+        DBFunctions().fetchArchiveVideos(),
+        DBFunctions().fetchActivePoojas(),
+      ], eagerError: true);
+      log('API Data:');
+      log(jsonEncode(results));
+
+      if (!mounted) return;
+
+      final liveStreamData = results[0] as Map<String, dynamic>;
+      final upcomingEventData = results[1] as Map<String, dynamic>?;
+      final archiveVideosData = results[2] as List<dynamic>;
+      final activePoojasData = results[3] as List<dynamic>;
+
+      setState(() {
+        // 1. Live Stream Data
+        liveUrl = liveStreamData['embed_code'] as String?;
+        title = liveStreamData['title'] as String?;
+        description = liveStreamData['subtitle'] as String?;
+
+        // 2. Timings (Hardcoded as per temple schedule)
+        timings = [
+          {
+            'title': 'Morning Darshan',
+            'time': '5:00 AM - 12:00 PM',
+            'icon': Icons.wb_sunny_outlined,
+          },
+          {
+            'title': 'Evening Darshan',
+            'time': '4:00 PM - 9:00 PM',
+            'icon': Icons.nightlight_outlined,
+          },
+        ];
+
+        // 3. Upcoming Event
+        if (upcomingEventData != null) {
+          upcomingEvents = [
+            {
+              'title': upcomingEventData['event_title'] as String,
+              'date':
+                  '${upcomingEventData['event_date']} | ${upcomingEventData['event_time']}',
+            },
+          ];
+        } else {
+          upcomingEvents = [
+            {'title': 'No upcoming events', 'date': 'Check back later'},
+          ];
+        }
+
+        // 4. Archive Videos
+        pastVideos = (archiveVideosData)
+            .map(
+              (video) => {
+                'id': video['id'] as String?,
+                'title': video['title'] as String,
+                'thumbnail': video['thumbnail'] as String?,
+                'date': _formatDate(video['created_at'] as String),
+                'url': video['video_url'] as String,
+              },
+            )
+            .toList();
+
+        // 5. Active Poojas/Sevas
+        sevas = (activePoojasData)
+            .map(
+              (pooja) => {
+                'name': pooja['pooja_name'] as String,
+                'imageUrl': pooja['image'] as String,
+                'description': pooja['pooja_desc'] as String,
+                'price': int.tryParse(pooja['amount'] as String) ?? 0,
+              },
+            )
+            .toList();
+      });
+
+      // Update static variables
+      _staticLiveUrl = liveUrl;
+      _staticTitle = title;
+      _staticDescription = description;
+      _staticTimings = List.from(timings);
+      _staticUpcomingEvents = List.from(upcomingEvents);
+      _staticPastVideos = List.from(pastVideos);
+      _staticSevas = List.from(sevas);
+
+      // Initialize YouTube controller if live URL exists
+      if (liveUrl != null) {
+        final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
+        if (videoId != null) {
+          _controller = YoutubePlayerController(
+            initialVideoId: videoId,
+            flags: const YoutubePlayerFlags(
+              autoPlay: true,
+              mute: false,
+              forceHD: true,
+            ),
+          )..addListener(_playerListener);
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      // Only use fallback if this is the first load
+      if (_firstLoad) {
+        log('Error fetching data, using fallback: $e');
+        // Fallback to hardcoded data if API fails
+        if (!mounted) return;
+
+        setState(() {
+          liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
+          title = 'Daily Divine Darshan';
+          description = 'Live from MSLGD temple, Secunderabad';
+
+          timings = [
+            {
+              'title': 'Morning Darshan',
+              'time': '5:00 AM - 12:00 PM',
+              'icon': Icons.wb_sunny_outlined,
+            },
+            {
+              'title': 'Evening Darshan',
+              'time': '4:00 PM - 9:00 PM',
+              'icon': Icons.nightlight_outlined,
+            },
+          ];
+
+          upcomingEvents = [
+            {'title': 'Special Pooja', 'date': 'Nov 20, 2025 | 6:00 AM'},
+            {'title': 'Festival Celebration', 'date': 'Nov 22, 2025 | 7:00 PM'},
+          ];
+
+          pastVideos = [
+            {
+              'id': null,
+              'title': 'Past Darshan 1',
+              'date': 'Oct 15, 2025',
+              'url': 'https://www.youtube.com/shorts/yNBh5-arDaw',
+              'thumbnail': null,
+            },
+            {
+              'id': null,
+              'title': 'Past Darshan 2',
+              'date': 'Oct 10, 2025',
+              'url': 'https://www.youtube.com/shorts/5ksioZM5NC8',
+              'thumbnail': null,
+            },
+          ];
+
+          sevas = [
+            {
+              'name': 'Daily Seva',
+              'imageUrl': 'assets/images/live_seva/seva1.jpg',
+              'description':
+                  'Participate in the morning rituals including lighting lamps and offering fresh flowers to the deity as part of the everyday worship routine.',
+              'price': 100,
+            },
+            {
+              'name': 'Special Seva',
+              'imageUrl': 'assets/images/live_seva/seva2.jpg',
+              'description':
+                  'Exclusive access to inner sanctum for personalized darshan and blessings during peak festival hours with priority entry.',
+              'price': 200,
+            },
+          ];
+        });
+
+        // Update static variables with fallback data
+        _staticLiveUrl = liveUrl;
+        _staticTitle = title;
+        _staticDescription = description;
+        _staticTimings = List.from(timings);
+        _staticUpcomingEvents = List.from(upcomingEvents);
+        _staticPastVideos = List.from(pastVideos);
+        _staticSevas = List.from(sevas);
+
+        if (liveUrl != null) {
+          final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
+          if (videoId != null) {
+            _controller = YoutubePlayerController(
+              initialVideoId: videoId,
+              flags: const YoutubePlayerFlags(
+                autoPlay: true,
+                mute: false,
+                forceHD: true,
+              ),
+            )..addListener(_playerListener);
+            setState(() {});
+          }
+        }
+      } else {
+        // For subsequent loads, just show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: TranslatedText('Failed to load data: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+    } catch (e) {
+      return 'Date not available';
     }
   }
 
@@ -241,137 +403,66 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
         final bool showPlayer = _controller != null;
 
-        return Scaffold(
-          // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).primaryColor,
-            elevation: 0,
-            title: TranslatedText(
-              'Live Darshan',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                color: Colors.white,
-                fontSize: 20.sp,
+        return RefreshIndicator.adaptive(
+          color: Theme.of(context).colorScheme.secondary,
+          backgroundColor: Theme.of(context).primaryColor,
+          onRefresh: () async {
+            await fetchData(); // Re-fetches data on pull-to-refresh
+          },
+          child: Scaffold(
+            // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              elevation: 0,
+              title: TranslatedText(
+                'Live Darshan',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  color: Colors.white,
+                  fontSize: 20.sp,
+                ),
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-            centerTitle: true,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Stack(
-            children: [
-              // Background image
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/background/main_bg1.jpg'),
-                    fit: BoxFit.cover,
+            body: Stack(
+              children: [
+                // Background image
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/background/main_bg1.jpg'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              // Black overlay in dark mode
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withValues(alpha: 0.8)
-                      : Colors.transparent,
+                // Black overlay in dark mode
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black.withValues(alpha: 0.8)
+                        : Colors.transparent,
+                  ),
                 ),
-              ),
-              // Main content
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 240.h,
-                      width: double.infinity,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (!showPlayer)
-                            Image.asset(
-                              'assets/images/about/abt2.1.jpg',
-                              fit: BoxFit.cover,
-                            ),
-                          if (showPlayer)
-                            YoutubePlayer(
-                              controller: _controller!,
-                              showVideoProgressIndicator: true,
-                            ),
-                          Positioned(
-                            top: 12.h,
-                            left: 12.w,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 6.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(20.r),
-                              ),
-                              child: TranslatedText(
-                                'LIVE',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 12.h,
-                            right: 12.w,
-                            child: FloatingActionButton(
-                              mini: true,
-                              backgroundColor: Colors.white,
-                              onPressed: () =>
-                                  _launchYouTube(liveUrl!, context),
-                              child: Icon(Icons.open_in_new, color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.all(16.w),
-                      color: Theme.of(context).cardColor.withValues(alpha: 0.1),
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TranslatedText(
-                            title ?? '',
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.titleLarge?.color,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          TranslatedText(
-                            description ?? '',
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              color: Colors.grey,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildPastVideos(),
-                    _buildSevas(),
-                  ],
+                // Main content
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildLiveStreamVideo(showPlayer),
+                      _buildTitleDescription(),
+                      _buildPastVideos(),
+                      _buildSevas(),
+                      GalleryWidget(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -676,6 +767,81 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
     );
   }
 
+  Widget _buildLiveStreamVideo(bool showPlayer) {
+    return SizedBox(
+      height: 240.h,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (!showPlayer)
+            Image.asset('assets/images/about/abt2.1.jpg', fit: BoxFit.cover),
+          if (showPlayer)
+            YoutubePlayer(
+              controller: _controller!,
+              showVideoProgressIndicator: true,
+            ),
+          Positioned(
+            top: 12.h,
+            left: 12.w,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: TranslatedText(
+                'LIVE',
+                style: TextStyle(fontFamily: 'aBeeZee', color: Colors.white),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 12.h,
+            right: 12.w,
+            child: FloatingActionButton(
+              mini: true,
+              backgroundColor: Colors.white,
+              onPressed: () => _launchYouTube(liveUrl!, context),
+              child: Icon(Icons.open_in_new, color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitleDescription() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      color: Theme.of(context).cardColor.withValues(alpha: 0.1),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TranslatedText(
+            title ?? '',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          TranslatedText(
+            description ?? '',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              color: Colors.grey,
+              fontSize: 14.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPastVideos() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -702,7 +868,13 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
               itemCount: pastVideos.length,
               itemBuilder: (context, index) {
                 final v = pastVideos[index];
-                return _buildPastVideoItem(v['title'], v['date'], v['url']);
+                return _buildPastVideoItem(
+                  v['id'],
+                  v['title'],
+                  v['date'],
+                  v['url'],
+                  v['thumbnail'],
+                );
               },
             ),
           ),
@@ -713,7 +885,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
   Widget _buildSevas() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -786,20 +958,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
               child: Stack(
                 children: [
                   // You can replace with real image
-                  Center(child: Image.asset(imageUrl, fit: BoxFit.cover)),
-                  // Optional: gradient overlay
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //     gradient: LinearGradient(
-                  //       begin: Alignment.topCenter,
-                  //       end: Alignment.bottomCenter,
-                  //       colors: [
-                  //         Colors.transparent,
-                  //         Colors.black.withValues(alpha: 0.25),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
+                  Center(child: Image.network(imageUrl, fit: BoxFit.cover)),
                 ],
               ),
             ),
@@ -894,31 +1053,90 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
     );
   }
 
-  Widget _pastVideoPreview(String videoUrl) {
-    final videoId = YoutubePlayer.convertUrlToId(videoUrl);
+  Widget _pastVideoPreview(String videoUrl, String? thumbnail) {
+    // If thumbnail is available, use it instead of the YouTube player
+    if (thumbnail != null && thumbnail.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+        child: Image.network(
+          thumbnail,
+          width: double.infinity,
+          height: 140.h,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback to YouTube player if image fails to load
+            String? videoId;
+            try {
+              videoId = YoutubePlayer.convertUrlToId(videoUrl);
+            } catch (e) {
+              return Container(height: 140.h, color: Colors.grey.shade300);
+            }
 
-    if (videoId == null) {
-      return Container(height: 140.h, color: Colors.grey.shade300);
+            if (videoId == null) {
+              return Container(height: 140.h, color: Colors.grey.shade300);
+            }
+
+            try {
+              final controller = YoutubePlayerController(
+                initialVideoId: videoId,
+                flags: const YoutubePlayerFlags(
+                  autoPlay: false,
+                  mute: true,
+                  disableDragSeek: true,
+                  hideControls: true,
+                  enableCaption: false,
+                ),
+              );
+
+              return YoutubePlayer(controller: controller, aspectRatio: 16 / 9);
+            } catch (e) {
+              return Container(height: 140.h, color: Colors.grey.shade300);
+            }
+          },
+        ),
+      );
+    } else {
+      // Use YouTube player as fallback when no thumbnail is provided
+      String? videoId;
+      try {
+        videoId = YoutubePlayer.convertUrlToId(videoUrl);
+      } catch (e) {
+        return Container(height: 140.h, color: Colors.grey.shade300);
+      }
+
+      if (videoId == null) {
+        return Container(height: 140.h, color: Colors.grey.shade300);
+      }
+
+      try {
+        final controller = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: const YoutubePlayerFlags(
+            autoPlay: false,
+            mute: true,
+            disableDragSeek: true,
+            hideControls: true,
+            enableCaption: false,
+          ),
+        );
+
+        return ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+          child: YoutubePlayer(controller: controller, aspectRatio: 16 / 9),
+        );
+      } catch (e) {
+        return Container(height: 140.h, color: Colors.grey.shade300);
+      }
     }
-
-    final controller = YoutubePlayerController(
-      initialVideoId: videoId,
-      flags: const YoutubePlayerFlags(
-        autoPlay: false,
-        mute: true,
-        disableDragSeek: true,
-        hideControls: true,
-        enableCaption: false,
-      ),
-    );
-
-    return ClipRRect(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-      child: YoutubePlayer(controller: controller, aspectRatio: 16 / 9),
-    );
   }
 
-  Widget _buildPastVideoItem(String title, String date, String videoUrl) {
+  Widget _buildPastVideoItem(
+    String? id,
+    String title,
+    String date,
+    String videoUrl,
+    String? thumbnail,
+  ) {
     return Container(
       width: 240.w,
       margin: EdgeInsets.only(left: 16.w),
@@ -942,7 +1160,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
               SizedBox(
                 height: 140.h,
                 width: double.infinity,
-                child: _pastVideoPreview(videoUrl),
+                child: _pastVideoPreview(videoUrl, thumbnail),
               ),
 
               // Play overlay
@@ -1053,8 +1271,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    final id = YoutubePlayer.convertUrlToId(widget.url)!;
-    _controller = YoutubePlayerController(initialVideoId: id);
+    final videoId = YoutubePlayer.convertUrlToId(widget.url);
+    if (videoId != null) {
+      _controller = YoutubePlayerController(initialVideoId: videoId);
+    } else {
+      // Fallback to a default video if conversion fails
+      _controller = YoutubePlayerController(initialVideoId: 'IL-72PQszxg');
+    }
   }
 
   @override
@@ -1101,6 +1324,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   String? selectedPayment = 'UPI';
   String? selectedDelivery = 'In person';
   DateTime? selectedDate;
+  final TextEditingController _dateController = TextEditingController();
   String? selectedTimeSlot = 'Morning';
   bool inPerson = false;
   bool proxyPriest = false;
@@ -1263,26 +1487,26 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: "Email ID",
                                 border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.emailAddress,
-                              style: TextStyle(fontFamily: 'aBeeZee'),
-                              validator: (v) {
-                                // 1. Check if the field is empty
-                                if (v == null || v.isEmpty) {
-                                  return "Email is required";
+                              style: const TextStyle(fontFamily: 'aBeeZee'),
+                              validator: (value) {
+                                // If field is empty or null → no validation (email not compulsory)
+                                if (value == null || value.trim().isEmpty) {
+                                  return null;
                                 }
-                                // 2. Regular Expression for email validation
+                                // Email regex
                                 final emailRegex = RegExp(
                                   r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                                 );
-                                // 3. Validate the input against the regex
-                                if (!emailRegex.hasMatch(v)) {
+                                // Validate only if something is entered
+                                if (!emailRegex.hasMatch(value.trim())) {
                                   return "Enter a valid email address";
                                 }
-                                return null; // Return null if the input is valid
+                                return null; // Valid
                               },
                             ),
                           ],
@@ -1302,13 +1526,20 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                           children: [
                             _buildSectionTitle("Seva Scheduling Details"),
                             TextFormField(
-                              decoration: InputDecoration(
+                              controller: _dateController,
+                              decoration: const InputDecoration(
                                 labelText: "Date (dd-mm-yyyy)",
                                 border: OutlineInputBorder(),
                                 suffixIcon: Icon(Icons.calendar_today),
                               ),
                               readOnly: true,
-                              style: TextStyle(fontFamily: 'aBeeZee'),
+                              style: const TextStyle(fontFamily: 'aBeeZee'),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Please select a date";
+                                }
+                                return null;
+                              },
                               onTap: () async {
                                 final date = await showDatePicker(
                                   context: context,
@@ -1316,16 +1547,19 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                   firstDate: DateTime.now(),
                                   lastDate: DateTime(2030),
                                 );
+
                                 if (date != null) {
-                                  setState(() => selectedDate = date);
+                                  setState(() {
+                                    selectedDate = date;
+                                    _dateController.text =
+                                        "${date.day.toString().padLeft(2, '0')}-"
+                                        "${date.month.toString().padLeft(2, '0')}-"
+                                        "${date.year}";
+                                  });
                                 }
                               },
-                              controller: TextEditingController(
-                                text: selectedDate == null
-                                    ? ""
-                                    : "${selectedDate!.day.toString().padLeft(2, '0')}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.year}",
-                              ),
                             ),
+
                             SizedBox(height: 16.h),
 
                             _buildSectionTitle("Time Slot"),
