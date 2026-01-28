@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/core/services/db_functions.dart';
@@ -146,6 +147,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   // State variables for toggles
   bool _isMuted = true;
+
+  // ── Audio Player ───────────────────────────────────────────────
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  bool _isAudioInitialized = false;
+
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
 
   // Static variables to persist data across widget recreations
   static bool _firstLoad = true;
@@ -299,6 +308,57 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+  // ── Audio Player Methods ───────────────────────────────────────────────
+  Future<void> _initAudioPlayer() async {
+    try {
+      // Preload the audio (using the same audio file as about screen)
+      await _audioPlayer.setSource(AssetSource('audio/mslg_song_3.mp3'));
+
+      // Listen to player state changes
+      _audioPlayer.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = state == PlayerState.playing;
+          });
+        }
+      });
+
+      // Optional: track duration & position
+      _audioPlayer.onDurationChanged.listen((d) {
+        if (mounted) setState(() => _duration = d);
+      });
+
+      _audioPlayer.onPositionChanged.listen((p) {
+        if (mounted) setState(() => _position = p);
+      });
+
+      _isAudioInitialized = true;
+    } catch (e) {
+      debugPrint('Audio initialization error: $e');
+    }
+  }
+
+  Future<void> _togglePlayPause() async {
+    if (!_isAudioInitialized) {
+      AppSnackbar.info(context, 'Audio not ready yet...\nPlease wait for a second...');
+      return;
+    }
+
+    if (_isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer.resume(); // or .play() if you want to restart from beginning
+      // If you want to always start from beginning when pressing play:
+      // await _audioPlayer.play(AssetSource('audio/mslg_song_3.mp3'));
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -317,6 +377,9 @@ class _HomeScreenState extends State<HomeScreen>
       loadData();
       _firstLoad = false;
     }
+
+    // Initialize audio player
+    _initAudioPlayer();
 
     // 1. Image Change Timer
     _timer = Timer.periodic(const Duration(seconds: 6), (timer) {
@@ -368,6 +431,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalUpdateTimer.cancel();
     _animationController.dispose();
     _clockTimer.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -476,9 +540,61 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
+          SizedBox(height: 12.h),
+
+          // 3. AUDIO PLAYER CONTROLS
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.music_note,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  'Temple Bhajan',
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                IconButton(
+                  onPressed: _togglePlayPause,
+                  icon: Icon(
+                    _isPlaying ? Icons.pause_circle : Icons.play_circle,
+                    color: Colors.white,
+                    size: 32.sp,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                // Optional: Progress indicator
+                if (_duration != Duration.zero) ...[
+                  SizedBox(width: 8.w),
+                  Text(
+                    '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      color: Colors.white70,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
           SizedBox(height: 8.h),
 
-          // 3. TEMPLE TIMING (with FutureBuilder)
+          // 4. TEMPLE TIMING (with FutureBuilder)
           RichText(
             maxLines: 2,
             textAlign: TextAlign.center,
@@ -505,16 +621,17 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           // SizedBox(height: 10.h),
 
-          // 4. BOTTOM ACTION ROW (Horizontal scrollable on small screens)
+          // 5. BOTTOM ACTION ROW (Horizontal scrollable on small screens)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Sound/Mute Toggle
+                // 5.1 Sound/Mute Toggle
                 IconButton(
                   onPressed: () {
                     HapticFeedback.selectionClick();
+                    _togglePlayPause();
                     setState(() => _isMuted = !_isMuted);
                   },
                   icon: Icon(
@@ -528,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 SizedBox(width: 10.w),
 
-                // Language Dropdown - now using BlocBuilder to get real state
+                // 5.2 Language Dropdown - now using BlocBuilder to get real state
                 BlocBuilder<LanguageBloc, LanguageState>(
                   builder: (context, state) {
                     return DropdownButtonHideUnderline(
@@ -584,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 SizedBox(width: 10.w),
 
-                // Login Button
+                // 5.3 Login Button
                 TextButton(
                   onPressed: () {
                     HapticFeedback.selectionClick();
@@ -608,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 SizedBox(width: 6.w),
 
-                // Contact Us Button
+                // 5.4 Contact Us Button
                 TextButton.icon(
                   onPressed: () {
                     HapticFeedback.selectionClick();
@@ -647,14 +764,7 @@ class _HomeScreenState extends State<HomeScreen>
         } else {
           log("Could not launch $url");
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Invalid link or no browser found"),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
-            );
+            AppSnackbar.error(context, "Invalid link or no browser found", duration: const Duration(seconds: 2));
           }
         }
       },
@@ -1026,7 +1136,10 @@ class _HomeScreenState extends State<HomeScreen>
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.all(8.w),
-                      child: Image.asset(items[index]['icon']!),
+                      child: Image.asset(
+                        items[index]['icon']!,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ),
                   ),
                   Padding(
@@ -1113,7 +1226,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       margin: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
@@ -1143,7 +1256,6 @@ class _HomeScreenState extends State<HomeScreen>
                     fontFamily: 'aBeeZee',
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1183,20 +1295,12 @@ class _HomeScreenState extends State<HomeScreen>
                     width: MediaQuery.of(context).size.width * 0.62.w,
                     child: TranslatedText(
                       "View All News",
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 13.sp,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontFamily: 'aBeeZee', fontSize: 13.sp),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14.sp,
-                    color: Colors.grey[600],
-                  ),
+                  Icon(Icons.arrow_forward_ios, size: 14.sp),
                 ],
               ),
             ),
@@ -1233,7 +1337,7 @@ class _HomeScreenState extends State<HomeScreen>
         SizedBox(
           height: 280.h, // Fixed height to accommodate the white content area
           child: bannerData.isEmpty
-              ? Container(
+              ? SizedBox(
                   height: 280.h,
                   child: Center(
                     child: TranslatedText(
@@ -1308,7 +1412,7 @@ class _HomeScreenState extends State<HomeScreen>
       width: MediaQuery.of(context).size.width * 0.8.w,
       margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
@@ -1363,7 +1467,6 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                         fontFamily: 'aBeeZee',
                       ),
                     ),
@@ -1374,7 +1477,7 @@ class _HomeScreenState extends State<HomeScreen>
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: Colors.grey[600],
+                        color: Colors.grey[500],
                         fontFamily: 'aBeeZee',
                       ),
                     ),
@@ -1395,7 +1498,6 @@ class _HomeScreenState extends State<HomeScreen>
                         fontFamily: 'aBeeZee',
                         fontSize: 11.sp,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
                       ),
                     ),
                   ],
