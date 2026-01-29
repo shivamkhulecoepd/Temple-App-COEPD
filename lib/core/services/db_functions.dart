@@ -224,12 +224,12 @@ class DBFunctions {
     const String endpoint = 'contact_submit.php';
 
     final body = {
-      'name': name,
-      'phone': phone,
-      'email': email ?? '',
-      'service': service ?? '',
-      'subject': subject ?? '',
-      'message': message,
+      'name': name.trim(),
+      'phone': phone.trim(),
+      'email': email?.trim() ?? '',
+      'service': service?.trim() ?? '',
+      'subject': subject?.trim() ?? '',
+      'message': message.trim(),
     };
 
     try {
@@ -241,182 +241,150 @@ class DBFunctions {
           )
           .timeout(const Duration(seconds: 15));
 
+      log('Contact Submit → Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
         if (json['success'] == true) {
           return json;
         } else {
           throw Exception(json['message'] ?? 'Submission failed');
         }
       } else {
-        throw Exception('Server error: ${response.statusCode}');
+        throw Exception(
+          'Server error: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
-      log('Contact submit error: $e');
+      log('submitContactForm error: $e');
       rethrow;
     }
   }
+
+  // ──────────────────────────────────────────────────────────────
+  // 9. Fetch all active events (for Upcoming Events panel)
+  // ──────────────────────────────────────────────────────────────
+  Future<List<dynamic>> fetchActiveEvents() async {
+    const String endpoint = 'active_events.php';
+
+    try {
+      final response = await http
+          .get(Uri.parse(baseUrl + endpoint))
+          .timeout(const Duration(seconds: 15));
+
+      log('Active Events → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        } else {
+          throw Exception(json['message'] ?? 'API error');
+        }
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchActiveEvents error: $e');
+      return [];
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 10. Fetch active live stream settings (festival screen)
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> fetchLiveStreamSettings() async {
+    const String endpoint = 'live_stream_settings.php';
+
+    try {
+      final response = await http
+          .get(Uri.parse(baseUrl + endpoint))
+          .timeout(const Duration(seconds: 12));
+
+      log('Live Stream Settings → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as Map<String, dynamic>?;
+        }
+      }
+      return null;
+    } catch (e) {
+      log('fetchLiveStreamSettings error: $e');
+      return null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 11. Fetch gallery images by category (explore media screen)
+  // ──────────────────────────────────────────────────────────────
+  Future<List<dynamic>> fetchGalleryImages({
+    String category = 'festivals',
+  }) async {
+    const String endpoint = 'gallery_images.php';
+
+    final uri = Uri.parse(
+      (baseUrl + endpoint),
+    ).replace(queryParameters: {'category': category});
+
+    try {
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+      log('Gallery Images ($category) → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        } else {
+          log('API message: ${json['message']}');
+          return [];
+        }
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchGalleryImages error ($category): $e');
+      return [];
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 12. Fetch archive videos by category (explore media screen)
+  // ──────────────────────────────────────────────────────────────
+  Future<List<dynamic>> fetchArchiveVideosByCategory({
+    String category = 'festivals',
+  }) async {
+    const String endpoint = 'archive_videos_by_category.php';
+    final uri = Uri.parse(
+      (baseUrl + endpoint),
+    ).replace(queryParameters: {'category': category});
+
+    try {
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
+
+      log('Archive Videos ($category) → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        } else {
+          log('API message: ${json['message']}');
+          return [];
+        }
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchArchiveVideosByCategory error ($category): $e');
+      return [];
+    }
+  }
 }
-
-// import 'dart:convert';
-// import 'dart:developer';
-// import 'package:http/http.dart' as http;
-
-// class DBFunctions {
-//   static const String apiUrl = 'https://marakatasrilaxmiganapathi.org/api/';
-
-//   Future<Map<String, dynamic>> fetchMarqueeAndBanners() async {
-//     const String apiFile = 'marquee_and_banners.php';
-//     try {
-//       final response = await http.get(Uri.parse(apiUrl + apiFile));
-
-//       if (response.statusCode == 200) {
-//         final data = jsonDecode(response.body);
-
-//         if (data['success'] == true) {
-//           return data['data'];
-//         } else {
-//           throw Exception(data['message'] ?? 'API returned error');
-//         }
-//       } else {
-//         throw Exception('Server error: ${response.statusCode}');
-//       }
-//     } catch (e) {
-//       // Handle in UI (show snackbar, etc.)
-//       rethrow;
-//     }
-//   }
-
-//   Future<String> fetchTempleTimings() async {
-//     const String apiFile = 'temple_timings.php';
-//     try {
-//       final response = await http
-//           .get(Uri.parse(apiUrl + apiFile))
-//           .timeout(const Duration(seconds: 12));
-
-//       if (response.statusCode == 200) {
-//         final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-//         // Safely access nested keys
-//         final success = data['success'] as bool? ?? false;
-//         final timingsData = data['data'] as Map<String, dynamic>?;
-
-//         if (success &&
-//             timingsData != null &&
-//             timingsData.containsKey('timings')) {
-//           final timings = timingsData['timings'];
-//           if (timings is String) {
-//             return timings;
-//           } else {
-//             return timings.toString(); // fallback if somehow not string
-//           }
-//         } else {
-//           // Return fallback from API or hardcoded
-//           return timingsData?['timings']?.toString() ?? 'Timings not available';
-//         }
-//       } else {
-//         throw Exception('Server error: ${response.statusCode}');
-//       }
-//     } catch (e) {
-//       log('Timings fetch error: $e');
-//       // Always return a fallback string — never let it crash the UI
-//       return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
-//     }
-//   }
-
-//   // 1. Live Stream
-//   Future<Map<String, dynamic>> fetchLiveStream() async {
-//     const String apiFile = 'live_stream.php';
-//     final res = await http.get(Uri.parse(apiUrl + apiFile));
-//     if (res.statusCode == 200) {
-//       final json = jsonDecode(res.body);
-//       if (json['success'] == true) return json['data'];
-//     }
-//     throw Exception('Failed to load live stream');
-//   }
-
-//   // 2. Upcoming Event
-//   Future<Map<String, dynamic>?> fetchUpcomingEvent() async {
-//     const String apiFile = 'upcoming_event.php';
-//     final res = await http.get(Uri.parse(apiUrl + apiFile));
-//     if (res.statusCode == 200) {
-//       final json = jsonDecode(res.body);
-//       if (json['success'] == true) return json['data'];
-//     }
-//     return null; // null = no upcoming event
-//   }
-
-//   // 3. Archive Videos
-//   Future<List<dynamic>> fetchArchiveVideos() async {
-//     const String apiFile = 'archive_videos.php';
-//     final res = await http.get(Uri.parse(apiUrl + apiFile));
-//     if (res.statusCode == 200) {
-//       final json = jsonDecode(res.body);
-//       if (json['success'] == true) return json['data'];
-//     }
-//     return [];
-//   }
-
-//   // 4. Active Poojas/Sevas
-//   Future<List<dynamic>> fetchActivePoojas() async {
-//     const String apiFile = 'active_poojas.php';
-//     final res = await http.get(Uri.parse(apiUrl + apiFile));
-//     if (res.statusCode == 200) {
-//       final json = jsonDecode(res.body);
-//       if (json['success'] == true) return json['data'];
-//     }
-//     return [];
-//   }
-
-//   // Fetch contact info
-//   Future<Map<String, dynamic>> fetchContactInfo() async {
-//     const String endpoint = 'contact_info.php';
-//     final data = await _fetchData(endpoint);
-//     return data['data'] as Map<String, dynamic>? ?? {};
-//   }
-
-//   // Submit contact form
-//   Future<Map<String, dynamic>> submitContactForm({
-//     required String name,
-//     required String phone,
-//     String? email,
-//     String? service,
-//     String? subject,
-//     required String message,
-//   }) async {
-//     const String endpoint = 'contact_submit.php';
-
-//     final body = {
-//       'name': name,
-//       'phone': phone,
-//       'email': email ?? '',
-//       'service': service ?? '',
-//       'subject': subject ?? '',
-//       'message': message,
-//     };
-
-//     try {
-//       final response = await http
-//           .post(
-//             Uri.parse(baseUrl + endpoint),
-//             headers: {'Content-Type': 'application/json'},
-//             body: jsonEncode(body),
-//           )
-//           .timeout(const Duration(seconds: 15));
-
-//       if (response.statusCode == 200) {
-//         final json = jsonDecode(response.body);
-//         if (json['success'] == true) {
-//           return json;
-//         } else {
-//           throw Exception(json['message'] ?? 'Submission failed');
-//         }
-//       } else {
-//         throw Exception('Server error: ${response.statusCode}');
-//       }
-//     } catch (e) {
-//       log('Contact submit error: $e');
-//       rethrow;
-//     }
-//   }
-// }

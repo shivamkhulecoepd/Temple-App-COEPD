@@ -5,6 +5,7 @@ import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
 import 'package:mslgd/screens/navigation/festivals_screen.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -755,13 +756,7 @@ class _GuideScreenState extends State<GuideScreen> {
           SizedBox(height: 10.h),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: TranslatedText(
-                    'View on Map for :- ${data['title']}',
-                  ),
-                ),
-              );
+              AppSnackbar.show(context, message: 'View on Map for :- ${data['title']}',);
             },
             child: TranslatedText('View on Map'),
           ),
@@ -803,13 +798,7 @@ class _GuideScreenState extends State<GuideScreen> {
           SizedBox(height: 10.h),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: TranslatedText(
-                    'View on Map for :- ${data['title']}',
-                  ),
-                ),
-              );
+              AppSnackbar.show(context, message: 'View on Map for :- ${data['title']}',);
             },
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.all(0)

@@ -43,8 +43,6 @@ class AppSnackbar {
     required Duration duration,
     required bool showCloseIcon,
   }) {
-    // final theme = Theme.of(context);
-
     // ── Colors & Icons per type ──
     final (Color bgColor, IconData iconData) = switch (type) {
       SnackbarType.success => (Colors.green.shade700, Icons.check_circle),

@@ -39,24 +39,41 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate after splash based on first launch status
     Timer(const Duration(seconds: 3), () async {
-      final storageService = context.read<StorageService>();
-      final isFirstLaunch = await storageService.isFirstLaunch();
+      if (!mounted) return; // Safety check
       
-      if (isFirstLaunch) {
-        // Mark as not first launch anymore
-        await storageService.setFirstLaunch(false);
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const LanguageSelectionScreen(),
-          ),
-        );
-      } else {
-        // Go directly to main app
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const LayoutScreen(),
-          ),
-        );
+      try {
+        final storageService = context.read<StorageService>();
+        final isFirstLaunch = await storageService.isFirstLaunch();
+        
+        if (!mounted) return; // Safety check after async operation
+        
+        if (isFirstLaunch) {
+          // Mark as not first launch anymore
+          await storageService.setFirstLaunch(false);
+          if (!mounted) return; // Safety check after async operation
+          
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const LanguageSelectionScreen(),
+            ),
+          );
+        } else {
+          // Go directly to main app
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const LayoutScreen(),
+            ),
+          );
+        }
+      } catch (e) {
+        // Fallback navigation in case of error
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const LayoutScreen(),
+            ),
+          );
+        }
       }
     });
   }
@@ -70,69 +87,82 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFFF7F3E8),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Ganapathi / Temple Symbol
-                Center(
-                  child: Image.asset(
+      body: SafeArea(
+        child: Center(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Ganapathi / Temple Symbol
+                  Image.asset(
                     'assets/images/about/temple_logo.png',
                     height: 72.h,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 72.h,
+                        width: 72.w,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Icon(
+                          Icons.temple_hindu,
+                          size: 36.r,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    },
                   ),
-                ),
 
-                SizedBox(height: 28.h),
+                  SizedBox(height: 28.h),
 
-                // Temple Name
-                Text(
-                  "Marakatha Sri Lakshmi\nGanapathi Devalayam",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    fontSize: 26.sp,
-                    fontWeight: FontWeight.w700,
-                    // color: const Color(0xFF043342),
-                    color: Theme.of(context).colorScheme.onSurface,
-                    height: 1.3,
-                  ),
-                ),
-
-                SizedBox(height: 14.h),
-
-                // Subtitle
-                Text(
-                  "Divine Blessings • Peace • Prosperity",
-                  style: TextStyle(
-                    fontFamily: 'inter',
-                    fontSize: 14.sp,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-
-                SizedBox(height: 36.h),
-
-                // Loader
-                SizedBox(
-                  width: 32.w,
-                  height: 32.h,
-                  child: CircularProgressIndicator(
-                    strokeWidth:
-                        3, // strokeWidth scales less commonly, keep fixed or use .r if needed
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).colorScheme.secondary,
+                  // Temple Name
+                  Text(
+                    "Marakatha Sri Lakshmi\nGanapathi Devalayam",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 26.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      height: 1.3,
                     ),
                   ),
-                ),
-              ],
+
+                  SizedBox(height: 14.h),
+
+                  // Subtitle
+                  Text(
+                    "Divine Blessings • Peace • Prosperity",
+                    style: TextStyle(
+                      fontFamily: 'inter',
+                      fontSize: 14.sp,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+
+                  SizedBox(height: 36.h),
+
+                  // Loader
+                  SizedBox(
+                    width: 32.w,
+                    height: 32.h,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3.0,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

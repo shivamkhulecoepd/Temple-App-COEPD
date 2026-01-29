@@ -1,8 +1,11 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,23 +28,57 @@ class FestivalsScreen extends StatefulWidget {
 
 class _FestivalScreenState extends State<FestivalsScreen> {
   late FestivalsSection _currentSection;
+  List<dynamic> _events = [];
+  Map<String, dynamic>? _liveStreamData;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _currentSection = widget.initialSection ?? FestivalsSection.annualFestivals;
+    _fetchData();
   }
 
-  String liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
+  Future<void> _fetchData() async {
+    try {
+      final results = await Future.wait([
+        DBFunctions().fetchActiveEvents(),
+        DBFunctions().fetchLiveStreamSettings(),
+      ], eagerError: true);
+
+      if (!mounted) return;
+
+      setState(() {
+        _events = results[0] as List<dynamic>;
+        _liveStreamData = results[1] as Map<String, dynamic>?;
+        _isLoading = false;
+      });
+    } catch (e) {
+      log('Error fetching festival data: $e');
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String get liveUrl =>
+      _liveStreamData?['embed_code'] ??
+      'https://www.youtube.com/watch?v=IL-72PQszxg';
+
+  String _formatDate(String dateString) {
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+    } catch (e) {
+      return 'Date not available';
+    }
+  }
 
   Future<void> _launchYouTube(String url, BuildContext context) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: TranslatedText('Could not open YouTube')),
-      );
+      AppSnackbar.error(context, 'Could not open YouTube');
     }
   }
 
@@ -155,13 +192,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                 ElevatedButton(
                   onPressed: () {
                     // Handle register for spotlight
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: TranslatedText(
-                          'Register for Spotlight clicked',
-                        ),
-                      ),
-                    );
+                    AppSnackbar.info(context, 'Register for Spotlight clicked');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -524,11 +555,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
         ElevatedButton(
           onPressed: () {
             // Handle download schedule
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: TranslatedText('Download Schedule clicked'),
-              ),
-            );
+            AppSnackbar.info(context, 'Download Schedule clicked');
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
@@ -551,207 +578,294 @@ class _FestivalScreenState extends State<FestivalsScreen> {
   }
 
   Widget _upcomingEventsSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Upcoming Events',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 24.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
-          ),
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
         ),
-        SizedBox(height: 8.h),
-        TranslatedText(
-          'Click an event to see details',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
-          ),
-        ),
-        SizedBox(height: 20.h),
+      );
+    }
 
-        // List of events
-        Column(
-          spacing: 16.h,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _eventItem(
-              '20 Dec',
-              'suvarn pushanjali',
-              '9:00 am - 5:00pm',
-              theme,
-              isDark,
-            ),
-            _eventItem('02 Jan', 'suvarn push test', '6 am', theme, isDark),
-            _eventItem('15 Jan', 'makara sankranthi', '5:00 Am', theme, isDark),
-            _eventItem('08 Feb', 'demooo', '6:00 Am to 9:00 Am', theme, isDark),
-          ],
-        ),
-      ],
+    return RefreshIndicator.adaptive(
+      color: theme.colorScheme.secondary,
+      backgroundColor: theme.primaryColor,
+      onRefresh: () async {
+        try {
+          final results = await Future.wait([
+            DBFunctions().fetchActiveEvents(),
+          ], eagerError: true);
+
+          if (!mounted) return;
+
+          setState(() {
+            _events = results[0];
+            _isLoading = false;
+          });
+        } catch (e) {
+          log('Error fetching festival data for upcoming/active events: $e');
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+        }
+      },
+      child: ListView(
+        shrinkWrap: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TranslatedText(
+                'Upcoming Events',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : null,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              TranslatedText(
+                'Click an event to see details',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontFamily: 'aBeeZee',
+                  color: isDark ? Colors.grey.shade300 : null,
+                ),
+              ),
+              SizedBox(height: 20.h),
+
+              // List of events
+              if (_events.isEmpty)
+                Center(
+                  child: TranslatedText(
+                    'No upcoming events',
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 16.sp,
+                      color: isDark ? Colors.grey[300] : Colors.black,
+                    ),
+                  ),
+                )
+              else ...[
+                Column(
+                  spacing: 16.h,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _events.map((event) {
+                    return _eventItem(
+                      _formatDate(event['event_date'] ?? ''),
+                      event['event_title'] ?? '',
+                      event['event_time'] ?? '',
+                      theme,
+                      isDark,
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 20.h), // Add some padding at the end
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _liveStreamingSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Live Streaming',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 24.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
-          ),
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
         ),
-        SizedBox(height: 8.h),
-        TranslatedText(
-          'Watch live rituals and festivals from anywhere in the world',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
-          ),
-        ),
-        SizedBox(height: 20.h),
+      );
+    }
 
-        // Live streaming video placeholder
-        Column(
-          spacing: 16.h,
-          children: [
-            Container(
-              height: 200.h,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/dashboard/bg 2.webp'),
-                  fit: BoxFit.cover,
+    return RefreshIndicator.adaptive(
+      color: theme.colorScheme.secondary,
+      backgroundColor: theme.primaryColor,
+      onRefresh: () async {
+        try {
+          final results = await Future.wait([
+            DBFunctions().fetchLiveStreamSettings(),
+          ], eagerError: true);
+
+          if (!mounted) return;
+
+          setState(() {
+            _liveStreamData = results[0];
+            _isLoading = false;
+          });
+        } catch (e) {
+          log('Error fetching live stream data: $e');
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+        }
+      },
+      child: ListView(
+        shrinkWrap: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TranslatedText(
+                'Live Streaming',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : null,
                 ),
-                borderRadius: BorderRadius.circular(12.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.3)
-                        : Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
               ),
-              child: Center(
-                child: InkWell(
-                  onTap: () async {
-                    HapticFeedback.heavyImpact();
-                    await _launchYouTube(liveUrl, context);
-                  },
-                  child: Container(
-                    width: 60.w,
-                    height: 60.h,
+              SizedBox(height: 8.h),
+              TranslatedText(
+                'Watch live rituals and festivals from anywhere in the world',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontFamily: 'aBeeZee',
+                  color: isDark ? Colors.grey.shade300 : null,
+                ),
+              ),
+              SizedBox(height: 20.h),
+
+              // Live streaming video placeholder
+              Column(
+                spacing: 16.h,
+                children: [
+                  Container(
+                    height: 200.h,
                     decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(30.r),
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/dashboard/bg 2.webp'),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(12.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 36.sp,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.yellow[50]!.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(12.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.3)
-                        : Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TranslatedText(
-                    'Upcoming Live Sessions',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    '• Vinayaka Chavithi Pooja – Sep 17, 2025',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 14.sp,
-                      color: isDark ? Colors.grey[300] : Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '• Navratri Kalakshetra – Sep 17, 2025',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 14.sp,
-                      color: isDark ? Colors.grey[300] : Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Handle subscribe for reminder
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: TranslatedText(
-                            'Subscribe for reminder clicked',
+                    child: Center(
+                      child: InkWell(
+                        onTap: () async {
+                          HapticFeedback.heavyImpact();
+                          await _launchYouTube(liveUrl, context);
+                        },
+                        child: Container(
+                          width: 60.w,
+                          height: 60.h,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(30.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 36.sp,
                           ),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: TranslatedText(
-                      'Subscribe for reminder',
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.yellow[50]!.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TranslatedText(
+                          'Upcoming Live Sessions',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        if (_events.isEmpty)
+                          TranslatedText(
+                            'No upcoming live sessions',
+                            style: TextStyle(
+                              fontFamily: 'aBeeZee',
+                              fontSize: 14.sp,
+                              color: isDark ? Colors.grey[300] : Colors.black,
+                            ),
+                          )
+                        else ...[
+                          for (var i = 0; i < _events.length && i < 2; i++)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 4.h),
+                              child: TranslatedText(
+                                '• ${_events[i]['event_title']} – ${_formatDate(_events[i]['event_date'] ?? '')}',
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 14.sp,
+                                  color: isDark ? Colors.grey[300] : Colors.black,
+                                ),
+                              ),
+                            ),
+                        ],
+                        SizedBox(height: 16.h),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Handle subscribe for reminder
+                            AppSnackbar.info(
+                              context,
+                              'Subscribe for reminder clicked',
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                          ),
+                          child: TranslatedText(
+                            'Subscribe for reminder',
+                            style: TextStyle(
+                              fontFamily: 'aBeeZee',
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h), // Add padding at the end
                 ],
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -876,11 +990,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle view details
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: TranslatedText('View Details clicked'),
-                    ),
-                  );
+                  AppSnackbar.info(context, 'View Details clicked');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
@@ -901,9 +1011,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle register
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: TranslatedText('Register clicked')),
-                  );
+                  AppSnackbar.info(context, 'Register clicked');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
@@ -1056,9 +1164,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
           ElevatedButton(
             onPressed: () {
               // Handle download
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: TranslatedText('Download clicked')),
-              );
+              AppSnackbar.info(context, 'Download clicked');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,

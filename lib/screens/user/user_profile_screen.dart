@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -43,13 +44,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       //       : null,
       // );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: TranslatedText('Profile updated successfully!'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      AppSnackbar.success(context, 'Profile updated successfully!');
 
       // Optional: clear password fields after success
       _newPasswordController.clear();

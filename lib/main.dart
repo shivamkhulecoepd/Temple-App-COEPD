@@ -7,9 +7,15 @@ import 'package:mslgd/services/storage_service.dart';
 import 'package:mslgd/services/translation_service.dart';
 import 'package:mslgd/services/theme_service.dart';
 import 'package:mslgd/screens/authentication/splash_screen.dart';
+import 'package:mslgd/utils/error_handler.dart';
 
 void main() {
-  runApp(TempleApp());
+  // Set up error handling
+  FlutterError.onError = (FlutterErrorDetails details) {
+    ErrorHandler.handleError(details.exception, details.stack ?? StackTrace.empty);
+  };
+  
+  runApp(const TempleApp());
 }
 
 class TempleApp extends StatelessWidget {
@@ -17,6 +23,8 @@ class TempleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    dynamic width = MediaQuery.of(context).size.width;
+    dynamic height = MediaQuery.of(context).size.height;
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => TranslationService()),
@@ -37,30 +45,33 @@ class TempleApp extends StatelessWidget {
             )..add(LoadTheme()),
           ),
         ],
-        child: BlocBuilder<ThemeBloc, ThemeState>(
-          builder: (context, themeState) {
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              themeMode: themeState.themeMode == ThemeModeType.light 
-                  ? ThemeMode.light 
-                  : themeState.themeMode == ThemeModeType.dark 
-                      ? ThemeMode.dark 
-                      : ThemeMode.system,
-              theme: TempleTheme.lightTheme(),
-              darkTheme: TempleTheme.darkTheme(),
-              home: Builder(
-                builder: (context) {
-                  final mediaQuery = MediaQuery.of(context);
-                  final screenSize = mediaQuery.size;
-                  return ScreenUtilInit(
-                    designSize: Size(screenSize.width, screenSize.height),
-                    minTextAdapt: true,
-                    builder: (_, child) {
-                      return const SplashScreen();
-                    },
-                  );
-                },
-              ),
+        child: ScreenUtilInit(
+          // designSize: const Size(375, 812), // Standard design size
+          designSize: Size(width, height),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return BlocBuilder<ThemeBloc, ThemeState>(
+              builder: (context, themeState) {
+                return MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  themeMode: themeState.themeMode == ThemeModeType.light 
+                      ? ThemeMode.light 
+                      : themeState.themeMode == ThemeModeType.dark 
+                          ? ThemeMode.dark 
+                          : ThemeMode.system,
+                  theme: TempleTheme.lightTheme(),
+                  darkTheme: TempleTheme.darkTheme(),
+                  builder: (context, widget) {
+                    // Handle any remaining widget errors
+                    ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+                      return ErrorHandler.buildErrorWidget(errorDetails);
+                    };
+                    return widget ?? const SizedBox.shrink();
+                  },
+                  home: const SplashScreen(),
+                );
+              },
             );
           },
         ),

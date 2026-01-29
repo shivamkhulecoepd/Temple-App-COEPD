@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -404,11 +405,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                     LaunchMode.externalApplication, // opens in Google Maps app
               );
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: TranslatedText('Could not open Google Maps'),
-                ),
-              );
+              AppSnackbar.error(context, 'Could not open Google Maps');
             }
           },
           child: Container(
@@ -779,24 +776,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: TranslatedText(
-                                  'Booking confirmed for $title',
-                                ),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                backgroundColor: Colors.green,
-                                action: SnackBarAction(
-                                  label: 'Cancel',
-                                  textColor: Colors.white,
-                                  onPressed: () {},
-                                ),
-                              ),
-                            );
+                            AppSnackbar.show(context, message: 'Booking confirmed for $title',);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.secondary,

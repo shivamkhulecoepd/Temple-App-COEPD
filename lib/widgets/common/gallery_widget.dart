@@ -14,7 +14,7 @@ class _GalleryWidgetState extends State<GalleryWidget> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Container(child: _buildGallerySection(widget.title)),
+      child: Container(child: _buildGallerySection(widget.title ?? 'Image Gallery')),
     );
   }
 

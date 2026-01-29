@@ -19,16 +19,6 @@ class SevaLiveDarshanScreen extends StatefulWidget {
 }
 
 class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
-  // Static variables to persist data across widget recreations
-  static bool _firstLoad = true;
-  static String? _staticLiveUrl;
-  static String? _staticTitle;
-  static String? _staticDescription;
-  static List<Map<String, dynamic>> _staticTimings = [];
-  static List<Map<String, dynamic>> _staticUpcomingEvents = [];
-  static List<Map<String, dynamic>> _staticPastVideos = [];
-  static List<Map<String, dynamic>> _staticSevas = [];
-
   String? liveUrl;
   String? title;
   String? description;
@@ -40,51 +30,19 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
   YoutubePlayerController? _controller;
   bool isReady = false;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-
-    // Set local state from static variables
-    setState(() {
-      liveUrl = _staticLiveUrl;
-      title = _staticTitle;
-      description = _staticDescription;
-      timings = List.from(_staticTimings);
-      upcomingEvents = List.from(_staticUpcomingEvents);
-      pastVideos = List.from(_staticPastVideos);
-      sevas = List.from(_staticSevas);
-    });
-
-    // Load data only on first app open
-    if (_firstLoad) {
-      fetchData();
-      _firstLoad = false;
-    } else {
-      // Initialize YouTube controller if live URL exists (for subsequent visits)
-      _initializeYouTubeController();
-    }
-  }
-
-  // New method to initialize YouTube controller
-  void _initializeYouTubeController() {
-    if (_staticLiveUrl != null && _controller == null) {
-      final videoId = YoutubePlayer.convertUrlToId(_staticLiveUrl!);
-      if (videoId != null) {
-        _controller = YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(
-            autoPlay: true,
-            mute: false,
-            forceHD: true,
-          ),
-        )..addListener(_playerListener);
-        setState(() {});
-      }
-    }
+    fetchData();
   }
 
   Future<void> fetchData() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       // Fetch all API data concurrently
       final results = await Future.wait([
@@ -93,6 +51,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         DBFunctions().fetchArchiveVideos(),
         DBFunctions().fetchActivePoojas(),
       ], eagerError: true);
+      
       log('API Data:');
       log(jsonEncode(results));
 
@@ -162,21 +121,15 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
               },
             )
             .toList();
-      });
 
-      // Update static variables
-      _staticLiveUrl = liveUrl;
-      _staticTitle = title;
-      _staticDescription = description;
-      _staticTimings = List.from(timings);
-      _staticUpcomingEvents = List.from(upcomingEvents);
-      _staticPastVideos = List.from(pastVideos);
-      _staticSevas = List.from(sevas);
+        isLoading = false;
+      });
 
       // Initialize YouTube controller if live URL exists
       if (liveUrl != null) {
         final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
         if (videoId != null) {
+          _controller?.dispose(); // Dispose existing controller
           _controller = YoutubePlayerController(
             initialVideoId: videoId,
             flags: const YoutubePlayerFlags(
@@ -189,100 +142,92 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         }
       }
     } catch (e) {
-      // Only use fallback if this is the first load
-      if (_firstLoad) {
-        log('Error fetching data, using fallback: $e');
-        // Fallback to hardcoded data if API fails
-        if (!mounted) return;
+      log('Error fetching data: $e');
+      
+      if (!mounted) return;
 
-        setState(() {
-          liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
-          title = 'Daily Divine Darshan';
-          description = 'Live from MSLGD temple, Secunderabad';
+      // Use fallback data on error
+      setState(() {
+        liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
+        title = 'Daily Divine Darshan';
+        description = 'Live from MSLGD temple, Secunderabad';
 
-          timings = [
-            {
-              'title': 'Morning Darshan',
-              'time': '5:00 AM - 12:00 PM',
-              'icon': Icons.wb_sunny_outlined,
-            },
-            {
-              'title': 'Evening Darshan',
-              'time': '4:00 PM - 9:00 PM',
-              'icon': Icons.nightlight_outlined,
-            },
-          ];
+        timings = [
+          {
+            'title': 'Morning Darshan',
+            'time': '5:00 AM - 12:00 PM',
+            'icon': Icons.wb_sunny_outlined,
+          },
+          {
+            'title': 'Evening Darshan',
+            'time': '4:00 PM - 9:00 PM',
+            'icon': Icons.nightlight_outlined,
+          },
+        ];
 
-          upcomingEvents = [
-            {'title': 'Special Pooja', 'date': 'Nov 20, 2025 | 6:00 AM'},
-            {'title': 'Festival Celebration', 'date': 'Nov 22, 2025 | 7:00 PM'},
-          ];
+        upcomingEvents = [
+          {'title': 'Special Pooja', 'date': 'Nov 20, 2025 | 6:00 AM'},
+          {'title': 'Festival Celebration', 'date': 'Nov 22, 2025 | 7:00 PM'},
+        ];
 
-          pastVideos = [
-            {
-              'id': null,
-              'title': 'Past Darshan 1',
-              'date': 'Oct 15, 2025',
-              'url': 'https://www.youtube.com/shorts/yNBh5-arDaw',
-              'thumbnail': null,
-            },
-            {
-              'id': null,
-              'title': 'Past Darshan 2',
-              'date': 'Oct 10, 2025',
-              'url': 'https://www.youtube.com/shorts/5ksioZM5NC8',
-              'thumbnail': null,
-            },
-          ];
+        pastVideos = [
+          {
+            'id': null,
+            'title': 'Past Darshan 1',
+            'date': 'Oct 15, 2025',
+            'url': 'https://www.youtube.com/shorts/yNBh5-arDaw',
+            'thumbnail': null,
+          },
+          {
+            'id': null,
+            'title': 'Past Darshan 2',
+            'date': 'Oct 10, 2025',
+            'url': 'https://www.youtube.com/shorts/5ksioZM5NC8',
+            'thumbnail': null,
+          },
+        ];
 
-          sevas = [
-            {
-              'name': 'Daily Seva',
-              'imageUrl': 'assets/images/live_seva/seva1.jpg',
-              'description':
-                  'Participate in the morning rituals including lighting lamps and offering fresh flowers to the deity as part of the everyday worship routine.',
-              'price': 100,
-            },
-            {
-              'name': 'Special Seva',
-              'imageUrl': 'assets/images/live_seva/seva2.jpg',
-              'description':
-                  'Exclusive access to inner sanctum for personalized darshan and blessings during peak festival hours with priority entry.',
-              'price': 200,
-            },
-          ];
-        });
+        sevas = [
+          {
+            'name': 'Daily Seva',
+            'imageUrl': 'assets/images/live_seva/seva1.jpg',
+            'description':
+                'Participate in the morning rituals including lighting lamps and offering fresh flowers to the deity as part of the everyday worship routine.',
+            'price': 100,
+          },
+          {
+            'name': 'Special Seva',
+            'imageUrl': 'assets/images/live_seva/seva2.jpg',
+            'description':
+                'Exclusive access to inner sanctum for personalized darshan and blessings during peak festival hours with priority entry.',
+            'price': 200,
+          },
+        ];
 
-        // Update static variables with fallback data
-        _staticLiveUrl = liveUrl;
-        _staticTitle = title;
-        _staticDescription = description;
-        _staticTimings = List.from(timings);
-        _staticUpcomingEvents = List.from(upcomingEvents);
-        _staticPastVideos = List.from(pastVideos);
-        _staticSevas = List.from(sevas);
+        isLoading = false;
+      });
 
-        if (liveUrl != null) {
-          final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
-          if (videoId != null) {
-            _controller = YoutubePlayerController(
-              initialVideoId: videoId,
-              flags: const YoutubePlayerFlags(
-                autoPlay: true,
-                mute: false,
-                forceHD: true,
-              ),
-            )..addListener(_playerListener);
-            setState(() {});
-          }
+      if (liveUrl != null) {
+        final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
+        if (videoId != null) {
+          _controller?.dispose(); // Dispose existing controller
+          _controller = YoutubePlayerController(
+            initialVideoId: videoId,
+            flags: const YoutubePlayerFlags(
+              autoPlay: true,
+              mute: false,
+              forceHD: true,
+            ),
+          )..addListener(_playerListener);
+          setState(() {});
         }
-      } else {
-        // For subsequent loads, just show error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: TranslatedText('Failed to load data: $e')),
-          );
-        }
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: TranslatedText('Failed to load data: $e')),
+        );
       }
     }
   }
@@ -330,10 +275,9 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
-        if (liveUrl == null) {
+        if (isLoading) {
           // Show shimmer loading instead of full screen loader
           return Scaffold(
-            // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
               backgroundColor: Theme.of(context).primaryColor,
               elevation: 0,
@@ -385,7 +329,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              // borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
@@ -406,11 +349,8 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         return RefreshIndicator.adaptive(
           color: Theme.of(context).colorScheme.secondary,
           backgroundColor: Theme.of(context).primaryColor,
-          onRefresh: () async {
-            await fetchData(); // Re-fetches data on pull-to-refresh
-          },
+          onRefresh: fetchData, // Direct reference to fetchData method
           child: Scaffold(
-            // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
               backgroundColor: Theme.of(context).primaryColor,
               elevation: 0,

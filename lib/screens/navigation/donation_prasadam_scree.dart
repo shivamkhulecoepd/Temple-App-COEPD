@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
 enum DonationSection {
@@ -328,11 +329,7 @@ class _DonationsPublicationScreenState
                     final amount = int.parse(amountText);
                     // Add minimum amount check
                     if (amount < 10) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: TranslatedText('Minimum donation amount is ₹10'),
-                        ),
-                      );
+                      AppSnackbar.info(context, 'Minimum donation amount is ₹10');
                       return;
                     }
 
@@ -476,17 +473,13 @@ class _DonationsPublicationScreenState
                     final amountText = _amountController.text.trim();
                     if (amountText.isEmpty ||
                         int.tryParse(amountText) == null) {
-                      // TODO: show snackbar / dialog → "Please enter a valid amount"
+                      AppSnackbar.warning(context, 'Please enter a valid amount');
                       return;
                     }
                     final amount = int.parse(amountText);
                     // Add minimum amount check
                     if (amount < 10) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: TranslatedText('Minimum donation amount is ₹10'),
-                        ),
-                      );
+                      AppSnackbar.warning(context, 'Minimum donation amount is ₹10');
                       return;
                     }
 

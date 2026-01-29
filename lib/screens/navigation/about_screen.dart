@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,7 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:mslgd/models/old_screen_models.dart';
 import 'package:mslgd/widgets/translated_text.dart';
-
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -74,9 +73,7 @@ class _AboutScreenState extends State<AboutScreen>
 
   Future<void> _togglePlayPause() async {
     if (!_isAudioInitialized) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: TranslatedText('Audio not ready yet...')),
-      );
+      AppSnackbar.info(context, 'Audio not ready yet...\nPlease wait for a second...');
       return;
     }
 
@@ -1916,11 +1913,6 @@ Visitors can explore the timeline and download scholarly notes.''',
   }
 
   // ---------------- ACTIONS ----------------
-
-  void _snack(String msg) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: TranslatedText(msg)));
-
   void _sendEmail(String email) async {
     final uri = Uri.parse('mailto:$email');
     if (await canLaunchUrl(uri)) {

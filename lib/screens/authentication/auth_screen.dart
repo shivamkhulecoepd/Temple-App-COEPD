@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
-import 'package:pinput/pinput.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/services/theme_service.dart';
@@ -298,65 +298,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _register() {
     if (passCtrl.text != confirmCtrl.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: TranslatedText("Passwords do not match")),
-      );
+      AppSnackbar.warning(context, 'Passwords do not match');
       return;
     }
-    _showOtp();
-  }
-
-  void _showOtp() {
-    showModalBottomSheet(context: context, builder: (_) => const _OtpSheet());
-  }
-}
-
-// ================= OTP =================
-
-class _OtpSheet extends StatelessWidget {
-  const _OtpSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(24.w),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TranslatedText(
-            "Verify OTP",
-            style: TextStyle(
-              fontFamily: 'aBeeZee',
-              fontSize: 22.sp,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.headlineMedium?.color,
-            ),
-          ),
-          SizedBox(height: 10.h),
-          TranslatedText(
-            "Enter the 6-digit code sent to your mobile",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'aBeeZee',
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-          SizedBox(height: 30.h),
-          Pinput(length: 6),
-          SizedBox(height: 30.h),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => LayoutScreen()),
-              (route) => false,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TempleTheme.primaryOrange,
-              foregroundColor: Colors.white,
-            ),
-            child: TranslatedText("Verify"),
-          ),
-        ],
-      ),
-    );
+    AppSnackbar.success(context, 'Registered successfully !!!🎉');
   }
 }

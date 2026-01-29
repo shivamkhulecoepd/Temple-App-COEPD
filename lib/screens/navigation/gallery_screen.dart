@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
+import 'package:mslgd/screens/navigation/explore_media_gallery.dart';
 import 'package:mslgd/widgets/common/inlinevideoplayer_widget.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -216,30 +218,38 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             minimumSize: Size(double.infinity, 45.h),
           ),
-          child: Row(
-            spacing: 10.w,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.62.w,
-                child: TranslatedText(
-                  "View All",
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    color: theme.colorScheme.secondary,
-                    fontWeight: FontWeight.bold,
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExploreMediaGallery(type: 'images'),
+              ),
+            ),
+            child: Row(
+              spacing: 10.w,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.62.w,
+                  child: TranslatedText(
+                    "View All",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      color: theme.colorScheme.secondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16.sp,
-                color: theme.colorScheme.secondary,
-              ),
-            ],
+                SizedBox(width: 8.w),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16.sp,
+                  color: theme.colorScheme.secondary,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -344,30 +354,38 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             minimumSize: Size(double.infinity, 45.h),
           ),
-          child: Row(
-            spacing: 10.w,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.62.w,
-                child: TranslatedText(
-                  "View All",
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    color: theme.colorScheme.secondary,
-                    fontWeight: FontWeight.bold,
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExploreMediaGallery(type: 'videos'),
+              ),
+            ),
+            child: Row(
+              spacing: 10.w,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.62.w,
+                  child: TranslatedText(
+                    "View All",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      color: theme.colorScheme.secondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16.sp,
-                color: theme.colorScheme.secondary,
-              ),
-            ],
+                SizedBox(width: 8.w),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16.sp,
+                  color: theme.colorScheme.secondary,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -736,9 +754,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: TranslatedText('Could not open video')),
-        );
+        AppSnackbar.error(context, 'Could not open video');
       }
     }
   }

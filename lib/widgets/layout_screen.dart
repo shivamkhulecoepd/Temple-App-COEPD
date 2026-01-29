@@ -22,15 +22,10 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   // List of pages to display for each tab
   final List<Widget> _pages = [
-    // const Center(child: Text('Home Content')),
     const HomeScreen(),
-    // const Center(child: Text('Donations Content')),
     const DonationsScreen(),
-    // const Center(child: Text('Live Content')),
     const SevaLiveDarshanScreen(),
-    // const Center(child: Text('Contact Content')),
     const ContactScreen(),
-    // const Center(child: Text('Profile Content')),
     const UserDashboard(),
   ];
 
@@ -76,7 +71,10 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   Widget _buildEnhancedBottomBar() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 8.w),
+      padding: EdgeInsets.symmetric(
+        vertical: 6.h.clamp(4.0, 12.0), 
+        horizontal: 8.w.clamp(4.0, 16.0)
+      ),
       color: Theme.of(context).colorScheme.surface,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,29 +103,36 @@ class _LayoutScreenState extends State<LayoutScreen> {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: 4.w.clamp(2.0, 8.0), 
+          vertical: 6.h.clamp(4.0, 10.0)
+        ),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.orange.withValues(alpha: 0.1)
+              ? Theme.of(context).colorScheme.secondary.withOpacity(0.1)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16.r.clamp(8.0, 20.0)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.orange : Colors.grey[400],
-              size: isSelected ? 26.r : 24.r,
+              color: isSelected 
+                  ? Theme.of(context).colorScheme.secondary 
+                  : Colors.grey[400],
+              size: (isSelected ? 26.r : 24.r).clamp(20.0, 30.0),
             ),
-            SizedBox(height: 3.h),
+            SizedBox(height: 3.h.clamp(2.0, 6.0)),
             TranslatedText(
               label,
               style: TextStyle(
                 fontFamily: 'aBeeZee',
-                fontSize: 10.5.sp, // ← slightly smaller helps a lot
+                fontSize: 10.5.sp.clamp(9.0, 12.0),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.orange : Colors.grey[600],
+                color: isSelected 
+                    ? Theme.of(context).colorScheme.secondary 
+                    : Colors.grey[600],
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
