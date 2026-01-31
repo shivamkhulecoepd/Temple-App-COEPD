@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -21,11 +22,11 @@ import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
 import 'package:mslgd/screens/navigation/festivals_screen.dart';
 import 'package:mslgd/screens/navigation/gallery_screen.dart';
 import 'package:mslgd/screens/navigation/guide_screen.dart';
+import 'package:mslgd/screens/navigation/news_notices_screeen.dart';
 import 'package:mslgd/services/theme_service.dart';
 import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
-import 'package:mslgd/widgets/theme_toggle_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -136,10 +137,6 @@ class _HomeScreenState extends State<HomeScreen>
     "assets/images/dashboard/rose4.png",
   ];
 
-  // Swaying Animation Logic
-  late AnimationController _animationController;
-  late Animation<double> _rotationAnimation;
-
   // Time and Date variables
   late String _timeString;
   late Timer _clockTimer;
@@ -160,6 +157,11 @@ class _HomeScreenState extends State<HomeScreen>
 
   String timings = 'Loading...';
 
+  // ── Audio Player ───────────────────────────────────────────────
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  bool _isAudioInitialized = false;
+
   void _spawnPetal() {
     final random = math.Random();
     if (mounted) {
@@ -169,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen>
             image: _petalAssets[random.nextInt(_petalAssets.length)],
             top: -50, // Start above screen
             left: random.nextDouble() * MediaQuery.of(context).size.width,
-            size: random.nextDouble() * 25 + 20,
+            size: random.nextDouble() * 15 + 10,
             speed: random.nextDouble() * 2 + 2, // Falling speed
             rotationSpeed: random.nextDouble() * 0.1,
             horizontalSway: random.nextDouble() * 2 - 1, // Slight drift
@@ -212,15 +214,12 @@ class _HomeScreenState extends State<HomeScreen>
     if (eventDateTimeStr == null || eventDateTimeStr.isEmpty) {
       return 'Date not available';
     }
-
     try {
       // Parse the datetime string from API (format: "YYYY-MM-DD HH:MM:SS")
       DateTime eventDateTime = DateTime.parse(eventDateTimeStr);
-
       // Format it to a readable display format (e.g., "Jan 22, 2026, 9:53 AM")
       return DateFormat('MMM dd, yyyy, h:mm a').format(eventDateTime);
     } catch (e) {
-      // If parsing fails, try different formats or return a default
       try {
         // Some APIs might send date in different formats
         // Try DD/MM/YYYY or MM/DD/YYYY format
@@ -228,14 +227,13 @@ class _HomeScreenState extends State<HomeScreen>
         DateTime eventDateTime = DateTime.parse(formatted);
         return DateFormat('MMM dd, yyyy, h:mm a').format(eventDateTime);
       } catch (e2) {
-        // If all parsing fails, return a user-friendly message
         return 'Date not available';
       }
     }
   }
 
   // DB data
-  Future<void> loadData() async {
+  Future<void> loadData({int retryCount = 0}) async {
     if (!mounted) return;
     try {
       setState(() {
@@ -270,17 +268,37 @@ class _HomeScreenState extends State<HomeScreen>
       log(marqueeNews.toString());
       log(banners.toString());
     } catch (e) {
-      log(e.toString());
+      log('loadData error (attempt ${retryCount + 1}): $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        AppSnackbar.error(context, 'Failed to load data: $e');
+
+        // Retry logic: retry up to 3 times with increasing delays
+        if (retryCount < 3) {
+          final delaySeconds = [
+            10,
+            30,
+            60,
+          ][retryCount]; // 10s, 30sec, 1min delays
+          log('Retrying loadData in ${delaySeconds}s...');
+
+          Timer(Duration(seconds: delaySeconds), () {
+            if (mounted) {
+              loadData(retryCount: retryCount + 1);
+            }
+          });
+        } else {
+          AppSnackbar.error(
+            context,
+            'Failed to load data after multiple attempts',
+          );
+        }
       }
     }
   }
 
-  Future<void> loadTimings() async {
+  Future<void> loadTimings({int retryCount = 0}) async {
     try {
       final fetchedTimings = await DBFunctions().fetchTempleTimings();
       log("Fetched timings: $fetchedTimings");
@@ -289,20 +307,77 @@ class _HomeScreenState extends State<HomeScreen>
       if (mounted) {
         setState(() => timings = _staticTimings);
       }
-    } catch (_) {
-      log("Failed to load timings");
-      // Update static
-      _staticTimings = 'Timings unavailable';
-      if (mounted) {
-        setState(() => timings = _staticTimings);
+    } catch (e) {
+      log("loadTimings error (attempt ${retryCount + 1}): $e");
+
+      // Retry logic: retry up to 3 times with increasing delays
+      if (retryCount < 3) {
+        final delaySeconds = [
+          20,
+          45,
+          90,
+        ][retryCount]; // 20s, 45s, 1.5min delays
+        log('Retrying loadTimings in ${delaySeconds}s...');
+
+        Timer(Duration(seconds: delaySeconds), () {
+          if (mounted) {
+            loadTimings(retryCount: retryCount + 1);
+          }
+        });
+      } else {
+        log("Failed to load timings after multiple attempts");
+        // Update static with fallback
+        _staticTimings = 'Timings unavailable';
+        if (mounted) {
+          setState(() => timings = _staticTimings);
+        }
       }
+    }
+  }
+
+  // ── Audio Player Methods ───────────────────────────────────────────────
+  Future<void> _initAudioPlayer() async {
+    try {
+      // Preload the audio (using the same audio file as about screen)
+      await _audioPlayer.setSource(AssetSource('audio/mslg_song_3.mp3'));
+
+      // Listen to player state changes
+      _audioPlayer.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = state == PlayerState.playing;
+          });
+        }
+      });
+
+      _isAudioInitialized = true;
+    } catch (e) {
+      debugPrint('Audio initialization error: $e');
+    }
+  }
+
+  Future<void> _togglePlayPause() async {
+    if (!_isAudioInitialized) {
+      AppSnackbar.info(
+        context,
+        'Audio not ready yet\nPlease wait for a second...',
+      );
+      return;
+    }
+
+    if (_isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer
+          .resume(); // or .play() if you want to restart from beginning
+      // If you want to always start from beginning when pressing play:
+      // await _audioPlayer.play(AssetSource('audio/mslg_song_3.mp3'));
     }
   }
 
   @override
   void initState() {
     super.initState();
-
     // Set local state from static variables
     setState(() {
       marqueeNews = _staticMarqueeNews;
@@ -310,13 +385,6 @@ class _HomeScreenState extends State<HomeScreen>
       timings = _staticTimings;
       _isLoading = false;
     });
-
-    // Load data only on first app open
-    if (_firstLoad) {
-      loadTimings();
-      loadData();
-      _firstLoad = false;
-    }
 
     // 1. Image Change Timer
     _timer = Timer.periodic(const Duration(seconds: 6), (timer) {
@@ -342,22 +410,22 @@ class _HomeScreenState extends State<HomeScreen>
       _updatePetals();
     });
 
-    // 4. Setup Leaf Swaying Animation
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _rotationAnimation = Tween<double>(begin: -0.08, end: 0.08).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
     // 5. Initialize Clock
     _timeString = _formatDateTime(DateTime.now());
     _clockTimer = Timer.periodic(
       const Duration(seconds: 1),
       (Timer t) => _updateTime(),
     );
+
+    // Load data only on first app open
+    if (_firstLoad) {
+      loadTimings();
+      loadData();
+      _firstLoad = false;
+    }
+
+    // Initialize audio player
+    _initAudioPlayer();
   }
 
   @override
@@ -366,8 +434,8 @@ class _HomeScreenState extends State<HomeScreen>
     _imageTimer?.cancel();
     _petalSpawnTimer.cancel();
     _petalUpdateTimer.cancel();
-    _animationController.dispose();
     _clockTimer.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -381,8 +449,7 @@ class _HomeScreenState extends State<HomeScreen>
             color: Theme.of(context).colorScheme.secondary,
             backgroundColor: Theme.of(context).primaryColor,
             onRefresh: () async {
-              await loadTimings();
-              await loadData();
+              await Future.wait([loadTimings(), loadData()]);
               if (mounted) {
                 setState(() {
                   _isLoading = false;
@@ -473,36 +540,43 @@ class _HomeScreenState extends State<HomeScreen>
                 "https://www.youtube.com/@mslgdevasthanam",
                 Colors.red,
               ),
+              _socialIcon(
+                FontAwesomeIcons.globe,
+                "https://marakatasrilaxmiganapathi.org/",
+                Colors.white,
+              ),
             ],
           ),
           SizedBox(height: 8.h),
 
           // 3. TEMPLE TIMING (with FutureBuilder)
-          RichText(
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                color: Colors.white,
-                fontSize: 14.sp,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TranslatedText(
+                "Timing: ",
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  color: Colors.white,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              children: [
-                TextSpan(
-                  text: "Timing: ",
+              Flexible(
+                child: TranslatedText(
+                  timings,
                   style: TextStyle(
                     fontFamily: 'aBeeZee',
-                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 14.sp,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
-                TextSpan(
-                  text: timings,
-                  style: TextStyle(fontFamily: 'aBeeZee'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          // SizedBox(height: 10.h),
 
           // 4. BOTTOM ACTION ROW (Horizontal scrollable on small screens)
           SingleChildScrollView(
@@ -514,10 +588,11 @@ class _HomeScreenState extends State<HomeScreen>
                 IconButton(
                   onPressed: () {
                     HapticFeedback.selectionClick();
+                    _togglePlayPause();
                     setState(() => _isMuted = !_isMuted);
                   },
                   icon: Icon(
-                    _isMuted ? Icons.volume_off : Icons.volume_up,
+                    _isPlaying ? Icons.volume_up : Icons.volume_off,
                     size: 24.sp,
                     color: Colors.white,
                   ),
@@ -567,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ].map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
-                                child: Text(
+                                child: TranslatedText(
                                   value,
                                   style: TextStyle(
                                     fontFamily: 'aBeeZee',
@@ -646,14 +721,7 @@ class _HomeScreenState extends State<HomeScreen>
         } else {
           log("Could not launch $url");
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Invalid link or no browser found"),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
-            );
+            AppSnackbar.error(context, "Invalid link or no browser found");
           }
         }
       },
@@ -664,6 +732,7 @@ class _HomeScreenState extends State<HomeScreen>
   // 1. HEADER SECTION
   Widget _buildHeader() {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -672,43 +741,43 @@ class _HomeScreenState extends State<HomeScreen>
           colors: [TempleTheme.gradientStart, TempleTheme.gradientEnd],
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
         children: [
-          // Image.asset(
-          //   'assets/images/dashboard/footer-logo.jpg',
-          //   height: 70.h,
-          //   fit: BoxFit.contain,
-          // ),
-          // const SizedBox(width: 10.w),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  "Marakatha Sri Lakshmi\nGanapathi Devalayam",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  "Kanajiguda, Secunderabad, Telangana",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'aBeeZee',
-                    fontSize: 13.sp,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+          Image.asset(
+            'assets/images/about/temple_logo.png',
+            height: 70.h,
+            fit: BoxFit.contain,
+          ),
+          SizedBox(width: 10.h),
+          TranslatedText(
+            "Marakatha Sri Lakshmi",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          SizedBox(width: 10.w),
-          const ThemeToggleWidget(),
+          TranslatedText(
+            "Ganapathi Devasthanam",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          TranslatedText(
+            "Kanajiguda, Secunderabad, Telangana",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 13.sp,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
@@ -718,39 +787,33 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildNavBar() {
     return Container(
       width: double.infinity,
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).cardColor, // Updated to cardColor (more standard)
+        color: Theme.of(context).cardColor,
         border: Border(
           top: BorderSide(color: TempleTheme.primaryOrange, width: 4.h),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              spacing: 15.w,
-              children: [
-                _navItem(Icons.home, "Home", null),
-                _navItem(
-                  Icons.temple_hindu,
-                  "About Temple",
-                  const AboutScreen(),
-                ),
-                _navItem(
-                  Icons.currency_rupee,
-                  "Sevaa and Darshan",
-                  LayoutScreen(index: 2),
-                  isReplacement: true,
-                ),
-              ],
-            ),
-            SizedBox(width: 20.w),
-            ElevatedButton(
+      child: Column(
+        children: [
+          Row(
+            spacing: 15.w,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _navItem(Icons.home, "Home", null),
+              _navItem(Icons.temple_hindu, "About Temple", const AboutScreen()),
+              _navItem(
+                Icons.currency_rupee,
+                "Sevaa",
+                LayoutScreen(index: 2),
+                isReplacement: true,
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => LayoutScreen(index: 1)),
@@ -770,14 +833,14 @@ class _HomeScreenState extends State<HomeScreen>
                 style: TextStyle(
                   fontFamily: 'aBeeZee',
                   color: Colors.white,
-                  fontSize: 12.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.8,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -801,6 +864,7 @@ class _HomeScreenState extends State<HomeScreen>
               );
       },
       child: Column(
+        spacing: 6.h,
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
@@ -811,7 +875,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: Icon(icon, size: 20.sp, color: Colors.white),
           ),
-          SizedBox(height: 6.h),
           TranslatedText(
             label,
             style: TextStyle(
@@ -820,6 +883,8 @@ class _HomeScreenState extends State<HomeScreen>
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -878,49 +943,6 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             );
           }),
-
-          // 3. Left Swaying Leaf
-          Positioned(
-            bottom: -25,
-            left: -40,
-            child: AnimatedBuilder(
-              animation: _rotationAnimation,
-              builder: (context, child) {
-                return Transform.rotate(
-                  // Pivot from bottom left
-                  alignment: Alignment.bottomLeft,
-                  angle: _rotationAnimation.value,
-                  child: child,
-                );
-              },
-              child: Image.asset(
-                'assets/images/dashboard/leaf_left.png',
-                width: 120,
-              ),
-            ),
-          ),
-
-          // 4. Right Swaying Leaf
-          Positioned(
-            bottom: -25,
-            right: -40,
-            child: AnimatedBuilder(
-              animation: _rotationAnimation,
-              builder: (context, child) {
-                return Transform.rotate(
-                  // Pivot from bottom right
-                  alignment: Alignment.bottomRight,
-                  // We use negative value to sway in the opposite direction
-                  angle: -_rotationAnimation.value,
-                  child: child,
-                );
-              },
-              child: Image.asset(
-                'assets/images/dashboard/leaf-right.png',
-                width: 120,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -985,7 +1007,7 @@ class _HomeScreenState extends State<HomeScreen>
     ];
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      padding: EdgeInsets.only(left: 10.w, right: 10.w),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -1003,7 +1025,9 @@ class _HomeScreenState extends State<HomeScreen>
                 MaterialPageRoute(
                   builder: (context) =>
                       items[index]['route'] ??
-                      Scaffold(body: Center(child: Text("Coming Soon"))),
+                      Scaffold(
+                        body: Center(child: TranslatedText("Coming Soon")),
+                      ),
                 ),
               );
             },
@@ -1074,7 +1098,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           Padding(
             padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Text(
+            child: TranslatedText(
               "Shri. Dr. M. Satyanarayan Shastriji\n(Founder and Administrator)",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -1085,7 +1109,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           TranslatedText(
-            "ABOUT MSLG DEVALAYAM",
+            "ABOUT MSLG DEVASTHANAM",
             style: TextStyle(
               fontFamily: 'aBeeZee',
               fontWeight: FontWeight.bold,
@@ -1094,7 +1118,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           TranslatedText(
-            "Marakatha Sri Lakshmi Ganapathi Devalayam, located in Kanajiguda, Secunderabad, is a sacred temple dedicated to the rare and powerful emerald idol of Sri Lakshmi Ganapati Swamy. The divine Marakata (emerald) form is known to bestow wisdom, prosperity, clarity, and spiritual upliftment. Founded under the divine vision received by Dr. M. Satyanarayana Shastri, the temple stands on the ancient site of a historic stepwell where Sri Mahalakshmi once resided. Consecrated in 2016, the temple continues the rich tradition of Vedic rituals including Abhishekam, Homam, Suprabhata Seva, and Archana. Devotees experience deep peace and fulfillment through His darshan, and the unique practice of performing 16 Pradakshinas is believed to grant wishes and bring divine blessings.",
+            "Marakatha Sri Lakshmi Ganapathi Devasthanam, located in Kanajiguda, Secunderabad, is a sacred temple dedicated to the rare and powerful emerald idol of Sri Lakshmi Ganapati Swamy. The divine Marakata (emerald) form is known to bestow wisdom, prosperity, clarity, and spiritual upliftment. Founded under the divine vision received by Dr. M. Satyanarayana Shastri, the temple stands on the ancient site of a historic stepwell where Sri Mahalakshmi once resided. Consecrated in 2016, the temple continues the rich tradition of Vedic rituals including Abhishekam, Homam, Suprabhata Seva, and Archana. Devotees experience deep peace and fulfillment through His darshan, and the unique practice of performing 16 Pradakshinas is believed to grant wishes and bring divine blessings.",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'aBeeZee',
@@ -1173,7 +1197,14 @@ class _HomeScreenState extends State<HomeScreen>
           // 3. View All Button
           InkWell(
             onTap: () {
-              // Navigate to news page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsNoticesScreeen(
+                    initialSection: NewsNoticesSection.latestNews,
+                  ),
+                ),
+              );
             },
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),

@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                         /// Subtitle
                         TranslatedText(
-                          'Connect with Marakatha Sri Lakshmi Ganapathi Devalayam through darshan, pujas and sacred updates.',
+                          'Connect with Marakatha Sri Lakshmi Ganapathi Devasthanam through darshan, pujas and sacred updates.',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 15.sp,

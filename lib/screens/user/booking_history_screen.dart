@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/models/user_model.dart';
+import 'package:mslgd/utils/auth_utils.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:intl/intl.dart';
 
@@ -13,42 +17,59 @@ class BookingHistoryScreen extends StatefulWidget {
 }
 
 class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
-  // Dummy data - replace with real API response later
-  final List<Map<String, dynamic>> _bookings = [
-    {
-      "service": "Abhishekam - Ganapathi",
-      "date": "2026-01-25",
-      "time": "07:30 AM",
-      "status": "Confirmed",
-      "amount": 501,
-      "paymentMethod": "UPI",
-    },
-    {
-      "service": "VIP Room - 2 nights",
-      "date": "2025-12-20 to 2025-12-22",
-      "time": "-",
-      "status": "Completed",
-      "amount": 4500,
-      "paymentMethod": "Credit Card",
-    },
-    {
-      "service": "Special Darshan Pass",
-      "date": "2025-11-15",
-      "time": "05:00 PM",
-      "status": "Cancelled",
-      "amount": 0,
-      "paymentMethod": "Debit Card",
-      "cancelReason": "Personal reason",
-    },
-    {
-      "service": "Satyanarayan Puja",
-      "date": "2026-01-10",
-      "time": "10:00 AM",
-      "status": "Pending",
-      "amount": 1101,
-      "paymentMethod": "Cash",
-    },
-  ];
+  final DBFunctions _db = DBFunctions();
+  List<dynamic> _bookings = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  // ignore: unused_field
+  UserModel? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookings();
+  }
+
+  Future<void> _loadBookings() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Get current user and token
+      final user = await AuthUtils.getCurrentUser();
+      final token = await AuthUtils.getUserToken();
+      
+      if (user == null || token == null) {
+        throw Exception('User not authenticated');
+      }
+      
+      setState(() {
+        _currentUser = user;
+      });
+
+      // Fetch bookings from API
+      final bookings = await _db.fetchMyBookings(token);
+      
+      if (mounted) {
+        setState(() {
+          _bookings = bookings;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+        
+        // Show error message
+        AppSnackbar.error(context, 'Failed to load booking history: ${e.toString()}');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,20 +95,128 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
             ),
             centerTitle: true,
             foregroundColor: Colors.white,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: _loadBookings,
+                tooltip: 'Refresh',
+              ),
+            ],
           ),
-          body: _bookings.isEmpty
+          body: _isLoading
               ? Center(
-                  child: TranslatedText(
-                    'No bookings found',
-                    style: TextStyle(fontFamily: 'aBeeZee', fontSize: 18.sp),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B0000)),
+                      ),
+                      SizedBox(height: 16.h),
+                      TranslatedText(
+                        'Loading your bookings...',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 16.sp,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 )
+              : _errorMessage != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48.r,
+                            color: Colors.red[300],
+                          ),
+                          SizedBox(height: 16.h),
+                          TranslatedText(
+                            'Error loading bookings',
+                            style: TextStyle(
+                              fontFamily: 'aBeeZee',
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 32.w),
+                            child: TranslatedText(
+                              _errorMessage!,
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                fontSize: 14.sp,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(height: 24.h),
+                          ElevatedButton(
+                            onPressed: _loadBookings,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B0000),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 24.w,
+                                vertical: 12.h,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            child: TranslatedText(
+                              'Try Again',
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _bookings.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.history_toggle_off,
+                                size: 48.r,
+                                color: Colors.grey[400],
+                              ),
+                              SizedBox(height: 16.h),
+                              TranslatedText(
+                                'No bookings found',
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              TranslatedText(
+                                'You haven\'t made any bookings yet',
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
               : ListView.builder(
                   padding: EdgeInsets.all(16.w),
                   itemCount: _bookings.length,
                   itemBuilder: (context, index) {
                     final booking = _bookings[index];
-                    final isCancelled = booking['status'] == 'Cancelled';
                     final isPending = booking['status'] == 'Pending';
 
                     return Card(
@@ -107,7 +236,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                               children: [
                                 Expanded(
                                   child: TranslatedText(
-                                    booking['service'],
+                                    booking['pooja_name']?.toString() ?? 'Unknown Service',
                                     style: TextStyle(
                                       fontFamily: 'aBeeZee',
                                       fontSize: 17.sp,
@@ -118,38 +247,33 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                                     ),
                                   ),
                                 ),
-                                _statusChip(booking['status']),
+                                _statusChip(booking['status']?.toString() ?? 'Unknown'),
                               ],
                             ),
                             SizedBox(height: 12.h),
                             _infoRow(
                               Icons.calendar_today,
                               'Date',
-                              booking['date'],
+                              booking['booking_date']?.toString() ?? 'N/A',
                             ),
-                            if (booking['time'] != '-')
+                            if (booking['booking_time'] != null)
                               _infoRow(
                                 Icons.access_time,
                                 'Time',
-                                booking['time'],
+                                booking['booking_time'].toString(),
                               ),
-                            _infoRow(
-                              Icons.receipt,
-                              'Payment Method',
-                              booking['paymentMethod'],
-                            ),
-                            if (isCancelled && booking['cancelReason'] != null)
+                            if (booking['payment_method'] != null)
                               _infoRow(
-                                Icons.info,
-                                'Reason',
-                                booking['cancelReason'],
+                                Icons.receipt,
+                                'Payment Method',
+                                booking['payment_method'].toString(),
                               ),
                             SizedBox(height: 12.h),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 TranslatedText(
-                                  '₹ ${NumberFormat('#,###').format(booking['amount'])}',
+                                  '₹ ${NumberFormat('#,###').format(booking['amount'] ?? 0)}',
                                   style: TextStyle(
                                     fontFamily: 'aBeeZee',
                                     fontSize: 18.sp,
@@ -213,6 +337,9 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         break;
       case 'Pending':
         bgColor = Colors.orange;
+        break;
+      case 'Registered':
+        bgColor = Colors.green;
         break;
       default:
         bgColor = Colors.grey;

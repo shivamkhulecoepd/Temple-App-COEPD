@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/services/db_functions.dart';
@@ -16,7 +18,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
   final db = DBFunctions();
   List<dynamic> mediaItems = [];
   bool isLoading = true;
-  String selectedCategory = '';
+  String selectedCategory = ''; 
   late TabController _tabController;
 
   // Separate categories for images and videos
@@ -85,9 +87,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load ${widget.type}: $e')),
-        );
+        AppSnackbar.error(context, 'Failed to load ${widget.type}: $e');
       }
     }
   }
@@ -106,7 +106,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
+        title: TranslatedText(
           isImages ? 'Image Gallery' : 'Video Archive',
           style: const TextStyle(
             fontWeight: FontWeight.w600,
@@ -132,7 +132,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
               indicatorWeight: 3,
               indicatorPadding: const EdgeInsets.symmetric(horizontal: 4),
               labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.6),
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -149,7 +149,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                 return Tab(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Text(
+                    child: TranslatedText(
                       label,
                       style: const TextStyle(
                         fontSize: 12,
@@ -191,14 +191,14 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
             Icon(
               widget.type == 'images' ? Icons.photo_library : Icons.video_library,
               size: 64,
-              color: Colors.grey.withOpacity(0.4),
+              color: Colors.grey.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
-            Text(
+            TranslatedText(
               'No ${widget.type} found in this category',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.withOpacity(0.6),
+                color: Colors.grey.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -263,7 +263,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
             child: Icon(
               Icons.broken_image,
               size: 60,
-              color: Colors.grey.withOpacity(0.4),
+              color: Colors.grey.withValues(alpha: 0.4),
             ),
           ),
         ),
@@ -300,9 +300,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                   await launchUrl(Uri.parse(url));
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Could not open video: $e')),
-                    );
+                    AppSnackbar.error(context, 'Could not open video: $e');
                   }
                 }
               }
@@ -345,7 +343,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12),
                       ),
@@ -354,7 +352,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -374,7 +372,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TranslatedText(
                   video['title'] ?? 'Video',
                   style: const TextStyle(
                     fontSize: 16,
@@ -386,11 +384,11 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                 ),
                 if (video['description'] != null) ...[
                   const SizedBox(height: 8),
-                  Text(
+                  TranslatedText(
                     video['description'],
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFF043342).withOpacity(0.7), // primaryBlue with opacity
+                      color: const Color(0xFF043342).withValues(alpha: 0.7), // primaryBlue with opacity
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -420,7 +418,7 @@ class FullScreenImageViewer extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(
+        title: TranslatedText(
           title,
           style: const TextStyle(color: Colors.white),
         ),
@@ -457,7 +455,7 @@ class FullScreenImageViewer extends StatelessWidget {
                     color: Colors.white54,
                   ),
                   SizedBox(height: 16),
-                  Text(
+                  TranslatedText(
                     'Failed to load image',
                     style: TextStyle(color: Colors.white54),
                   ),

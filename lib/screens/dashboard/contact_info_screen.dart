@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/widgets/common/gallery_widget.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
@@ -132,12 +133,7 @@ class _ContactScreenState extends State<ContactScreen> {
         message: _messageController.text,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Message sent successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppSnackbar.success(context, result['message'] ?? 'Message sent successfully!');
 
       // Clear form
       _formKey.currentState!.reset();
@@ -148,12 +144,7 @@ class _ContactScreenState extends State<ContactScreen> {
       _messageController.clear();
       setState(() => _selectedService = null);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send message: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppSnackbar.error(context, 'Failed to send message: $e');
     } finally {
       setState(() => _isSubmitting = false);
     }

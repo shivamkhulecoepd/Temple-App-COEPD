@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class ErrorHandler {
   static void handleError(Object error, StackTrace stackTrace) {
@@ -22,7 +23,7 @@ class ErrorHandler {
                 size: 60,
               ),
               const SizedBox(height: 16),
-              const Text(
+              TranslatedText(
                 'Something went wrong!',
                 style: TextStyle(
                   fontSize: 18,
@@ -33,7 +34,7 @@ class ErrorHandler {
               if (kDebugMode)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
+                  child: TranslatedText(
                     details.exception.toString(),
                     style: const TextStyle(fontSize: 12),
                     textAlign: TextAlign.center,

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/models/user_model.dart';
+import 'package:mslgd/services/storage_service.dart';
+import 'package:mslgd/utils/auth_utils.dart';
+import 'package:mslgd/screens/authentication/auth_screen.dart';
 import 'package:mslgd/screens/dashboard/donations_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/accommodation_screen.dart';
@@ -9,6 +13,9 @@ import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
 import 'package:mslgd/screens/user/booking_history_screen.dart';
 import 'package:mslgd/screens/user/my_donations_screen.dart';
 import 'package:mslgd/screens/user/user_profile_screen.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
+import 'package:mslgd/widgets/common/confirmation_dialog.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
 class UserDashboard extends StatefulWidget {
@@ -19,6 +26,32 @@ class UserDashboard extends StatefulWidget {
 }
 
 class UserDashboardState extends State<UserDashboard> {
+  UserModel? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = await AuthUtils.getCurrentUser();
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _currentUser = null; // Clear user data on error
+        });
+        AppSnackbar.error(context, 'Failed to load user data');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
@@ -65,7 +98,9 @@ class UserDashboardState extends State<UserDashboard> {
                       borderRadius: BorderRadius.circular(16.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.3 : 0.1,
+                          ),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -77,7 +112,7 @@ class UserDashboardState extends State<UserDashboard> {
                         Row(
                           children: [
                             TranslatedText(
-                              'Welcome, Shivam Khule 🙏',
+                              'Welcome, ${_currentUser?.devoteeName ?? 'Guest Devotee'} 🙏',
                               style: TextStyle(
                                 fontFamily: 'aBeeZee',
                                 fontSize: 20.sp,
@@ -91,13 +126,47 @@ class UserDashboardState extends State<UserDashboard> {
                         ),
                         SizedBox(height: 8.h),
                         TranslatedText(
-                          'This is your devotee dashboard. From here, you can view your profile, check your pooja bookings, and manage your temple activities.',
+                          _currentUser != null
+                              ? 'This is your devotee dashboard. From here, you can view your profile, check your pooja bookings, and manage your temple activities.'
+                              : 'Welcome to the temple dashboard. Login to access personalized features like booking history and donations.',
                           style: TextStyle(
                             fontFamily: 'aBeeZee',
                             fontSize: 14.sp,
                             color: isDark ? Colors.grey[300] : Colors.grey[700],
                           ),
                         ),
+                        if (_currentUser == null) ...[
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AuthScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8B0000),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 24.w,
+                                vertical: 12.h,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            child: TranslatedText(
+                              'Login to Continue',
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -130,7 +199,15 @@ class UserDashboardState extends State<UserDashboard> {
                         buttonText: 'Book Now',
                         buttonColor: const Color(0xFF8B0000),
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => AccommodationScreen(initialSection: AccommodationSection.accommodationBooking)));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AccommodationScreen(
+                                initialSection:
+                                    AccommodationSection.accommodationBooking,
+                              ),
+                            ),
+                          );
                         },
                         theme: theme,
                         isDark: isDark,
@@ -237,33 +314,90 @@ class UserDashboardState extends State<UserDashboard> {
           ),
           _drawerItem('Profile', Icons.person, () {
             Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => UserProfileScreen()),
-            );
+            if (_currentUser != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UserProfileScreen()),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+              );
+            }
           }),
           _drawerItem('Booking History', Icons.history, () {
             Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => BookingHistoryScreen()),
-            );
+            if (_currentUser != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => BookingHistoryScreen()),
+              );
+            } else {
+              AppSnackbar.warning(
+                context,
+                'Please login to view booking history',
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+              );
+            }
           }),
           _drawerItem('My Donations', Icons.monetization_on, () {
             Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => UserDonationsScreen()),
-            );
+            if (_currentUser != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UserDonationsScreen()),
+              );
+            } else {
+              AppSnackbar.warning(context, 'Please login to view donations');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+              );
+            }
           }),
-          const Divider(),
-          _drawerItem('Logout', Icons.logout, () {
-            Navigator.pop(context);
-            // AuthService.logout(context);
-          }),
+          if (_currentUser != null) ...[
+            const Divider(),
+            _drawerItem('Logout', Icons.logout, _handleLogout),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _handleLogout() async {
+    final confirmed = await ConfirmationDialog.show(
+      context: context,
+      title: 'Logout',
+      message: 'Are you sure you want to logout from your account?',
+      confirmText: 'Logout',
+      cancelText: 'Cancel',
+      confirmColor: const Color(0xFF8B0000),
+      icon: Icons.logout,
+    );
+
+    if (confirmed && mounted) {
+      try {
+        final storageService = StorageService();
+        await storageService.clearUserData();
+
+        if (mounted) {
+          AppSnackbar.success(context, 'You have been logged out successfully');
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LayoutScreen()),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Logout failed: $e');
+        }
+      }
+    }
   }
 
   ListTile _drawerItem(String title, IconData icon, VoidCallback onTap) {

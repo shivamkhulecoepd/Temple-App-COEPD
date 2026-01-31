@@ -382,7 +382,7 @@ class _AboutScreenState extends State<AboutScreen>
           hasDownload: true,
           downloadUrl: '',
           content: '''
-The Marakatha Sri Lakshmi Ganapathi Devalayam was established in 2017 under the divine guidance of Dr. M. Satyanarayana Shastry Garu. The temple follows strict Agamic traditions and Vedic rituals.
+The Marakatha Sri Lakshmi Ganapathi Devasthanam was established in 2017 under the divine guidance of Dr. M. Satyanarayana Shastry Garu. The temple follows strict Agamic traditions and Vedic rituals.
 
 Visitors can explore the timeline and download scholarly notes.''',
         );
@@ -579,7 +579,7 @@ Visitors can explore the timeline and download scholarly notes.''',
               year: '2017',
               title: 'Temple Foundation',
               details:
-                  'Led establishment of Marakatha Sri Lakshmi Ganapathi Devalayam.',
+                  'Led establishment of Marakatha Sri Lakshmi Ganapathi Devasthanam.',
             ),
           ],
           hasAudio: false,
@@ -587,7 +587,7 @@ Visitors can explore the timeline and download scholarly notes.''',
           hasDownload: false,
           downloadUrl: '',
           content:
-              'Dr. M. Satyanarayana Shastry Garu is a highly respected Vedic scholar, spiritual mentor, and steadfast upholder of Sanātana Dharma. With profound knowledge in Vedas, Agamas, and Shastras, he has dedicated his life to spiritual teaching, divine worship, and selfless service to society. He is the guiding force and spiritual inspiration behind the establishment of Marakatha Sri Lakshmi Ganapathi Devalayam, shaping it into a center of devotion, discipline, and dharmic values.',
+              'Dr. M. Satyanarayana Shastry Garu is a highly respected Vedic scholar, spiritual mentor, and steadfast upholder of Sanātana Dharma. With profound knowledge in Vedas, Agamas, and Shastras, he has dedicated his life to spiritual teaching, divine worship, and selfless service to society. He is the guiding force and spiritual inspiration behind the establishment of Marakatha Sri Lakshmi Ganapathi Devasthanam, shaping it into a center of devotion, discipline, and dharmic values.',
           images: [
             TempleImageInfo(
               url: 'assets/images/dashboard/gurujia.jpg',
@@ -599,7 +599,7 @@ Visitors can explore the timeline and download scholarly notes.''',
               url: 'assets/images/about/bappanguru.png',
               title: 'Contribution to the Temple',
               caption:
-                  'Dr. M. Satyanarayana Shastry Garu’s divine vision and leadership were instrumental in the conception and development of Marakatha Sri Lakshmi Ganapathi Devalayam. He guided every aspect of the temple—its Agamic architecture, ritual procedures, daily worship, festivals, and spiritual programs—ensuring strict adherence to Vedic and Agamic principles. Through his inspiration, the Devalayam has become not only a place of worship but also a vibrant spiritual and cultural center, nurturing devotion, tradition, and service among devotees.',
+                  'Dr. M. Satyanarayana Shastry Garu’s divine vision and leadership were instrumental in the conception and development of Marakatha Sri Lakshmi Ganapathi Devasthanam. He guided every aspect of the temple—its Agamic architecture, ritual procedures, daily worship, festivals, and spiritual programs—ensuring strict adherence to Vedic and Agamic principles. Through his inspiration, the Devasthanam has become not only a place of worship but also a vibrant spiritual and cultural center, nurturing devotion, tradition, and service among devotees.',
             ),
           ],
         );

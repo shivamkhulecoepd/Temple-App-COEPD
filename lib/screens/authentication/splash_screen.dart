@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/screens/authentication/language_selection.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:mslgd/services/storage_service.dart';
+import 'package:mslgd/widgets/translated_text.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,45 +38,53 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate after splash based on first launch status
-    Timer(const Duration(seconds: 3), () async {
-      if (!mounted) return; // Safety check
+    // Check auth status immediately
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (!mounted) return;
+    
+    try {
+      final storageService = context.read<StorageService>();
+      final isFirstLaunch = await storageService.isFirstLaunch();
       
-      try {
-        final storageService = context.read<StorageService>();
-        final isFirstLaunch = await storageService.isFirstLaunch();
+      if (!mounted) return;
+      
+      if (isFirstLaunch) {
+        // Mark as not first launch anymore
+        await storageService.setFirstLaunch(false);
+        if (!mounted) return;
         
-        if (!mounted) return; // Safety check after async operation
-        
-        if (isFirstLaunch) {
-          // Mark as not first launch anymore
-          await storageService.setFirstLaunch(false);
-          if (!mounted) return; // Safety check after async operation
-          
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const LanguageSelectionScreen(),
-            ),
-          );
-        } else {
-          // Go directly to main app
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const LayoutScreen(),
-            ),
-          );
-        }
-      } catch (e) {
-        // Fallback navigation in case of error
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LanguageSelectionScreen(),
+          ),
+        );
+      } else {
+        // Go directly to main app without requiring login
         if (mounted) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => const LayoutScreen(),
             ),
+            (route) => false,
           );
         }
       }
-    });
+    } catch (e) {
+      // Fallback to main app on error
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const LayoutScreen(),
+          ),
+          (route) => false,
+        );
+      }
+    }
   }
 
   @override
@@ -108,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 72.h,
                         width: 72.w,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(
@@ -123,8 +132,8 @@ class _SplashScreenState extends State<SplashScreen>
                   SizedBox(height: 28.h),
 
                   // Temple Name
-                  Text(
-                    "Marakatha Sri Lakshmi\nGanapathi Devalayam",
+                  TranslatedText(
+                    "Marakatha Sri Lakshmi\nGanapathi Devasthanam",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'aBeeZee',
@@ -138,12 +147,12 @@ class _SplashScreenState extends State<SplashScreen>
                   SizedBox(height: 14.h),
 
                   // Subtitle
-                  Text(
+                  TranslatedText(
                     "Divine Blessings • Peace • Prosperity",
                     style: TextStyle(
                       fontFamily: 'inter',
                       fontSize: 14.sp,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       letterSpacing: 0.8,
                     ),
                   ),

@@ -387,4 +387,213 @@ class DBFunctions {
       return [];
     }
   }
+
+  // ──────────────────────────────────────────────────────────────
+  // 13. Fetch all notices/announcements (News and Notices screen)
+  // ──────────────────────────────────────────────────────────────
+  Future<List<dynamic>> fetchNotices() async {
+    const String endpoint = 'notices.php';
+
+    try {
+      final response = await http
+          .get(Uri.parse(baseUrl + endpoint))
+          .timeout(const Duration(seconds: 12));
+
+      log('Notices → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        }
+      }
+      return [];
+    } catch (e) {
+      log('fetchNotices error: $e');
+      return [];
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 14. Fetch latest active banner (News and Notices screen)
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> fetchLatestBanner() async {
+    const String endpoint = 'latest_banner.php';
+
+    try {
+      final response = await http
+          .get(Uri.parse(baseUrl + endpoint))
+          .timeout(const Duration(seconds: 12));
+
+      log('Latest Banner → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as Map<String, dynamic>?;
+        }
+      }
+      return null;
+    } catch (e) {
+      log('fetchLatestBanner error: $e');
+      return null;
+    }
+  }
+
+  // Fetch user's booking history (requires token)
+  Future<List<dynamic>> fetchMyBookings(String token) async {
+    const String endpoint = 'my_bookings.php';
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse(baseUrl + endpoint),
+            headers: {
+              'X-Devotee-Token': token, // Send token in header
+            },
+          )
+          .timeout(const Duration(seconds: 12));
+
+      log('My Bookings → Status: ${response.statusCode}');
+      log('My Bookings → Data: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        } else {
+          throw Exception(json['message'] ?? 'Failed to fetch bookings');
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again.');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchMyBookings error: $e');
+      rethrow;
+    }
+  }
+
+  // Fetch user's donation history (requires token)
+  Future<List<dynamic>> fetchMyDonations(String token) async {
+    const String endpoint = 'my_donations.php';
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse(baseUrl + endpoint),
+            headers: {'X-Devotee-Token': token},
+          )
+          .timeout(const Duration(seconds: 12));
+
+      log('My Donations → Status: ${response.statusCode}');
+      log('My Donations → Data: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        } else {
+          throw Exception(json['message'] ?? 'Failed to fetch donations');
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again.');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchMyDonations error: $e');
+      rethrow;
+    }
+  }
+
+  // Fetch current profile
+  Future<Map<String, dynamic>> fetchMyProfile(String token) async {
+    const String endpoint = 'my_profile.php';
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse(baseUrl + endpoint),
+            headers: {'X-Devotee-Token': token},
+          )
+          .timeout(const Duration(seconds: 12));
+
+      log('My Profile GET → Status: ${response.statusCode}');
+      log('My Profile GET → Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json['data'] as Map<String, dynamic>;
+        } else {
+          throw Exception(json['message'] ?? 'Failed to fetch profile');
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again.');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('fetchMyProfile error: $e');
+      rethrow;
+    }
+  }
+
+  // Update profile (POST)
+  Future<Map<String, dynamic>> updateMyProfile({
+    required String token,
+    required String name,
+    required String mobile,
+    String? password,
+    String? confirmPassword,
+  }) async {
+    const String endpoint = 'my_profile.php';
+
+    final body = {'name': name.trim(), 'mobile': mobile.trim()};
+
+    if (password != null && password.isNotEmpty) {
+      if (password != confirmPassword) {
+        throw Exception('Passwords do not match');
+      }
+      body['password'] = password;
+      body['confirm_password'] = confirmPassword ?? '';
+    }
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl + endpoint),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Devotee-Token': token,
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      log('My Profile POST → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json;
+        } else {
+          throw Exception(json['message'] ?? 'Update failed');
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again.');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('updateMyProfile error: $e');
+      rethrow;
+    }
+  }
 }

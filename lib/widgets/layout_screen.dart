@@ -109,7 +109,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.secondary.withOpacity(0.1)
+              ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16.r.clamp(8.0, 20.0)),
         ),
