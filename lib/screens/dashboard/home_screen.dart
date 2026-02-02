@@ -162,7 +162,11 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isPlaying = false;
   bool _isAudioInitialized = false;
 
+  // Add disposed flag to prevent timer callbacks after dispose
+  bool _isDisposed = false;
+
   void _spawnPetal() {
+    if (_isDisposed || !mounted) return;
     final random = math.Random();
     if (mounted) {
       setState(() {
@@ -182,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _updatePetals() {
-    if (!mounted) return;
+    if (_isDisposed || !mounted) return;
     setState(() {
       for (var petal in _petals) {
         petal.top += petal.speed;
@@ -196,6 +200,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Related with TopInfoBar
   void _updateTime() {
+    if (_isDisposed || !mounted) return;
     final DateTime now = DateTime.now();
     final String formattedDateTime = _formatDateTime(now);
     if (mounted) {
@@ -388,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // 1. Image Change Timer
     _timer = Timer.periodic(const Duration(seconds: 6), (timer) {
-      if (!mounted) return;
+      if (_isDisposed || !mounted) return;
       setState(() {
         _currentIndex = (_currentIndex + 1) % _heroImages.length;
       });
@@ -398,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalSpawnTimer = Timer.periodic(const Duration(milliseconds: 300), (
       timer,
     ) {
-      if (!mounted) return;
+      if (_isDisposed || !mounted) return;
       _spawnPetal();
     });
 
@@ -406,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen>
     _petalUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (
       timer,
     ) {
-      if (!mounted) return;
+      if (_isDisposed || !mounted) return;
       _updatePetals();
     });
 
@@ -430,6 +435,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _isDisposed = true; // Set flag first
     _timer?.cancel();
     _imageTimer?.cancel();
     _petalSpawnTimer.cancel();
@@ -481,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen>
                           banners.isNotEmpty ? banners : myBanners,
                         ),
                   GalleryWidget(title: 'Sri Devi Sharan Navratri 2025'),
-                  SizedBox(height: 20.h),
+                  // SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -495,11 +501,15 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       width: double.infinity,
       color: Theme.of(context).primaryColor,
-      padding: EdgeInsets.only(top: 15.h, left: 6.w, right: 6.w),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        left: 6.w,
+        right: 6.w,
+      ),
       child: Column(
         children: [
           // 0. Safe Area Height
-          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+          // SizedBox(height: MediaQuery.of(context).size.height * 0.03),
           // 1. DATE AND TIME
           TranslatedText(
             _timeString,
@@ -523,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen>
               _socialIcon(
                 FontAwesomeIcons.instagram,
                 "https://www.instagram.com/markatha_sri_laxmi_ganpathi/",
-                Colors.pink.withValues(alpha: 0.7),
+                Colors.pinkAccent,
               ),
               _socialIcon(
                 FontAwesomeIcons.facebook,
@@ -1086,6 +1096,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildAboutSection() {
     return Container(
       padding: EdgeInsets.all(20.w),
+      margin: EdgeInsets.only(top: 26.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20.r),
@@ -1244,7 +1255,7 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         // 1. Content/aSection header
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 8.h),
           child: Row(
             children: [
               Icon(Icons.event, color: TempleTheme.primaryOrange, size: 20.sp),

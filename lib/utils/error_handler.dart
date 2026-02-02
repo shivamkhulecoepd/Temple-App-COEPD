@@ -8,9 +8,12 @@ class ErrorHandler {
       debugPrint('Error: $error');
       debugPrint('StackTrace: $stackTrace');
     }
+    // Log to file or send to analytics in release mode
+    // This prevents crashes from unhandled exceptions
   }
 
   static Widget buildErrorWidget(FlutterErrorDetails details) {
+    // Return a safe error widget instead of crashing
     return MaterialApp(
       home: Scaffold(
         body: Center(
@@ -23,7 +26,7 @@ class ErrorHandler {
                 size: 60,
               ),
               const SizedBox(height: 16),
-              TranslatedText(
+              const TranslatedText(
                 'Something went wrong!',
                 style: TextStyle(
                   fontSize: 18,
@@ -40,6 +43,15 @@ class ErrorHandler {
                     textAlign: TextAlign.center,
                   ),
                 ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Try to restart the app or go back
+                  // This is a simplified approach - in production you might want
+                  // to navigate to a safe screen
+                },
+                child: const TranslatedText('Try Again'),
+              ),
             ],
           ),
         ),

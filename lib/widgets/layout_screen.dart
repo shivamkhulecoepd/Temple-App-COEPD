@@ -19,6 +19,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
   int _selectedIndex = 0;
   // 1. Define the PageController
   late PageController _pageController;
+  bool _isDisposed = false; // Add disposed flag
 
   // List of pages to display for each tab
   final List<Widget> _pages = [
@@ -38,12 +39,14 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   @override
   void dispose() {
+    _isDisposed = true; // Set flag first
     _pageController.dispose(); // Always dispose controllers
     super.dispose();
   }
 
   // 2. Handle Tap (Sync Bar -> Page)
   void _onTap(int index) {
+    if (_isDisposed) return; // Check if disposed
     setState(() => _selectedIndex = index);
     _pageController.animateToPage(
       index,
@@ -54,16 +57,23 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isDisposed) return const SizedBox.shrink(); // Return empty widget if disposed
+    
     return Scaffold(
       extendBody: true,
       // 3. Replace IndexedStack with PageView
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          // 4. Handle Swipe (Sync Page -> Bar)
-          setState(() => _selectedIndex = index);
-        },
-        children: _pages,
+      body: SafeArea(
+        top: false,
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            // 4. Handle Swipe (Sync Page -> Bar)
+            if (!_isDisposed) {
+              setState(() => _selectedIndex = index);
+            }
+          },
+          children: _pages,
+        ),
       ),
       bottomNavigationBar: _buildEnhancedBottomBar(),
     );
@@ -86,9 +96,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
             (Icons.quick_contacts_mail_rounded, "Contact", 3),
             (Icons.person_rounded, "Profile", 4),
           ];
-
+    
           final (icon, label, idx) = items[index];
-
+    
           return Expanded(child: _buildNavItem(idx, icon, label));
         }),
       ),

@@ -14,8 +14,18 @@ class DonationsScreen extends StatefulWidget {
 }
 
 class _DonationsScreenState extends State<DonationsScreen> {
+  bool _isDisposed = false; // Add disposed flag
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set flag first
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isDisposed) return const SizedBox.shrink(); // Return empty widget if disposed
+    
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -131,7 +141,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                       ),
                       Container(
                         width: double.infinity,
-                        height: 120.h, // ✅ controls banner height
+                        margin: EdgeInsets.symmetric(horizontal: 10.w),
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage(
@@ -143,8 +153,8 @@ class _DonationsScreenState extends State<DonationsScreen> {
                         padding: EdgeInsets.only(
                           left: 20.w,
                           right: 20.w,
-                          top: 9.h,
-                          bottom: 15.h,
+                          top: 20.h,
+                          bottom: 30.h,
                         ), // ✅ spacing from edges
                         alignment: Alignment.center, // ✅ centers text
                         child: TranslatedText(

@@ -12,9 +12,12 @@ import 'package:mslgd/utils/error_handler.dart';
 void main() {
   // Set up error handling
   FlutterError.onError = (FlutterErrorDetails details) {
-    ErrorHandler.handleError(details.exception, details.stack ?? StackTrace.empty);
+    ErrorHandler.handleError(
+      details.exception,
+      details.stack ?? StackTrace.empty,
+    );
   };
-  
+
   runApp(const TempleApp());
 }
 
@@ -40,9 +43,9 @@ class TempleApp extends StatelessWidget {
             )..add(LoadLanguage()),
           ),
           BlocProvider(
-            create: (context) => ThemeBloc(
-              storageService: context.read<StorageService>(),
-            )..add(LoadTheme()),
+            create: (context) =>
+                ThemeBloc(storageService: context.read<StorageService>())
+                  ..add(LoadTheme()),
           ),
         ],
         child: ScreenUtilInit(
@@ -55,11 +58,11 @@ class TempleApp extends StatelessWidget {
               builder: (context, themeState) {
                 return MaterialApp(
                   debugShowCheckedModeBanner: false,
-                  themeMode: themeState.themeMode == ThemeModeType.light 
-                      ? ThemeMode.light 
-                      : themeState.themeMode == ThemeModeType.dark 
-                          ? ThemeMode.dark 
-                          : ThemeMode.system,
+                  themeMode: themeState.themeMode == ThemeModeType.light
+                      ? ThemeMode.light
+                      : themeState.themeMode == ThemeModeType.dark
+                      ? ThemeMode.dark
+                      : ThemeMode.system,
                   theme: TempleTheme.lightTheme(),
                   darkTheme: TempleTheme.darkTheme(),
                   builder: (context, widget) {

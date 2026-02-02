@@ -157,8 +157,62 @@ class _FestivalScreenState extends State<FestivalsScreen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            child: // Festival Spotlight Section
-            Column(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/dashboard/gallery5.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              alignment: Alignment.bottomLeft,
+              width: double.infinity,
+              height: double.infinity,
+              child: TranslatedText(
+                'Temple Festivals',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  color: Colors.white,
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          // Drawer Items
+          _drawerItem(
+            'Annual Festivals',
+            FestivalsSection.annualFestivals,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Daily Rituals and timings',
+            FestivalsSection.dailyRituals,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Upcoming Events Calendar',
+            FestivalsSection.upcomingEvents,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Live Streaming',
+            FestivalsSection.liveStreaming,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Membership & Subscription',
+            FestivalsSection.membershipSubscription,
+            theme,
+            isDark,
+          ),
+          Divider(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TranslatedText(
@@ -212,37 +266,6 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                 ),
               ],
             ),
-          ),
-          // Drawer Items
-          _drawerItem(
-            'Annual Festivals',
-            FestivalsSection.annualFestivals,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Daily Rituals and timings',
-            FestivalsSection.dailyRituals,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Upcoming Events Calendar',
-            FestivalsSection.upcomingEvents,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Live Streaming',
-            FestivalsSection.liveStreaming,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Membership & Subscription',
-            FestivalsSection.membershipSubscription,
-            theme,
-            isDark,
           ),
         ],
       ),
@@ -826,7 +849,9 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                                 style: TextStyle(
                                   fontFamily: 'aBeeZee',
                                   fontSize: 14.sp,
-                                  color: isDark ? Colors.grey[300] : Colors.black,
+                                  color: isDark
+                                      ? Colors.grey[300]
+                                      : Colors.black,
                                 ),
                               ),
                             ),
@@ -985,47 +1010,58 @@ class _FestivalScreenState extends State<FestivalsScreen> {
           ),
           SizedBox(height: 16.h),
           Row(
+            spacing: 10.w,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  // Handle view details
-                  AppSnackbar.info(context, 'View Details clicked');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Handle view details
+                    AppSnackbar.info(context, 'View Details clicked');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
                   ),
-                ),
-                child: TranslatedText(
-                  viewDetailsText,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontFamily: 'aBeeZee',
-                    fontWeight: FontWeight.bold,
+                  child: TranslatedText(
+                    viewDetailsText,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontFamily: 'aBeeZee',
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle register
-                  AppSnackbar.info(context, 'Register clicked');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Handle register
+                    AppSnackbar.info(context, 'Register clicked');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
                   ),
-                ),
-                child: TranslatedText(
-                  registerText,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontFamily: 'aBeeZee',
-                    fontWeight: FontWeight.bold,
+                  child: TranslatedText(
+                    registerText,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontFamily: 'aBeeZee',
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),

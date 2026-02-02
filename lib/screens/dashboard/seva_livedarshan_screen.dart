@@ -268,6 +268,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   void dispose() {
     _controller?.removeListener(_playerListener);
     _controller?.dispose();
+    _controller = null; // Explicitly null the controller
     super.dispose();
   }
 
@@ -801,7 +802,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
           ),
           SizedBox(height: 12.h),
           SizedBox(
-            height: 275.h,
+            height: 280.h,
             child: ListView.builder(
               padding: EdgeInsets.only(right: 16.w),
               scrollDirection: Axis.horizontal,
@@ -825,7 +826,8 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
   Widget _buildSevas() {
     return Container(
-      padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.w),
+      padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.w, bottom: 0),
+      margin: EdgeInsets.only(bottom: 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -838,7 +840,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-
           GridView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(), // Important!
@@ -1318,16 +1319,20 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             child: TranslatedText("Back"),
                           ),
                         SizedBox(width: 12.w),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.secondary,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: details.onStepContinue,
-                          child: TranslatedText(
-                            currentStep == 2 ? "Confirm Booking" : "Next",
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.secondary,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: details.onStepContinue,
+                            child: TranslatedText(
+                              currentStep == 2 ? "Confirm Booking" : "Next",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ],

@@ -28,6 +28,10 @@ class _AuthScreenState extends State<AuthScreen> {
   final passCtrl = TextEditingController();
   final confirmCtrl = TextEditingController();
 
+  // Add password visibility state variables
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   void dispose() {
     nameCtrl.dispose();
@@ -44,84 +48,105 @@ class _AuthScreenState extends State<AuthScreen> {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(24.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _templeHeader(),
-                    SizedBox(height: 30.h),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _templeHeader(),
+                  SizedBox(height: 30.h),
 
-                    /// TITLE
-                    TranslatedText(
-                      isLogin ? "Sign In" : "Sign Up",
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 30.sp,
-                        fontWeight: FontWeight.bold,
-                        color: TempleTheme.primaryOrange,
-                      ),
+                  /// TITLE
+                  TranslatedText(
+                    isLogin ? "Sign In" : "Sign Up",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 30.sp,
+                      fontWeight: FontWeight.bold,
+                      color: TempleTheme.primaryOrange,
                     ),
+                  ),
 
-                    SizedBox(height: 6.h),
+                  SizedBox(height: 6.h),
 
-                    /// SUBTITLE
-                    TranslatedText(
-                      isLogin
-                          ? "Welcome back please login to your account"
-                          : "Create an Account",
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 15.sp,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
+                  /// SUBTITLE
+                  TranslatedText(
+                    isLogin
+                        ? "Welcome back please login to your account"
+                        : "Create an Account",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 15.sp,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
+                  ),
 
-                    SizedBox(height: 30.h),
+                  SizedBox(height: 30.h),
 
-                    if (!isLogin) ...[
-                      _label("Display Name"),
-                      _input(nameCtrl, "Please enter your full name"),
-                      SizedBox(height: 20.h),
-                    ],
-
-                    _label("Mobile Number"),
-                    _input(
-                      phoneCtrl,
-                      "+91 XXXXX XXXXX",
-                      keyboard: TextInputType.phone,
-                    ),
-
+                  if (!isLogin) ...[
+                    _label("Display Name"),
+                    _input(nameCtrl, "Please enter your full name"),
                     SizedBox(height: 20.h),
-
-                    _label("Password"),
-                    _input(passCtrl, "Enter your password", obscure: true),
-
-                    SizedBox(height: 20.h),
-
-                    if (!isLogin) ...[
-                      _label("Confirm Password"),
-                      _input(confirmCtrl, "Confirm your password", obscure: true),
-                      SizedBox(height: 20.h),
-                      _termsText(),
-                    ],
-
-                    SizedBox(height: 30.h),
-
-                    _primaryButton(),
-
-                    SizedBox(height: 40.h),
-
-                    _switchAuthMode(),
                   ],
-                ),
+
+                  _label("Mobile Number"),
+                  _input(
+                    phoneCtrl,
+                    "+91 XXXXX XXXXX",
+                    keyboard: TextInputType.phone,
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  _label("Password"),
+                  _input(
+                    passCtrl,
+                    "Enter your password",
+                    obscure: !_isPasswordVisible,
+                    showIcon: true,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  if (!isLogin) ...[
+                    _label("Confirm Password"),
+                    _input(
+                      confirmCtrl,
+                      "Confirm your password",
+                      obscure: !_isConfirmPasswordVisible,
+                      showIcon: true,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 20.h),
+                    _termsText(),
+                  ],
+
+                  SizedBox(height: 30.h),
+
+                  _primaryButton(),
+
+                  SizedBox(height: 40.h),
+
+                  _switchAuthMode(),
+                ],
               ),
             ),
-          );
-        },
-      );
+          ),
+        );
+      },
+    );
   }
 
   // ================= COMPONENTS =================
@@ -163,6 +188,8 @@ class _AuthScreenState extends State<AuthScreen> {
     String hint, {
     bool obscure = false,
     TextInputType keyboard = TextInputType.text,
+    bool showIcon = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return TextField(
       controller: controller,
@@ -173,7 +200,14 @@ class _AuthScreenState extends State<AuthScreen> {
         label: TranslatedText(hint),
         // This ensures the label doesn't float up, making it look like a hint
         floatingLabelBehavior: FloatingLabelBehavior.never,
-
+        suffixIcon: showIcon
+            ? InkWell(
+                child: (obscure
+                    ? Icon(Icons.visibility_off)
+                    : Icon(Icons.visibility)),
+                onTap: onToggleVisibility,
+              )
+            : null,
         filled: true,
         fillColor: Theme.of(context).inputDecorationTheme.fillColor,
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
@@ -233,17 +267,37 @@ class _AuthScreenState extends State<AuthScreen> {
     ),
   );
 
-  Widget _switchAuthMode() => Wrap(
-    alignment: WrapAlignment.center,
+  Widget _switchAuthMode() => Column(
+    spacing: 20.h,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      TranslatedText(
-        isLogin ? "Don't have an account? " : "Already have an account? ",
-        style: TextStyle(fontFamily: 'aBeeZee'),
+      Wrap(
+        alignment: WrapAlignment.center,
+        children: [
+          TranslatedText(
+            isLogin ? "Don't have an account? " : "Already have an account? ",
+            style: TextStyle(fontFamily: 'aBeeZee'),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => isLogin = !isLogin),
+            child: TranslatedText(
+              isLogin ? "Sign Up" : "Sign In",
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                color: TempleTheme.primaryOrange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
       GestureDetector(
-        onTap: () => setState(() => isLogin = !isLogin),
+        onTap: () => Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LayoutScreen()),
+          (Route<dynamic> route) => false,
+        ),
         child: TranslatedText(
-          isLogin ? "Sign Up" : "Sign In",
+          "Skip for now",
           style: TextStyle(
             fontFamily: 'aBeeZee',
             color: TempleTheme.primaryOrange,
@@ -321,15 +375,14 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
       final response = await http.post(
-        Uri.parse('https://marakatasrilaxmiganapathi.org/api/devotee_login.php'),
+        Uri.parse(
+          'https://marakatasrilaxmiganapathi.org/api/devotee_login.php',
+        ),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'mobile': mobile,
-          'password': password,
-        }),
+        body: jsonEncode({'mobile': mobile, 'password': password}),
       );
 
       if (response.statusCode == 200) {
@@ -337,13 +390,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
         if (json['success'] == true) {
           final user = UserModel.fromJson(json['data'], mobile);
-          
+
           // Save to storage
           final storageService = StorageService();
           await storageService.setUserLoggedIn(true);
           await storageService.saveUserData(user.toStorageString());
           await storageService.saveUserToken(user.token);
-          
+
           if (mounted) {
             AppSnackbar.success(context, 'Welcome back, ${user.devoteeName}!');
             Navigator.pushAndRemoveUntil(
@@ -394,10 +447,12 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
       final response = await http.post(
-        Uri.parse('https://marakatasrilaxmiganapathi.org/api/devotee_register.php'),
+        Uri.parse(
+          'https://marakatasrilaxmiganapathi.org/api/devotee_register.php',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
@@ -412,7 +467,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
         if (json['success'] == true) {
           if (mounted) {
-            AppSnackbar.success(context, 'Registered successfully! Please sign in.');
+            AppSnackbar.success(
+              context,
+              'Registered successfully! Please sign in.',
+            );
             setState(() => isLogin = true);
             // Clear form fields
             nameCtrl.clear();
@@ -422,7 +480,10 @@ class _AuthScreenState extends State<AuthScreen> {
           }
         } else {
           if (mounted) {
-            AppSnackbar.error(context, json['message'] ?? 'Registration failed');
+            AppSnackbar.error(
+              context,
+              json['message'] ?? 'Registration failed',
+            );
           }
         }
       } else {

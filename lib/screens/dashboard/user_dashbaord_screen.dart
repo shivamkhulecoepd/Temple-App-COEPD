@@ -27,6 +27,7 @@ class UserDashboard extends StatefulWidget {
 
 class UserDashboardState extends State<UserDashboard> {
   UserModel? _currentUser;
+  bool _isDisposed = false; // Add disposed flag
 
   @override
   void initState() {
@@ -35,21 +36,28 @@ class UserDashboardState extends State<UserDashboard> {
   }
 
   Future<void> _loadUserData() async {
+    if (_isDisposed) return; // Check if disposed
     try {
       final user = await AuthUtils.getCurrentUser();
-      if (mounted) {
+      if (mounted && !_isDisposed) {
         setState(() {
           _currentUser = user;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !_isDisposed) {
         setState(() {
           _currentUser = null; // Clear user data on error
         });
         AppSnackbar.error(context, 'Failed to load user data');
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set flag first
+    super.dispose();
   }
 
   @override
@@ -109,20 +117,18 @@ class UserDashboardState extends State<UserDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            TranslatedText(
-                              'Welcome, ${_currentUser?.devoteeName ?? 'Guest Devotee'} 🙏',
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF8B0000),
-                              ),
-                            ),
-                          ],
+                        TranslatedText(
+                          'Welcome, ${_currentUser?.devoteeName ?? 'Guest Devotee'} 🙏',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF8B0000),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 8.h),
                         TranslatedText(

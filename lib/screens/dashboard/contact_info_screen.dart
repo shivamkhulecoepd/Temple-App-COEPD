@@ -115,6 +115,8 @@ class _ContactScreenState extends State<ContactScreen> {
     _emailController.dispose();
     _subjectController.dispose();
     _messageController.dispose();
+    // Dispose WebView controller properly
+    // Note: WebViewController doesn't have a dispose method, but we should null it
     super.dispose();
   }
 

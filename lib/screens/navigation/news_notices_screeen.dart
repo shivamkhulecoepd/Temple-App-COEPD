@@ -155,6 +155,8 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8.h),
                 ElevatedButton(
@@ -176,6 +178,8 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

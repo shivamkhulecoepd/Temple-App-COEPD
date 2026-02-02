@@ -40,18 +40,18 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
       // Get current user and token
       final user = await AuthUtils.getCurrentUser();
       final token = await AuthUtils.getUserToken();
-      
+
       if (user == null || token == null) {
         throw Exception('User not authenticated');
       }
-      
+
       setState(() {
         _currentUser = user;
       });
 
       // Fetch donations from API
       final donations = await _db.fetchMyDonations(token);
-      
+
       if (mounted) {
         setState(() {
           _donations = donations;
@@ -64,9 +64,12 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
           _isLoading = false;
           _errorMessage = e.toString();
         });
-        
+
         // Show error message
-        AppSnackbar.error(context, 'Failed to load donation history: ${e.toString()}');
+        AppSnackbar.error(
+          context,
+          'Failed to load donation history: ${e.toString()}',
+        );
       }
     }
   }
@@ -113,7 +116,9 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B0000)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF8B0000),
+                        ),
                       ),
                       SizedBox(height: 16.h),
                       TranslatedText(
@@ -123,211 +128,240 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                           fontSize: 16.sp,
                           color: Colors.grey[600],
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 )
               : _errorMessage != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48.r,
-                            color: Colors.red[300],
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48.r,
+                        color: Colors.red[300],
+                      ),
+                      SizedBox(height: 16.h),
+                      TranslatedText(
+                        'Error loading donations',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: TranslatedText(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
                           ),
-                          SizedBox(height: 16.h),
-                          TranslatedText(
-                            'Error loading donations',
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 24.h),
+                      ElevatedButton(
+                        onPressed: _loadDonations,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B0000),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24.w,
+                            vertical: 12.h,
                           ),
-                          SizedBox(height: 8.h),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 32.w),
-                            child: TranslatedText(
-                              _errorMessage!,
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 14.sp,
-                                color: Colors.grey[600],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
-                          SizedBox(height: 24.h),
-                          ElevatedButton(
-                            onPressed: _loadDonations,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF8B0000),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 24.w,
-                                vertical: 12.h,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
+                        ),
+                        child: TranslatedText(
+                          'Try Again',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Total Summary Card
+                    Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.all(20.w),
+                      decoration: BoxDecoration(
+                        color: isDark ? theme.cardColor : Colors.white,
+                        borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.3 : 0.1,
                             ),
-                            child: TranslatedText(
-                              'Try Again',
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                    )
-                  : Column(
-                      children: [
-                        // Total Summary Card
-                        Container(
-                          width: double.infinity,
-                          margin: EdgeInsets.all(16.w),
-                          padding: EdgeInsets.all(20.w),
-                          decoration: BoxDecoration(
-                            color: isDark ? theme.cardColor : Colors.white,
-                            borderRadius: BorderRadius.circular(16.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                      child: Column(
+                        children: [
+                          TranslatedText(
+                            'Total Donated',
+                            style: TextStyle(
+                              fontFamily: 'aBeeZee',
+                              fontSize: 16.sp,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          child: Column(
-                            children: [
-                              TranslatedText(
-                                'Total Donated',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  fontSize: 16.sp,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              TranslatedText(
-                                '₹ ${NumberFormat('#,##0').format(_totalDonated)}',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  fontSize: 28.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF8B0000),
-                                ),
-                              ),
-                            ],
+                          SizedBox(height: 8.h),
+                          TranslatedText(
+                            '₹ ${NumberFormat('#,##0').format(_totalDonated)}',
+                            style: TextStyle(
+                              fontFamily: 'aBeeZee',
+                              fontSize: 28.sp,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF8B0000),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
 
-                        Expanded(
-                          child: _donations.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.volunteer_activism_outlined,
-                                        size: 48.r,
-                                        color: Colors.grey[400],
-                                      ),
-                                      SizedBox(height: 16.h),
-                                      TranslatedText(
-                                        'No donations found',
-                                        style: TextStyle(
-                                          fontFamily: 'aBeeZee',
-                                          fontSize: 18.sp,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      TranslatedText(
-                                        'You haven\'t made any donations yet',
-                                        style: TextStyle(
-                                          fontFamily: 'aBeeZee',
-                                          fontSize: 14.sp,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
+                    Expanded(
+                      child: _donations.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.volunteer_activism_outlined,
+                                    size: 48.r,
+                                    color: Colors.grey[400],
                                   ),
-                                )
-                              : ListView.builder(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                  itemCount: _donations.length,
-                                  itemBuilder: (context, index) {
-                                    final donation = _donations[index];
-                                    return Card(
-                                      margin: EdgeInsets.only(bottom: 12.h),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12.r),
+                                  SizedBox(height: 16.h),
+                                  TranslatedText(
+                                    'No donations found',
+                                    style: TextStyle(
+                                      fontFamily: 'aBeeZee',
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  TranslatedText(
+                                    'You haven\'t made any donations yet',
+                                    style: TextStyle(
+                                      fontFamily: 'aBeeZee',
+                                      fontSize: 14.sp,
+                                      color: Colors.grey[600],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: EdgeInsets.symmetric(horizontal: 16.w),
+                              itemCount: _donations.length,
+                              itemBuilder: (context, index) {
+                                final donation = _donations[index];
+                                return Card(
+                                  margin: EdgeInsets.only(bottom: 12.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                  color: isDark
+                                      ? theme.cardColor
+                                      : Colors.white,
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.all(16.w),
+                                    leading: CircleAvatar(
+                                      backgroundColor: const Color(
+                                        0xFF8B0000,
+                                      ).withValues(alpha: 0.15),
+                                      radius: 28.r,
+                                      child: Icon(
+                                        Icons.volunteer_activism,
+                                        color: const Color(0xFF8B0000),
+                                        size: 28.w,
                                       ),
-                                      color: isDark ? theme.cardColor : Colors.white,
-                                      child: ListTile(
-                                        contentPadding: EdgeInsets.all(16.w),
-                                        leading: CircleAvatar(
-                                          backgroundColor: const Color(
-                                            0xFF8B0000,
-                                          ).withValues(alpha: 0.15),
-                                          radius: 28.r,
-                                          child: Icon(
-                                            Icons.volunteer_activism,
-                                            color: const Color(0xFF8B0000),
-                                            size: 28.w,
-                                          ),
-                                        ),
-                                        title: TranslatedText(
-                                          donation['seva_type']?.toString() ?? donation['donation_type']?.toString() ?? donation['type']?.toString() ?? 'Donation',
+                                    ),
+                                    title: TranslatedText(
+                                      donation['seva_type']?.toString() ??
+                                          donation['donation_type']
+                                              ?.toString() ??
+                                          donation['type']?.toString() ??
+                                          'Donation',
+                                      style: TextStyle(
+                                        fontFamily: 'aBeeZee',
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 4.h),
+                                        TranslatedText(
+                                          '${donation['date_formatted']?.toString() ?? donation['created_at']?.toString() ?? 'N/A'} at ${donation['time_formatted']?.toString() ?? ''}',
                                           style: TextStyle(
                                             fontFamily: 'aBeeZee',
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13.sp,
+                                            color: Colors.grey[600],
                                           ),
                                         ),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        Row(
+                                          spacing: 10.w,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
                                           children: [
-                                            SizedBox(height: 4.h),
-                                            TranslatedText(
-                                              '${donation['date_formatted']?.toString() ?? donation['created_at']?.toString() ?? 'N/A'} at ${donation['time_formatted']?.toString() ?? ''}',
-                                              style: TextStyle(
-                                                fontFamily: 'aBeeZee',
-                                                fontSize: 13.sp,
-                                                color: Colors.grey[600],
+                                            Expanded(
+                                              child: TranslatedText(
+                                                '₹ ${NumberFormat('#,###').format(donation['amount'] ?? 0)}',
+                                                style: TextStyle(
+                                                  fontFamily: 'aBeeZee',
+                                                  fontSize: 16.sp,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color(0xFF8B0000),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: _statusChip(
+                                                donation['payment_status']
+                                                        ?.toString() ??
+                                                    donation['status']
+                                                        ?.toString() ??
+                                                    'Success',
                                               ),
                                             ),
                                           ],
                                         ),
-                                        trailing: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            TranslatedText(
-                                              '₹ ${NumberFormat('#,###').format(donation['amount'] ?? 0)}',
-                                              style: TextStyle(
-                                                fontFamily: 'aBeeZee',
-                                                fontSize: 16.sp,
-                                                fontWeight: FontWeight.bold,
-                                                color: const Color(0xFF8B0000),
-                                              ),
-                                            ),
-                                            _statusChip(donation['payment_status']?.toString() ?? donation['status']?.toString() ?? 'Success'),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
+                  ],
+                ),
         );
       },
     );

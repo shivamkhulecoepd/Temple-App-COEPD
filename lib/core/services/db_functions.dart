@@ -16,6 +16,10 @@ class DBFunctions {
           .get(Uri.parse(baseUrl + endpoint))
           .timeout(const Duration(seconds: 15));
 
+      if (!response.body.contains('{')) {
+        throw Exception('Invalid response format');
+      }
+
       log('Marquee & Banners → Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
@@ -79,6 +83,10 @@ class DBFunctions {
       final response = await http
           .get(Uri.parse(baseUrl + endpoint))
           .timeout(const Duration(seconds: 15));
+
+      if (!response.body.contains('{')) {
+        throw Exception('Invalid response format');
+      }
 
       log('Live Stream → Status: ${response.statusCode}');
 

@@ -16,8 +16,6 @@ class ExploreMediaGallery extends StatefulWidget {
 class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     with SingleTickerProviderStateMixin {
   final db = DBFunctions();
-  List<dynamic> mediaItems = [];
-  bool isLoading = true;
   String selectedCategory = ''; 
   late TabController _tabController;
 
@@ -61,7 +59,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     super.initState();
     _tabController = TabController(length: currentCategories.length, vsync: this);
     selectedCategory = currentCategories.first;
-    _loadMedia();
+    // Each tab now manages its own content independently
   }
 
   @override
@@ -70,33 +68,13 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     super.dispose();
   }
 
-  Future<void> _loadMedia() async {
-    setState(() => isLoading = true);
-    try {
-      List<dynamic> fetched;
-      if (widget.type == 'images') {
-        fetched = await db.fetchGalleryImages(category: selectedCategory);
-      } else {
-        fetched = await db.fetchArchiveVideosByCategory(category: selectedCategory);
-      }
-      
-      setState(() {
-        mediaItems = fetched;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-      if (mounted) {
-        AppSnackbar.error(context, 'Failed to load ${widget.type}: $e');
-      }
-    }
-  }
+
 
   void _onCategoryChanged(int index) {
     setState(() {
       selectedCategory = currentCategories[index];
     });
-    _loadMedia();
+    // Each tab now manages its own content independently
   }
 
   @override
@@ -166,10 +144,73 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
       body: TabBarView(
         controller: _tabController,
         children: currentCategories.map((category) {
-          return _buildMediaContent();
+          // Create a separate stateful widget for each tab content to handle its own media items
+          return _buildMediaContentForCategory(category);
         }).toList(),
       ),
     );
+  }
+
+  Widget _buildMediaContentForCategory(String category) {
+    return _MediaContentWidget(
+      category: category,
+      type: widget.type,
+      db: db,
+    );
+  }
+}
+
+// Separate stateful widget to handle media content for each category
+class _MediaContentWidget extends StatefulWidget {
+  final String category;
+  final String type; // 'images' or 'videos'
+  final DBFunctions db;
+
+  const _MediaContentWidget({
+    required this.category,
+    required this.type,
+    required this.db,
+  });
+
+  @override
+  State<_MediaContentWidget> createState() => _MediaContentWidgetState();
+}
+
+class _MediaContentWidgetState extends State<_MediaContentWidget> {
+  List<dynamic> mediaItems = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMedia();
+  }
+
+  Future<void> _loadMedia() async {
+    setState(() => isLoading = true);
+    try {
+      List<dynamic> fetched;
+      if (widget.type == 'images') {
+        fetched = await widget.db.fetchGalleryImages(category: widget.category);
+      } else {
+        fetched = await widget.db.fetchArchiveVideosByCategory(category: widget.category);
+      }
+      
+      setState(() {
+        mediaItems = fetched;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      if (mounted) {
+        AppSnackbar.error(context, 'Failed to load ${widget.type}: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildMediaContent();
   }
 
   Widget _buildMediaContent() {
@@ -200,6 +241,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
                 fontSize: 16,
                 color: Colors.grey.withValues(alpha: 0.6),
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

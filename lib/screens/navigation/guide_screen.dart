@@ -378,6 +378,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -801,7 +802,7 @@ class _GuideScreenState extends State<GuideScreen> {
               AppSnackbar.show(context, message: 'View on Map for :- ${data['title']}',);
             },
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.all(0)
+              padding: EdgeInsets.all(10.r)
             ),
             child: TranslatedText('Call', style: TextStyle(fontFamily: 'aBeeZee',fontSize: 16.sp, fontWeight: FontWeight.bold),),
           ),
