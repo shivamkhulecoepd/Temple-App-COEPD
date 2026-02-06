@@ -11,7 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/models/petal.model.dart';
 import 'package:mslgd/screens/authentication/auth_screen.dart';
 import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
@@ -28,6 +28,7 @@ import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:mslgd/widgets/translated_text.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,75 +49,6 @@ class _HomeScreenState extends State<HomeScreen>
     "Special Pooja at 6:00 PM",
     "New Seva Bookings Open",
     "Anniversary Celebrations coming soon!",
-  ];
-
-  final List<Map<String, String>> myBanners = [
-    {
-      'image':
-          'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/7d/4e/42/birla-temple-from-outside.jpg?w=900&h=500&s=1',
-      'title': 'Maha Shivaratri Celebrations',
-      'description':
-          'Join us for the grand evening Aarti and Prasad distribution.',
-      'date': '10 Jan 2024, 5:34 PM',
-    },
-    {
-      'image':
-          'https://t4.ftcdn.net/jpg/04/52/13/29/360_F_452132945_BTyoGgK22zxk1uPCvGi8fsoHLUcSXj1q.jpg',
-      'title': 'Annual Temple Fair',
-      'description': 'A week-long celebration with cultural programs.',
-      'date': '15 Jan 2024, 10:00 AM',
-    },
-    {
-      'image':
-          'https://cdn.britannica.com/67/269167-050-B4A8ED78/Hindu-priests-perform-Aarati-Maha-Shivratri-festival-shiva-Pashupatinath-Temple-Kathmandu-Nepal.jpg',
-      'title': 'Evening Aarti Ritual',
-      'description':
-          'Experience the serene and devotional evening Aarti ceremony.',
-      'date': '20 Jan 2026, 6:00 PM',
-    },
-    {
-      'image':
-          'https://www.baps.org/Data/Sites/1/Media/GalleryImages/29522/WebImages/MahaShivaratri_AbuDhabi_2024__18_.jpg',
-      'title': 'Shivaratri Puja',
-      'description': 'Special puja and celebrations honoring Lord Shiva.',
-      'date': '08 Feb 2026, 7:00 PM',
-    },
-    {
-      'image':
-          'https://cdn.britannica.com/81/143381-050-FB55A78C/Ganga-Aarti-ritual-Hindu-Ganges-River-Uttar.jpg',
-      'title': 'Grand Ganga Aarti',
-      'description': 'Witness the mesmerizing Ganga Aarti by the river.',
-      'date': '25 Jan 2026, 5:30 PM',
-    },
-    {
-      'image':
-          'https://www.tourmyindia.com/blog//wp-content/uploads/2016/03/Puri-Rath-Yatra-Odissa.jpg',
-      'title': 'Temple Chariot Procession',
-      'description':
-          'Join the vibrant chariot festival with thousands of devotees.',
-      'date': '02 Feb 2026, 9:00 AM',
-    },
-    {
-      'image':
-          'https://images.theconversation.com/files/642200/original/file-20250114-15-oucsvl.jpg?ixlib=rb-4.1.0&rect=367%2C12%2C3371%2C2245&q=50&auto=format&w=768&h=512&fit=crop&dpr=2',
-      'title': 'Kumbh Mela Gathering',
-      'description': 'Massive pilgrimage and fair at the holy confluence.',
-      'date': '14 Jan 2026, All Day',
-    },
-    {
-      'image':
-          'https://htccwa.org/images/htcc/720x540/cultural-registration.jpg',
-      'title': 'Cultural Dance Program',
-      'description': 'Enjoy traditional dances and performances at the temple.',
-      'date': '30 Jan 2026, 4:00 PM',
-    },
-    {
-      'image':
-          'https://upload.wikimedia.org/wikipedia/commons/8/8c/Birla_Mandir%2C_Delhi%2C_views_at_night3.JPG',
-      'title': 'Temple Illuminated at Night',
-      'description': 'Beautiful night view of the temple during festivities.',
-      'date': '05 Feb 2026, 7:00 PM',
-    },
   ];
 
   // Hero Section Images
@@ -154,6 +86,8 @@ class _HomeScreenState extends State<HomeScreen>
   List<String> marqueeNews = [];
   List<Map<String, dynamic>> banners = [];
   bool _isLoading = true;
+  bool _bannerLoading = true;
+  bool _bannerError = false;
 
   String timings = 'Loading...';
 
@@ -175,8 +109,8 @@ class _HomeScreenState extends State<HomeScreen>
             image: _petalAssets[random.nextInt(_petalAssets.length)],
             top: -50, // Start above screen
             left: random.nextDouble() * MediaQuery.of(context).size.width,
-            size: random.nextDouble() * 15 + 10,
-            speed: random.nextDouble() * 2 + 2, // Falling speed
+            size: random.nextDouble() * 13 + 10,
+            speed: random.nextDouble() * 1.5 + 2, // Falling speed
             rotationSpeed: random.nextDouble() * 0.1,
             horizontalSway: random.nextDouble() * 2 - 1, // Slight drift
           ),
@@ -243,6 +177,8 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       setState(() {
         _isLoading = true;
+        _bannerLoading = true;
+        _bannerError = false;
       });
 
       final data = await DBFunctions().fetchMarqueeAndBanners();
@@ -268,6 +204,8 @@ class _HomeScreenState extends State<HomeScreen>
           marqueeNews = _staticMarqueeNews;
           banners = _staticBanners;
           _isLoading = false;
+          _bannerLoading = false;
+          _bannerError = false;
         });
       }
       log(marqueeNews.toString());
@@ -277,6 +215,8 @@ class _HomeScreenState extends State<HomeScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _bannerLoading = false;
+          _bannerError = true;
         });
 
         // Retry logic: retry up to 3 times with increasing delays
@@ -343,12 +283,16 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Audio Player Methods ───────────────────────────────────────────────
   Future<void> _initAudioPlayer() async {
     try {
+      if (_isDisposed || !mounted) return;
+
       // Preload the audio (using the same audio file as about screen)
       await _audioPlayer.setSource(AssetSource('audio/mslg_song_3.mp3'));
 
+      if (_isDisposed || !mounted) return;
+
       // Listen to player state changes
       _audioPlayer.onPlayerStateChanged.listen((state) {
-        if (mounted) {
+        if (mounted && !_isDisposed) {
           setState(() {
             _isPlaying = state == PlayerState.playing;
           });
@@ -441,7 +385,13 @@ class _HomeScreenState extends State<HomeScreen>
     _petalSpawnTimer.cancel();
     _petalUpdateTimer.cancel();
     _clockTimer.cancel();
-    _audioPlayer.dispose();
+
+    try {
+      _audioPlayer.stop();
+      _audioPlayer.dispose();
+    } catch (e) {
+      debugPrint('Error disposing audio player: $e');
+    }
     super.dispose();
   }
 
@@ -456,11 +406,6 @@ class _HomeScreenState extends State<HomeScreen>
             backgroundColor: Theme.of(context).primaryColor,
             onRefresh: () async {
               await Future.wait([loadTimings(), loadData()]);
-              if (mounted) {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
             },
             child: SingleChildScrollView(
               child: Column(
@@ -483,11 +428,8 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                         )
-                      : _buildBannerSection(
-                          banners.isNotEmpty ? banners : myBanners,
-                        ),
+                      : _buildBannerSection(banners),
                   GalleryWidget(title: 'Sri Devi Sharan Navratri 2025'),
-                  // SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -1275,29 +1217,159 @@ class _HomeScreenState extends State<HomeScreen>
         // 2. Horizontal Scrollable Banners
         SizedBox(
           height: 280.h, // Fixed height to accommodate the white content area
-          child: bannerData.isEmpty
-              ? SizedBox(
-                  height: 280.h,
-                  child: Center(
-                    child: TranslatedText(
-                      "No events available",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Colors.grey[600],
-                        fontFamily: 'aBeeZee',
-                      ),
-                    ),
-                  ),
-                )
-              : ListView.builder(
+          child: _bannerLoading
+              ? ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  itemCount: bannerData.length,
+                  itemCount: 3, // Show 3 shimmer cards while loading
                   itemBuilder: (context, index) {
-                    final item = bannerData[index];
-                    return _buildBannerItem(item);
+                    return Container(
+                      width: MediaQuery.of(context).size.width * 0.8.w,
+                      margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12.r,
+                            offset: Offset(0, 5.h),
+                          ),
+                        ],
+                      ),
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image Part (Top)
+                            Expanded(
+                              flex: 3,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                                ),
+                              ),
+                            ),
+                            // Content Part (Bottom White BG)
+                            Expanded(
+                              flex: 2,
+                              child: Padding(
+                                padding: EdgeInsets.all(12.w),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 100.w,
+                                          height: 16.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(8.r),
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Container(
+                                          width: 80.w,
+                                          height: 12.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(6.r),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    // Date Row
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 60.w,
+                                          height: 12.h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(6.r),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
-                ),
+                )
+              : _bannerError
+                  ? SizedBox(
+                      height: 280.h,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48.sp,
+                            color: Colors.red,
+                          ),
+                          SizedBox(height: 16.h),
+                          TranslatedText(
+                            "Failed to load events",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colors.grey[600],
+                              fontFamily: 'aBeeZee',
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          ElevatedButton(
+                            onPressed: () {
+                              loadData();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: TempleTheme.primaryOrange,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: TranslatedText(
+                              "Retry",
+                              style: TextStyle(
+                                fontFamily: 'aBeeZee',
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : bannerData.isEmpty
+                      ? SizedBox(
+                          height: 280.h,
+                          child: Center(
+                            child: TranslatedText(
+                              "No events available",
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.grey[600],
+                                fontFamily: 'aBeeZee',
+                              ),
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          itemCount: bannerData.length,
+                          itemBuilder: (context, index) {
+                            final item = bannerData[index];
+                            return _buildBannerItem(item);
+                          },
+                        ),
         ),
 
         // 3. View All Button Below

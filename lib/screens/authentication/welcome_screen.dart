@@ -18,11 +18,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           /// Background Image
           Positioned.fill(
             child: Image.asset(
-              'assets/images/welcome_screen_bg.png',
+              'assets/images/background/welcome_screen_bg.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -34,10 +35,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  // colors: [
-                  //   const Color(0xFF043342).withValues(alpha: 0.5),
-                  //   const Color(0xFF9B0200).withValues(alpha: 0.4),
-                  // ],
                   colors: [
                     Theme.of(
                       context,
@@ -53,27 +50,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
           /// Content
           SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  // Glass Card
-                  Container(
-                    padding: EdgeInsets.all(22.w),
-                    decoration: BoxDecoration(
-                      // color: Colors.white.withValues(alpha: 0.4),
-                      color: Colors.white.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(24.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
-                          blurRadius: 18.r,
-                          offset: Offset(0, 10.h),
-                        ),
-                      ],
-                    ),
-                    child: SingleChildScrollView(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(height: 30.h),
+                    // Glass Card
+                    Container(
+                      padding: EdgeInsets.all(22.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(24.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 18.r,
+                            offset: Offset(0, 10.h),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -89,7 +87,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                           ),
                           SizedBox(height: 12.h),
-                      
+
                           /// Subtitle
                           TranslatedText(
                             'Connect with Marakatha Sri Lakshmi Ganapathi Devasthanam through darshan, pujas and sacred updates.',
@@ -101,9 +99,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               height: 1.6,
                             ),
                           ),
-                      
+
                           SizedBox(height: 24.h),
-                      
+
                           /// Feature Highlights
                           _featureRow(
                             icon: Icons.temple_hindu_outlined,
@@ -119,9 +117,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             icon: Icons.favorite_border_outlined,
                             text: 'Stay spiritually connected anytime',
                           ),
-                      
+
                           SizedBox(height: 28.h),
-                      
+
                           /// Continue Button
                           SizedBox(
                             width: double.infinity,
@@ -145,14 +143,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 foregroundColor: Theme.of(
                                   context,
                                 ).colorScheme.surface,
-                      
+
                                 elevation: 6,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.r),
                                 ),
                               ),
                               child: TranslatedText(
-                                'Continue',
+                                'Continue for Login',
                                 style: TextStyle(
                                   fontFamily: 'aBeeZee',
                                   fontSize: 16.sp,
@@ -163,9 +161,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                             ),
                           ),
-                      
+
                           SizedBox(height: 14.h),
-                      
+
                           /// Skip Button
                           Center(
                             child: TextButton(
@@ -183,8 +181,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 'Skip for now',
                                 style: TextStyle(
                                   fontFamily: 'aBeeZee',
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                   // color: Theme.of(context).colorScheme.surface,
                                 ),
@@ -194,10 +192,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ],
                       ),
                     ),
-                  ),
-
-                  SizedBox(height: 20.h), // Extra bottom space if needed
-                ],
+                  ],
+                ),
               ),
             ),
           ),

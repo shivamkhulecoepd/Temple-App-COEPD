@@ -1,4 +1,3 @@
-// Add this to a separate file or at the top of your main file
 import 'package:flutter/material.dart';
 
 class TempleSection {
@@ -15,11 +14,10 @@ class TempleSection {
   final String content;
   final List<Deity>? deities;
   final List<Trustee>? trustees;
-  final List<TempleImageInfo>? images; // Renamed to avoid conflict with Flutter's ImageInfo
+  final List<TempleImageInfo>? images;
   final String? image;
   final String? name;
   final String? description;
-  
 
   TempleSection({
     required this.id,
@@ -73,34 +71,14 @@ class Trustee {
   final String position;
   final String contact;
 
-  Trustee({
-    required this.name,
-    required this.position,
-    required this.contact,
-  });
+  Trustee({required this.name, required this.position, required this.contact});
 }
 
-class TempleImageInfo { // Renamed to avoid conflict
+class TempleImageInfo {
+  // Renamed to avoid conflict
   final String url;
   final String? title;
   final String caption;
 
-
-  TempleImageInfo({
-    required this.url,
-    required this.caption,
-    this.title,  
-  });
-}
-
-class DeitiseSubShrines {
-  final String name;
-  final String description;
-  final String image;
-
-  DeitiseSubShrines({
-    required this.name,
-    required this.description,
-    required this.image,
-  });
+  TempleImageInfo({required this.url, required this.caption, this.title});
 }

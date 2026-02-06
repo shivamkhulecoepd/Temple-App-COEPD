@@ -1,4 +1,4 @@
-package com.example.mslgd
+package com.mslgd.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

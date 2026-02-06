@@ -26,8 +26,6 @@ class TempleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    dynamic width = MediaQuery.of(context).size.width;
-    dynamic height = MediaQuery.of(context).size.height;
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => TranslationService()),
@@ -49,8 +47,7 @@ class TempleApp extends StatelessWidget {
           ),
         ],
         child: ScreenUtilInit(
-          // designSize: const Size(375, 812), // Standard design size
-          designSize: Size(width, height),
+          designSize: const Size(375, 812), // Standard design size
           minTextAdapt: true,
           splitScreenMode: true,
           builder: (context, child) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/models/user_model.dart';
 import 'package:mslgd/utils/auth_utils.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
@@ -338,7 +338,9 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                                                   fontFamily: 'aBeeZee',
                                                   fontSize: 16.sp,
                                                   fontWeight: FontWeight.bold,
-                                                  color: const Color(0xFF8B0000),
+                                                  color: const Color(
+                                                    0xFF8B0000,
+                                                  ),
                                                 ),
                                               ),
                                             ),

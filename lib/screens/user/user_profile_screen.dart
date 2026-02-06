@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/utils/auth_utils.dart';
 import 'package:mslgd/services/storage_service.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
@@ -59,7 +59,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       }
 
       final profileData = await _db.fetchMyProfile(token);
-      
+
       if (mounted) {
         setState(() {
           // Don't try to create UserModel from incomplete profile data
@@ -96,11 +96,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           token: token,
           name: _nameController.text.trim(),
           mobile: _mobileController.text.trim(),
-          password: _newPasswordController.text.isNotEmpty 
-              ? _newPasswordController.text 
+          password: _newPasswordController.text.isNotEmpty
+              ? _newPasswordController.text
               : null,
-          confirmPassword: _newPasswordController.text.isNotEmpty 
-              ? _confirmPasswordController.text 
+          confirmPassword: _newPasswordController.text.isNotEmpty
+              ? _confirmPasswordController.text
               : null,
         );
 
@@ -108,13 +108,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           setState(() {
             _isLoading = false;
           });
-          
-          AppSnackbar.success(context, result['message'] ?? 'Profile updated successfully!');
-          
+
+          AppSnackbar.success(
+            context,
+            result['message'] ?? 'Profile updated successfully!',
+          );
+
           // Clear password fields after success
           _newPasswordController.clear();
           _confirmPasswordController.clear();
-          
+
           // Reload user data to reflect changes
           _loadUserData();
         }
@@ -123,7 +126,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           setState(() {
             _isLoading = false;
           });
-          AppSnackbar.error(context, 'Failed to update profile: ${e.toString()}');
+          AppSnackbar.error(
+            context,
+            'Failed to update profile: ${e.toString()}',
+          );
         }
       }
     }
@@ -139,12 +145,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       confirmColor: const Color(0xFF8B0000),
       icon: Icons.logout,
     );
-    
+
     if (confirmed && mounted) {
       try {
         final storageService = StorageService();
         await storageService.clearUserData();
-        
+
         if (mounted) {
           AppSnackbar.success(context, 'You have been logged out successfully');
           Navigator.pushAndRemoveUntil(
@@ -200,7 +206,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B0000)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF8B0000),
+                        ),
                       ),
                       SizedBox(height: 16.h),
                       TranslatedText(
@@ -216,7 +224,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 )
               : SafeArea(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 16.h,
+                    ),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -230,8 +241,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 
-                                    isDark ? 0.35 : 0.12,
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.35 : 0.12,
                                   ),
                                   blurRadius: 16,
                                   offset: const Offset(0, 6),
@@ -291,7 +302,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     fontFamily: 'aBeeZee',
                                     fontSize: 18.sp,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                 ),
                                 SizedBox(height: 16.h),
@@ -301,7 +314,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   controller: _newPasswordController,
                                   obscure: _obscureNewPassword,
                                   onToggle: () => setState(
-                                    () => _obscureNewPassword = !_obscureNewPassword,
+                                    () => _obscureNewPassword =
+                                        !_obscureNewPassword,
                                   ),
                                   hint: 'Enter new password',
                                 ),
@@ -317,7 +331,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   ),
                                   hint: 'Re-enter new password',
                                   validator: (v) {
-                                    if (_newPasswordController.text.isNotEmpty) {
+                                    if (_newPasswordController
+                                        .text
+                                        .isNotEmpty) {
                                       if (v?.trim().isEmpty ?? true) {
                                         return 'Please confirm password';
                                       }
@@ -335,12 +351,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   height: 54.h,
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _updateProfile,
+                                    onPressed: _isLoading
+                                        ? null
+                                        : _updateProfile,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF8B0000),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12.r),
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
                                       ),
                                       elevation: 4,
                                     ),
@@ -348,10 +368,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                         ? SizedBox(
                                             width: 20.w,
                                             height: 20.h,
-                                            child: const CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2,
-                                            ),
+                                            child:
+                                                const CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ),
                                           )
                                         : TranslatedText(
                                             'Update Profile',
@@ -365,7 +386,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 16.h),
-                                
+
                                 // Logout Button
                                 SizedBox(
                                   height: 50.h,
@@ -378,7 +399,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                         width: 2,
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12.r),
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
                                       ),
                                     ),
                                     child: TranslatedText(

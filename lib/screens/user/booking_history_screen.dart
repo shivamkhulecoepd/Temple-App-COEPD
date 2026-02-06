@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/models/user_model.dart';
 import 'package:mslgd/utils/auth_utils.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
@@ -40,18 +40,18 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
       // Get current user and token
       final user = await AuthUtils.getCurrentUser();
       final token = await AuthUtils.getUserToken();
-      
+
       if (user == null || token == null) {
         throw Exception('User not authenticated');
       }
-      
+
       setState(() {
         _currentUser = user;
       });
 
       // Fetch bookings from API
       final bookings = await _db.fetchMyBookings(token);
-      
+
       if (mounted) {
         setState(() {
           _bookings = bookings;
@@ -64,9 +64,12 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
           _isLoading = false;
           _errorMessage = e.toString();
         });
-        
+
         // Show error message
-        AppSnackbar.error(context, 'Failed to load booking history: ${e.toString()}');
+        AppSnackbar.error(
+          context,
+          'Failed to load booking history: ${e.toString()}',
+        );
       }
     }
   }
@@ -109,7 +112,9 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B0000)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF8B0000),
+                        ),
                       ),
                       SizedBox(height: 16.h),
                       TranslatedText(
@@ -125,98 +130,98 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                   ),
                 )
               : _errorMessage != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48.r,
-                            color: Colors.red[300],
-                          ),
-                          SizedBox(height: 16.h),
-                          TranslatedText(
-                            'Error loading bookings',
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 8.h),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 32.w),
-                            child: TranslatedText(
-                              _errorMessage!,
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 14.sp,
-                                color: Colors.grey[600],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-                          ElevatedButton(
-                            onPressed: _loadBookings,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF8B0000),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 24.w,
-                                vertical: 12.h,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            child: TranslatedText(
-                              'Try Again',
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48.r,
+                        color: Colors.red[300],
                       ),
-                    )
-                  : _bookings.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.history_toggle_off,
-                                size: 48.r,
-                                color: Colors.grey[400],
-                              ),
-                              SizedBox(height: 16.h),
-                              TranslatedText(
-                                'No bookings found',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(height: 8.h),
-                              TranslatedText(
-                                'You haven\'t made any bookings yet',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  fontSize: 14.sp,
-                                  color: Colors.grey[600],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                      SizedBox(height: 16.h),
+                      TranslatedText(
+                        'Error loading bookings',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: TranslatedText(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
                           ),
-                        )
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 24.h),
+                      ElevatedButton(
+                        onPressed: _loadBookings,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B0000),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24.w,
+                            vertical: 12.h,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        child: TranslatedText(
+                          'Try Again',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _bookings.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.history_toggle_off,
+                        size: 48.r,
+                        color: Colors.grey[400],
+                      ),
+                      SizedBox(height: 16.h),
+                      TranslatedText(
+                        'No bookings found',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8.h),
+                      TranslatedText(
+                        'You haven\'t made any bookings yet',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 14.sp,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
               : ListView.builder(
                   padding: EdgeInsets.all(16.w),
                   itemCount: _bookings.length,
@@ -241,7 +246,8 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                               children: [
                                 Expanded(
                                   child: TranslatedText(
-                                    booking['pooja_name']?.toString() ?? 'Unknown Service',
+                                    booking['pooja_name']?.toString() ??
+                                        'Unknown Service',
                                     style: TextStyle(
                                       fontFamily: 'aBeeZee',
                                       fontSize: 17.sp,
@@ -252,7 +258,9 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                                     ),
                                   ),
                                 ),
-                                _statusChip(booking['status']?.toString() ?? 'Unknown'),
+                                _statusChip(
+                                  booking['status']?.toString() ?? 'Unknown',
+                                ),
                               ],
                             ),
                             SizedBox(height: 12.h),

@@ -65,11 +65,13 @@ class DBFunctions {
         return data?['timings']?.toString() ?? 'Timings not available';
       } else {
         log('Timings failed: ${response.statusCode}');
-        return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
+        // return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
+        return 'Refresh for latest timings';
       }
     } catch (e) {
       log('fetchTempleTimings error: $e');
-      return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
+      // return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
+      return 'Refresh for latest timings';
     }
   }
 
@@ -450,9 +452,11 @@ class DBFunctions {
     }
   }
 
-  // Fetch user's booking history (requires token)
+  // ──────────────────────────────────────────────────────────────
+  // 15. Fetch user's booking history (requires token)
+  // ──────────────────────────────────────────────────────────────
   Future<List<dynamic>> fetchMyBookings(String token) async {
-    const String endpoint = 'my_bookings.php';
+    const String endpoint = 'devotee_bookings.php';
 
     try {
       final response = await http
@@ -486,9 +490,11 @@ class DBFunctions {
     }
   }
 
-  // Fetch user's donation history (requires token)
+  // ──────────────────────────────────────────────────────────────
+  // 16. Fetch user's donation history (requires token)
+  // ──────────────────────────────────────────────────────────────
   Future<List<dynamic>> fetchMyDonations(String token) async {
-    const String endpoint = 'my_donations.php';
+    const String endpoint = 'devotee_donations.php';
 
     try {
       final response = await http
@@ -520,9 +526,11 @@ class DBFunctions {
     }
   }
 
-  // Fetch current profile
+  // ──────────────────────────────────────────────────────────────
+  // 17. Fetch current profile
+  // ──────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> fetchMyProfile(String token) async {
-    const String endpoint = 'my_profile.php';
+    const String endpoint = 'devotee_profile.php';
 
     try {
       final response = await http
@@ -553,7 +561,9 @@ class DBFunctions {
     }
   }
 
-  // Update profile (POST)
+  // ──────────────────────────────────────────────────────────────
+  // 18. Update profile (POST)
+  // ──────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> updateMyProfile({
     required String token,
     required String name,
@@ -561,7 +571,7 @@ class DBFunctions {
     String? password,
     String? confirmPassword,
   }) async {
-    const String endpoint = 'my_profile.php';
+    const String endpoint = 'devotee_profile.php';
 
     final body = {'name': name.trim(), 'mobile': mobile.trim()};
 
@@ -601,6 +611,209 @@ class DBFunctions {
       }
     } catch (e) {
       log('updateMyProfile error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 19. Submit seva booking
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> submitSevaBooking({
+    required String token,
+    required int poojaId,
+    required String devoteeName,
+    String? gothram,
+    String? nakshatram,
+    required String mobile,
+    String? email,
+    required String bookingDate,
+    required String bookingTime,
+    required bool inPerson,
+    required bool proxy,
+    String? sankalpamName,
+    String? purpose,
+    required String prasadam,
+    String? address,
+    String? pincode,
+    required double amount,
+    required String paymentMethod,
+  }) async {
+    const String endpoint = 'book_seva.php';
+
+    final body = {
+      'pooja_id': poojaId,
+      'devotee_name': devoteeName.trim(),
+      'gothram': gothram?.trim() ?? '',
+      'nakshatram': nakshatram?.trim() ?? '',
+      'mobile': mobile.trim(),
+      'email': email?.trim() ?? '',
+      'booking_date': bookingDate,
+      'booking_time': bookingTime,
+      'in_person': inPerson ? 1 : 0,
+      'proxy': proxy ? 1 : 0,
+      'sankalpam_name': sankalpamName?.trim() ?? '',
+      'purpose': purpose?.trim() ?? '',
+      'prasadam': prasadam,
+      'address': address?.trim() ?? '',
+      'pincode': pincode?.trim() ?? '',
+      'amount': amount,
+      'payment_method': paymentMethod,
+    };
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl + endpoint),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Devotee-Token': token,
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      log('Seva Booking Submit → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json;
+        } else {
+          throw Exception(json['message'] ?? 'Booking failed');
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again.');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('submitSevaBooking error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 20. Submit donation
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> submitDonation({
+    required String token, // can be empty if not logged in
+    required String donationType,
+    String? sevaType,
+    required String fullName,
+    String? gotra,
+    String? nakshatram,
+    required String mobile,
+    String? email,
+    String? address,
+    String? cityStatePin,
+    String? preferredDate,
+    String? sessionType,
+    int personsCount = 0,
+    String? occasion,
+    String? sankalpam,
+    required double amount,
+  }) async {
+    const String endpoint = 'submit_donation.php';
+
+    final body = {
+      'donation_type': donationType.trim(),
+      'seva_type': sevaType?.trim(),
+      'full_name': fullName.trim(),
+      'gotra': gotra?.trim(),
+      'nakshatram': nakshatram?.trim(),
+      'mobile': mobile.trim(),
+      'email': email?.trim(),
+      'address': address?.trim(),
+      'city_state_pin': cityStatePin?.trim(),
+      'preferred_date': preferredDate?.trim(),
+      'session_type': sessionType?.trim(),
+      'persons_count': personsCount,
+      'occasion': occasion?.trim(),
+      'sankalpam': sankalpam?.trim(),
+      'amount': amount,
+    };
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl + endpoint),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token.isNotEmpty) 'X-Devotee-Token': token,
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      log('Donation Submit → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json;
+        } else {
+          throw Exception(json['message'] ?? 'Donation failed');
+        }
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('submitDonation error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 21. Submit volunteer application
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> submitVolunteerApplication({
+    required String fullName,
+    required String email,
+    required String contact,
+    required String address,
+    required String city,
+    required String state,
+    required String serviceDate, // format: YYYY-MM-DD
+    required String serviceTime,
+    required String service,
+  }) async {
+    const String endpoint = 'submit_volunteer.php';
+
+    final body = {
+      'full_name': fullName.trim(),
+      'email': email.trim(),
+      'contact': contact.trim(),
+      'address': address.trim(),
+      'city': city.trim(),
+      'state': state.trim(),
+      'service_date': serviceDate.trim(),
+      'service_time': serviceTime.trim(),
+      'service': service.trim(),
+    };
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl + endpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      log('Volunteer Submit → Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json;
+        } else {
+          throw Exception(json['message'] ?? 'Submission failed');
+        }
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('submitVolunteerApplication error: $e');
       rethrow;
     }
   }

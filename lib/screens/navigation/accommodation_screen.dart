@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -27,6 +28,17 @@ class AccommodationScreen extends StatefulWidget {
 
 class _AccommodationScreenState extends State<AccommodationScreen> {
   late AccommodationSection _currentSection;
+  final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  String? _selectedService;
+  String? _selectedTimeLabel;
+  DateTime? _selectedDate;
+  bool _isSubmitting = false;
 
   static const Map<String, dynamic> contactInfo = {
     "id": "1",
@@ -44,6 +56,17 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
   void initState() {
     super.initState();
     _currentSection = widget.initialSection;
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _contactController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    super.dispose();
   }
 
   void _selectSection(AccommodationSection section) {
@@ -565,87 +588,302 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
   }
 
   Widget _volunteeringSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Volunteering',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TranslatedText(
+            'Volunteering',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : null,
+            ),
           ),
-        ),
-        SizedBox(height: 6.h),
-        TranslatedText(
-          'Register as a volunteer and support temple service',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
+          SizedBox(height: 6.h),
+          TranslatedText(
+            'Register as a volunteer and support temple service',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontFamily: 'aBeeZee',
+              color: isDark ? Colors.grey.shade300 : null,
+            ),
           ),
-        ),
-        SizedBox(height: 20.h),
-        Container(
-          padding: EdgeInsets.all(20.w),
-          decoration: _cardDecoration(theme, isDark),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTranslatedTextField('Full Name', theme, isDark),
-              SizedBox(height: 16.h),
-              _buildTranslatedTextField('Email', theme, isDark),
-              SizedBox(height: 16.h),
-              _buildTranslatedTextField('Mobile Number', theme, isDark),
-              SizedBox(height: 16.h),
-              _buildDropdownField(theme, isDark),
-              SizedBox(height: 24.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.volunteer_activism, size: 22),
-                  label: TranslatedText(
-                    'Submit Application',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
+          SizedBox(height: 20.h),
+          Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: _cardDecoration(theme, isDark),
+            child: Column(
+              spacing: 16.h,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTextField(
+                  controller: _fullNameController,
+                  label: 'Full Name',
+                  theme: theme,
+                  isDark: isDark,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    return null;
+                  },
+                ),
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  theme: theme,
+                  isDark: isDark,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value.trim())) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+                _buildTextField(
+                  controller: _contactController,
+                  label: 'Contact Number',
+                  theme: theme,
+                  isDark: isDark,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your contact number';
+                    }
+                    if (value.trim().length < 10) {
+                      return 'Please enter a valid contact number';
+                    }
+                    return null;
+                  },
+                ),
+                _buildTextField(
+                  controller: _addressController,
+                  label: 'Volunteer Address',
+                  theme: theme,
+                  isDark: isDark,
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your address';
+                    }
+                    return null;
+                  },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _cityController,
+                        label: 'City',
+                        theme: theme,
+                        isDark: isDark,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.secondary,
-                    foregroundColor: Colors.white,
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _stateController,
+                        label: 'State',
+                        theme: theme,
+                        isDark: isDark,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                _buildDateField(theme, isDark),
+                _buildServiceTimeDropdown(theme, isDark),
+                _buildServiceDropdown(theme, isDark),
+                SizedBox(height: 8.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSubmitting ? null : _submitVolunteerApplication,
+                    icon: _isSubmitting
+                        ? SizedBox(
+                            width: 20.w,
+                            height: 20.h,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Icon(Icons.volunteer_activism, size: 22),
+                    label: TranslatedText(
+                      _isSubmitting ? 'Submitting...' : 'Submit Application',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.secondary,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildTranslatedTextField(
-    String labelText,
-    ThemeData theme,
-    bool isDark,
-  ) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required ThemeData theme,
+    required bool isDark,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return FutureBuilder<String>(
-          future: context.read<LanguageBloc>().getTranslation(labelText),
+          future: context.read<LanguageBloc>().getTranslation(label),
           builder: (context, snapshot) {
-            String displayText = snapshot.data ?? labelText;
-            return TextField(
+            String displayText = snapshot.data ?? label;
+            return TextFormField(
+              controller: controller,
+              keyboardType: keyboardType,
+              maxLines: maxLines,
+              validator: validator,
+              decoration: InputDecoration(
+                labelText: displayText,
+                labelStyle: TextStyle(color: theme.colorScheme.secondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    width: 1.2,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.secondary,
+                    width: 2,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: const BorderSide(
+                    color: Colors.red,
+                    width: 2,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: const BorderSide(
+                    color: Colors.red,
+                    width: 2,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDateField(ThemeData theme, bool isDark) {
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return FutureBuilder<String>(
+          future: context.read<LanguageBloc>().getTranslation('Preferred Date'),
+          builder: (context, snapshot) {
+            String displayText = snapshot.data ?? 'Preferred Date';
+            return TextFormField(
+              readOnly: true,
+              controller: TextEditingController(
+                text: _selectedDate == null
+                    ? ''
+                    : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+              ),
+              decoration: InputDecoration(
+                labelText: displayText,
+                labelStyle: TextStyle(color: theme.colorScheme.secondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    width: 1.2,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.secondary,
+                    width: 2,
+                  ),
+                ),
+                suffixIcon: Icon(
+                  Icons.calendar_today,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+              onTap: () => _selectDate(context),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildServiceTimeDropdown(ThemeData theme, bool isDark) {
+    List<String> serviceTimes = [
+      'Morning (6 AM – 12 PM)',
+      'Afternoon (12 PM – 5 PM)',
+      'Evening (5 PM – 9 PM)',
+      'Full Day',
+    ];
+
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return FutureBuilder<String>(
+          future: context.read<LanguageBloc>().getTranslation('Select Service Timing'),
+          builder: (context, snapshot) {
+            String displayText = snapshot.data ?? 'Select Service Timing';
+            return DropdownButtonFormField<String>(
+              value: _selectedTimeLabel,
               decoration: InputDecoration(
                 labelText: displayText,
                 labelStyle: TextStyle(color: theme.colorScheme.secondary),
@@ -667,6 +905,114 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                   ),
                 ),
               ),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontFamily: 'aBeeZee',
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              dropdownColor: theme.cardColor,
+              isExpanded: true,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedTimeLabel = newValue;
+                });
+              },
+              items: serviceTimes
+                  .map<DropdownMenuItem<String>>(
+                    (String value) => DropdownMenuItem<String>(
+                      value: value,
+                      child: TranslatedText(
+                        value,
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a service timing';
+                }
+                return null;
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildServiceDropdown(ThemeData theme, bool isDark) {
+    List<String> services = [
+      'Food Service',
+      'Guiding Devotees',
+      'Medical Assistance',
+      'Cleanliness',
+    ];
+
+    return BlocBuilder<LanguageBloc, LanguageState>(
+      builder: (context, languageState) {
+        return FutureBuilder<String>(
+          future: context.read<LanguageBloc>().getTranslation('Select Service'),
+          builder: (context, snapshot) {
+            String displayText = snapshot.data ?? 'Select Service';
+            return DropdownButtonFormField<String>(
+              value: _selectedService,
+              decoration: InputDecoration(
+                labelText: displayText,
+                labelStyle: TextStyle(color: theme.colorScheme.secondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    width: 1.2,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.secondary,
+                    width: 2,
+                  ),
+                ),
+              ),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontFamily: 'aBeeZee',
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              dropdownColor: theme.cardColor,
+              isExpanded: true,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedService = newValue;
+                });
+              },
+              items: services
+                  .map<DropdownMenuItem<String>>(
+                    (String value) => DropdownMenuItem<String>(
+                      value: value,
+                      child: TranslatedText(
+                        value,
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a service';
+                }
+                return null;
+              },
             );
           },
         );
@@ -1008,57 +1354,97 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     );
   }
 
-  Widget _buildDropdownField(ThemeData theme, bool isDark) {
-    List<String> services = [
-      'Food Service',
-      'Guiding Service',
-      'Medical Service',
-      'Cleanliness Service',
-    ];
-
-    String? _selectedService;
-
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedService,
-      padding: EdgeInsets.only(left: 10.w),
-      hint: TranslatedText(
-        'Select Service',
-        style: TextStyle(
-          fontFamily: 'aBeeZee',
-          color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-        ),
-      ),
-      decoration: const InputDecoration(
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(vertical: 12.0),
-      ),
-      style: TextStyle(
-        fontSize: 16.sp,
-        fontFamily: 'aBeeZee',
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-      dropdownColor: theme.cardColor,
-      isExpanded: true,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedService = newValue!;
-        });
-      },
-      items: services
-          .map<DropdownMenuItem<String>>(
-            (String value) => DropdownMenuItem<String>(
-              value: value,
-              child: TranslatedText(
-                value,
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Theme.of(context).colorScheme.secondary,
             ),
-          )
-          .toList(),
+          ),
+          child: child!,
+        );
+      },
     );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+
+
+  Future<void> _submitVolunteerApplication() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedDate == null) {
+      AppSnackbar.error(context, 'Please select a preferred date');
+      return;
+    }
+
+    if (_selectedTimeLabel == null) {
+      AppSnackbar.error(context, 'Please select a service timing');
+      return;
+    }
+
+    if (_selectedService == null) {
+      AppSnackbar.error(context, 'Please select a service');
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final response = await DBFunctions().submitVolunteerApplication(
+        fullName: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        contact: _contactController.text.trim(),
+        address: _addressController.text.trim(),
+        city: _cityController.text.trim(),
+        state: _stateController.text.trim(),
+        serviceDate: '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+        serviceTime: _selectedTimeLabel!,
+        service: _selectedService!,
+      );
+
+      if (response['success'] == true) {
+        AppSnackbar.success(context, response['message'] ?? 'Application submitted successfully!');
+        
+        // Clear form
+        _formKey.currentState!.reset();
+        _fullNameController.clear();
+        _emailController.clear();
+        _contactController.clear();
+        _addressController.clear();
+        _cityController.clear();
+        _stateController.clear();
+        setState(() {
+          _selectedService = null;
+          _selectedTimeLabel = null;
+          _selectedDate = null;
+        });
+      } else {
+        AppSnackbar.error(context, response['message'] ?? 'Failed to submit application');
+      }
+    } catch (e) {
+      AppSnackbar.error(context, 'Error: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   BoxDecoration _cardDecoration(ThemeData theme, bool isDark) {

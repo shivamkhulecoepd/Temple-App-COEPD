@@ -24,8 +24,9 @@ class _DonationsScreenState extends State<DonationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isDisposed) return const SizedBox.shrink(); // Return empty widget if disposed
-    
+    if (_isDisposed)
+      return const SizedBox.shrink(); // Return empty widget if disposed
+
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -111,7 +112,8 @@ class _DonationsScreenState extends State<DonationsScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => DonationsPrasadamScreen(
-                                      initialSection: DonationSection.specificScheme,
+                                      initialSection:
+                                          DonationSection.specificScheme,
                                     ),
                                   ),
                                 );
@@ -153,7 +155,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                         padding: EdgeInsets.only(
                           left: 20.w,
                           right: 20.w,
-                          top: 20.h,
+                          top: 24.h,
                           bottom: 30.h,
                         ), // ✅ spacing from edges
                         alignment: Alignment.center, // ✅ centers text
@@ -172,7 +174,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                           ),
                         ),
                       ),
-                      GalleryWidget(title: 'Image Gallery',),
+                      GalleryWidget(title: 'Image Gallery'),
                     ],
                   ),
                 ),

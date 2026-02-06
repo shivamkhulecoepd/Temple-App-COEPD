@@ -6,7 +6,7 @@ import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
 // Contact info data from API
@@ -33,11 +33,9 @@ class _ContactScreenState extends State<ContactScreen> {
   bool _isSubmitting = false;
 
   final List<String> _services = [
-    'General Inquiry',
+    'Pooja Booking',
+    'Darshan Info',
     'Donation Related',
-    'Prasadam Booking',
-    'Temple Visit / Darshan',
-    'Feedback / Complaint',
     'Other',
   ];
 
@@ -135,7 +133,10 @@ class _ContactScreenState extends State<ContactScreen> {
         message: _messageController.text,
       );
 
-      AppSnackbar.success(context, result['message'] ?? 'Message sent successfully!');
+      AppSnackbar.success(
+        context,
+        result['message'] ?? 'Message sent successfully!',
+      );
 
       // Clear form
       _formKey.currentState!.reset();
@@ -264,15 +265,15 @@ class _ContactScreenState extends State<ContactScreen> {
                                 controller: _phoneController,
                                 label: 'Enter your Phone',
                                 keyboardType: TextInputType.phone,
-                                validator: (v) {
-                                  if (v?.trim().isEmpty ?? true) {
-                                    return 'Please enter phone number';
-                                  }
-                                  if ((v?.length ?? 0) < 10) {
-                                    return 'Invalid phone number';
-                                  }
-                                  return null;
-                                },
+                                // validator: (v) {
+                                //   if (v?.trim().isEmpty ?? true) {
+                                //     return 'Please enter phone number';
+                                //   }
+                                //   if ((v?.length ?? 0) < 10) {
+                                //     return 'Invalid phone number';
+                                //   }
+                                //   return null;
+                                // },
                               ),
                               SizedBox(height: 14.h),
 
@@ -281,17 +282,17 @@ class _ContactScreenState extends State<ContactScreen> {
                                 controller: _emailController,
                                 label: 'Enter your Email ID',
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (v) {
-                                  if (v?.trim().isEmpty ?? true) {
-                                    return 'Please enter email';
-                                  }
-                                  if (!RegExp(
-                                    r'^[^@]+@[^@]+\.[^@]+',
-                                  ).hasMatch(v ?? '')) {
-                                    return 'Please enter a valid email';
-                                  }
-                                  return null;
-                                },
+                                // validator: (v) {
+                                //   if (v?.trim().isEmpty ?? true) {
+                                //     return 'Please enter email';
+                                //   }
+                                //   if (!RegExp(
+                                //     r'^[^@]+@[^@]+\.[^@]+',
+                                //   ).hasMatch(v ?? '')) {
+                                //     return 'Please enter a valid email';
+                                //   }
+                                //   return null;
+                                // },
                               ),
                               SizedBox(height: 14.h),
 
@@ -303,9 +304,9 @@ class _ContactScreenState extends State<ContactScreen> {
                               _buildTextField(
                                 controller: _subjectController,
                                 label: 'Enter your Subject',
-                                validator: (v) => v?.trim().isEmpty ?? true
-                                    ? 'Please enter subject'
-                                    : null,
+                                // validator: (v) => v?.trim().isEmpty ?? true
+                                //     ? 'Please enter subject'
+                                //     : null,
                               ),
                               SizedBox(height: 14.h),
 
@@ -633,7 +634,7 @@ class _ContactScreenState extends State<ContactScreen> {
         );
       }).toList(),
       onChanged: (value) => setState(() => _selectedService = value),
-      validator: (v) => v == null ? 'Required' : null,
+      // validator: (v) => v == null ? 'Required' : null,
       decoration: InputDecoration(
         filled: true,
         fillColor: Theme.of(context).inputDecorationTheme.fillColor,

@@ -9,7 +9,7 @@ import 'package:flutter/services.dart' show rootBundle, Uint8List;
 import 'package:open_filex/open_filex.dart'; // optional
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:mslgd/models/old_screen_models.dart';
+import 'package:mslgd/models/temple.model.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 
@@ -73,7 +73,10 @@ class _AboutScreenState extends State<AboutScreen>
 
   Future<void> _togglePlayPause() async {
     if (!_isAudioInitialized) {
-      AppSnackbar.info(context, 'Audio not ready yet...\nPlease wait for a second...');
+      AppSnackbar.info(
+        context,
+        'Audio not ready yet...\nPlease wait for a second...',
+      );
       return;
     }
 
@@ -83,7 +86,7 @@ class _AboutScreenState extends State<AboutScreen>
       await _audioPlayer
           .resume(); // or .play() if you want to restart from beginning
       // If you want to always start from beginning when pressing play:
-      // await _audioPlayer.play(AssetSource('audio/mslg song 3.mp3'));
+      // await _audioPlayer.play(AssetSource('audio/mslg_song_3.mp3'));
     }
   }
 
@@ -146,7 +149,10 @@ class _AboutScreenState extends State<AboutScreen>
     final result = await OpenFilex.open(file.path);
     if (result.type != ResultType.done) {
       // _snack('Saved but cannot open automatically: ${result.message}');
-      AppSnackbar.warning(context, 'Saved but cannot open automatically: ${result.message}');
+      AppSnackbar.warning(
+        context,
+        'Saved but cannot open automatically: ${result.message}',
+      );
     }
     Navigator.push(
       context,
@@ -172,7 +178,12 @@ class _AboutScreenState extends State<AboutScreen>
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    try {
+      _audioPlayer.stop();
+      _audioPlayer.dispose();
+    } catch (e) {
+      debugPrint('Error disposing audio player: $e');
+    }
     _pageController.dispose();
     _animationController.dispose();
     super.dispose();

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -211,7 +211,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
           ),
           Divider(),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.only(left: 16.w, top: 8.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

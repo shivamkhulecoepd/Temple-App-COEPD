@@ -1,7 +1,7 @@
 name: mslgd
 description: "Marakatha Sri Lakshmi Ganapathi Devasthanam app."
 publish_to: "none"
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
   sdk: ^3.9.2
@@ -11,16 +11,16 @@ dependencies:
   equatable: ^2.0.8
   flutter:
     sdk: flutter
-
-  flutter_bloc: ^9.1.1
   flutter_localizations:
     sdk: flutter
+
   flutter_screenutil: ^5.9.3
   font_awesome_flutter: ^10.12.0
   marquee: ^2.3.0
   open_filex: ^4.7.0
   path_provider: ^2.1.5
   permission_handler: ^12.0.1
+  flutter_bloc: ^9.1.1
   shared_preferences: ^2.5.4
   shimmer: ^3.0.0
   syncfusion_flutter_pdfviewer: ^32.1.25
@@ -56,4 +56,3 @@ flutter:
     - assets/images/live_seva/
     - assets/audio/
     - assets/pdfs/
-    

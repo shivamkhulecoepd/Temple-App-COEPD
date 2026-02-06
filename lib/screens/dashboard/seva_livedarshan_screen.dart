@@ -1,12 +1,14 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mslgd/screens/authentication/auth_screen.dart';
 import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
+import 'package:mslgd/utils/auth_utils.dart';
+import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -51,16 +53,17 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         DBFunctions().fetchArchiveVideos(),
         DBFunctions().fetchActivePoojas(),
       ], eagerError: true);
-      
-      log('API Data:');
-      log(jsonEncode(results));
 
-      if (!mounted) return;
+      // log('API Data:');
+      // log(jsonEncode(results));
+
+      if (!mounted || _isDisposed) return;
 
       final liveStreamData = results[0] as Map<String, dynamic>;
       final upcomingEventData = results[1] as Map<String, dynamic>?;
       final archiveVideosData = results[2] as List<dynamic>;
       final activePoojasData = results[3] as List<dynamic>;
+      // log('** Fetched active poojas Data: $activePoojasData');
 
       setState(() {
         // 1. Live Stream Data
@@ -114,6 +117,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         sevas = (activePoojasData)
             .map(
               (pooja) => {
+                'poojaId': int.tryParse(pooja['id'] as String) ?? 0,
                 'name': pooja['pooja_name'] as String,
                 'imageUrl': pooja['image'] as String,
                 'description': pooja['pooja_desc'] as String,
@@ -133,7 +137,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
           _controller = YoutubePlayerController(
             initialVideoId: videoId,
             flags: const YoutubePlayerFlags(
-              autoPlay: true,
+              autoPlay: false,
               mute: false,
               forceHD: true,
             ),
@@ -143,8 +147,8 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       }
     } catch (e) {
       log('Error fetching data: $e');
-      
-      if (!mounted) return;
+
+      if (!mounted || _isDisposed) return;
 
       // Use fallback data on error
       setState(() {
@@ -189,6 +193,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
         sevas = [
           {
+            'poojaId': 1,
             'name': 'Daily Seva',
             'imageUrl': 'assets/images/live_seva/seva1.jpg',
             'description':
@@ -196,6 +201,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
             'price': 100,
           },
           {
+            'poojaId': 2,
             'name': 'Special Seva',
             'imageUrl': 'assets/images/live_seva/seva2.jpg',
             'description':
@@ -214,7 +220,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
           _controller = YoutubePlayerController(
             initialVideoId: videoId,
             flags: const YoutubePlayerFlags(
-              autoPlay: true,
+              autoPlay: false,
               mute: false,
               forceHD: true,
             ),
@@ -242,7 +248,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   }
 
   void _playerListener() {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
     final value = _controller?.value;
     if (value == null) return;
 
@@ -253,23 +259,39 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
     }
   }
 
-  Future<void> _launchYouTube(String url, BuildContext context) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: TranslatedText('Could not open YouTube')),
-      );
-    }
-  }
+  bool _isDisposed = false;
 
   @override
   void dispose() {
+    _isDisposed = true;
     _controller?.removeListener(_playerListener);
+    // Pause before disposal to prevent native crashes
+    try {
+      _controller?.pause();
+    } catch (e) {
+      log('Error pausing video: $e');
+    }
     _controller?.dispose();
     _controller = null; // Explicitly null the controller
     super.dispose();
+  }
+
+  Future<void> _launchYouTube(String url, BuildContext context) async {
+    final uri = Uri.parse(url);
+    if (!mounted) return;
+
+    // Check if we can launch BEFORE using context for error message
+    final canLaunch = await canLaunchUrl(uri);
+
+    if (canLaunch) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: TranslatedText('Could not open YouTube')),
+        );
+      }
+    }
   }
 
   @override
@@ -291,6 +313,14 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 ),
               ),
               centerTitle: true,
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    await fetchData();
+                  },
+                  icon: Icon(Icons.refresh),
+                ),
+              ],
             ),
             body: Stack(
               fit: StackFit.expand,
@@ -328,9 +358,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
                           child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
+                            decoration: BoxDecoration(color: Colors.white),
                           ),
                         ),
                       ),
@@ -364,10 +392,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 ),
               ),
               centerTitle: true,
-              leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
             ),
             body: Stack(
               children: [
@@ -377,7 +401,9 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                   height: double.infinity,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/images/background/main_bg1.jpg'),
+                      image: AssetImage(
+                        'assets/images/background/main_bg1.jpg',
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -855,7 +881,9 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
             itemCount: sevas.length,
             itemBuilder: (context, index) {
               final seva = sevas[index];
+              // log('**Seva = $seva');
               return _buildSevaCard(
+                poojaId: seva['poojaId'],
                 name: seva['name'],
                 imageUrl: seva['imageUrl'],
                 description: seva['description'],
@@ -869,6 +897,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   }
 
   Widget _buildSevaCard({
+    required int poojaId,
     required String name,
     required String imageUrl,
     required String description,
@@ -963,8 +992,27 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(16.r),
                 ),
-                onTap: () {
+                onTap: () async {
+                  final token = await AuthUtils.getUserToken();
+                  if (token == null) {
+                    if (mounted) {
+                      AppSnackbar.show(
+                        context,
+                        message: 'Please login to book seva',
+                        type: SnackbarType.warning,
+                        actionLabel: 'Login',
+                        onActionPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => AuthScreen()),
+                          );
+                        },
+                      );
+                    }
+                    return;
+                  }
                   _showBookingBottomSheet(context, {
+                    'pooja_id': poojaId,
                     'name': name,
                     'description': description,
                     'price': price,
@@ -1255,11 +1303,23 @@ class BookingBottomSheet extends StatefulWidget {
 
 class _BookingBottomSheetState extends State<BookingBottomSheet> {
   int currentStep = 0;
+  bool _isSubmitting = false;
 
   // Controllers (you should use these in real app)
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
   final _formKey3 = GlobalKey<FormState>();
+
+  // Form Controllers
+  final _nameController = TextEditingController();
+  final _gotramController = TextEditingController();
+  final _nakshatramController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _sankalpamNameController = TextEditingController();
+  final _purposeController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _pincodeController = TextEditingController();
 
   // Sample state variables (expand as needed)
   String? selectedPayment = 'UPI';
@@ -1269,6 +1329,21 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   String? selectedTimeSlot = 'Morning';
   bool inPerson = false;
   bool proxyPriest = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _gotramController.dispose();
+    _nakshatramController.dispose();
+    _mobileController.dispose();
+    _emailController.dispose();
+    _sankalpamNameController.dispose();
+    _purposeController.dispose();
+    _addressController.dispose();
+    _pincodeController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1327,19 +1402,34 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                               ).colorScheme.secondary,
                               foregroundColor: Colors.white,
                             ),
-                            onPressed: details.onStepContinue,
-                            child: TranslatedText(
-                              currentStep == 2 ? "Confirm Booking" : "Next",
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            onPressed: _isSubmitting
+                                ? null
+                                : details.onStepContinue,
+                            child: _isSubmitting
+                                ? SizedBox(
+                                    height: 20.h,
+                                    width: 20.w,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.w,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : TranslatedText(
+                                    currentStep == 2
+                                        ? "Confirm Booking"
+                                        : "Next",
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                           ),
                         ),
                       ],
                     ),
                   );
                 },
-                onStepContinue: () {
+                onStepContinue: () async {
                   bool isValid = true;
 
                   if (currentStep == 0) {
@@ -1354,13 +1444,8 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                     if (currentStep < 2) {
                       setState(() => currentStep++);
                     } else {
-                      // Final confirmation
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: TranslatedText("Booking Confirmed! 🎉"),
-                        ),
-                      );
+                      // Final confirmation - submit booking
+                      await _submitBooking();
                     }
                   }
                 },
@@ -1391,6 +1476,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
 
                             _buildSectionTitle("Devotee Details"),
                             TextFormField(
+                              controller: _nameController,
                               decoration: InputDecoration(
                                 labelText: "Full Name",
                                 border: OutlineInputBorder(),
@@ -1403,6 +1489,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
+                              controller: _gotramController,
                               decoration: InputDecoration(
                                 labelText: "Gotram",
                                 border: OutlineInputBorder(),
@@ -1412,6 +1499,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
+                              controller: _nakshatramController,
                               decoration: InputDecoration(
                                 labelText: "Nakshatram",
                                 border: OutlineInputBorder(),
@@ -1421,8 +1509,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
+                              controller: _mobileController,
                               decoration: InputDecoration(
-                                labelText: "Mobile Number(with country code)",
+                                labelText: "Mobile Number",
                                 border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.phone,
@@ -1432,6 +1521,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
+                              controller: _emailController,
                               decoration: const InputDecoration(
                                 labelText: "Email ID",
                                 border: OutlineInputBorder(),
@@ -1473,7 +1563,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             TextFormField(
                               controller: _dateController,
                               decoration: const InputDecoration(
-                                labelText: "Date (dd-mm-yyyy)",
+                                labelText: "Date (yyyy-mm-dd)",
                                 border: OutlineInputBorder(),
                                 suffixIcon: Icon(Icons.calendar_today),
                               ),
@@ -1497,9 +1587,9 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                   setState(() {
                                     selectedDate = date;
                                     _dateController.text =
-                                        "${date.day.toString().padLeft(2, '0')}-"
+                                        "${date.year}-"
                                         "${date.month.toString().padLeft(2, '0')}-"
-                                        "${date.year}";
+                                        "${date.day.toString().padLeft(2, '0')}";
                                   });
                                 }
                               },
@@ -1581,6 +1671,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             SizedBox(height: 24.h),
                             _buildSectionTitle("Sankalpam Details"),
                             TextFormField(
+                              controller: _sankalpamNameController,
                               decoration: InputDecoration(
                                 labelText: "Sankalpam Name",
                                 border: OutlineInputBorder(),
@@ -1589,6 +1680,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             SizedBox(height: 12.h),
                             TextFormField(
+                              controller: _purposeController,
                               decoration: InputDecoration(
                                 labelText: "Purpose/Prayer",
                                 border: OutlineInputBorder(),
@@ -1639,6 +1731,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             if (selectedDelivery == "Courier") ...[
                               SizedBox(height: 12.h),
                               TextFormField(
+                                controller: _addressController,
                                 decoration: InputDecoration(
                                   labelText: "Your Address",
                                   border: OutlineInputBorder(),
@@ -1648,6 +1741,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                               ),
                               SizedBox(height: 12.h),
                               TextFormField(
+                                controller: _pincodeController,
                                 decoration: InputDecoration(
                                   labelText: "Pincode",
                                   border: OutlineInputBorder(),
@@ -1673,7 +1767,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             ),
                             RadioListTile<String>(
                               title: TranslatedText("Debit / Credit Card"),
-                              value: "Card",
+                              value: "Debit/Credit Card",
                               activeColor: Theme.of(
                                 context,
                               ).colorScheme.secondary,
@@ -1765,5 +1859,175 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
         ],
       ),
     );
+  }
+
+  // New method to handle booking submission
+  Future<void> _submitBooking() async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      // Get user token
+      final token = await AuthUtils.getUserToken();
+      // log('Booking - Token retrieved: ${token != null}');
+
+      if (token == null) {
+        if (mounted) {
+          AppSnackbar.error(context, 'Please login to book seva');
+          // Navigate to auth screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AuthScreen()),
+          );
+        }
+        return;
+      }
+
+      // Get pooja ID from seva data
+      final poojaId =
+          widget.seva['id'] as int? ?? widget.seva['pooja_id'] as int?;
+      // log('Booking - Pooja ID: $poojaId');
+
+      if (poojaId == null) {
+        throw Exception('Invalid seva data: missing pooja ID');
+      }
+
+      // Calculate total amount
+      final baseAmount = widget.seva['price'] ?? 100;
+      final courierCharge = selectedDelivery == "Courier" ? 150 : 0;
+      final totalAmount = baseAmount + courierCharge;
+      // log('Booking - Amount: $baseAmount + $courierCharge = $totalAmount');
+
+      log(
+        'Submitting booking data:- Date ${_dateController.text.trim()}, Address ${_addressController.text.trim()}, Pincode ${_pincodeController.text.trim()}',
+      );
+
+      // Submit booking
+      final db = DBFunctions();
+      final result = await db.submitSevaBooking(
+        token: token,
+        poojaId: poojaId,
+        devoteeName: _nameController.text.trim(),
+        gothram: _gotramController.text.trim().isNotEmpty
+            ? _gotramController.text.trim()
+            : null,
+        nakshatram: _nakshatramController.text.trim().isNotEmpty
+            ? _nakshatramController.text.trim()
+            : null,
+        mobile: _mobileController.text.trim(),
+        email: _emailController.text.trim().isNotEmpty
+            ? _emailController.text.trim()
+            : null,
+        bookingDate: _dateController.text.trim(),
+        bookingTime: selectedTimeSlot ?? 'Morning',
+        inPerson: inPerson,
+        proxy: proxyPriest,
+        sankalpamName: _sankalpamNameController.text.trim().isNotEmpty
+            ? _sankalpamNameController.text.trim()
+            : null,
+        purpose: _purposeController.text.trim().isNotEmpty
+            ? _purposeController.text.trim()
+            : null,
+        prasadam: selectedDelivery ?? 'In person',
+        address: _addressController.text.trim().isNotEmpty
+            ? _addressController.text.trim()
+            : 'In Person option choosen, address not required',
+        pincode: _pincodeController.text.trim().isNotEmpty
+            ? _pincodeController.text.trim()
+            : null,
+        amount: totalAmount.toDouble(),
+        paymentMethod: selectedPayment ?? 'UPI',
+      );
+
+      log('Booking - Result: $result');
+
+      if (mounted) {
+        // Show success message
+        // AppSnackbar.success(
+        //   context,
+        //   result['message'] ?? 'Booking confirmed successfully!',
+        // );
+
+        // Close the bottomsheet
+        Navigator.of(context).pop();
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              title: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TranslatedText(
+                      "🎉 Seva Booking Successful!",
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: TranslatedText(
+                "Thank you for booking seva with us.\nYou will receive a confirmation soon.",
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 14.sp,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              actions: [
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Close the dialog and navigate to home
+                      Navigator.pop(dialogContext);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 12.h,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: TranslatedText(
+                      "Go to Home",
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      log('Error in booking: $e');
+      if (mounted) {
+        AppSnackbar.error(context, 'Booking failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 }

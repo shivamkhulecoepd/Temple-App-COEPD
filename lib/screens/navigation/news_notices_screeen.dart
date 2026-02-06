@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/core/services/db_functions.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:shimmer/shimmer.dart';
@@ -35,6 +35,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
   bool _isLoading = true;
 
   Future<void> _fetchData() async {
+    log('Refresh triggered!');
     setState(() => _isLoading = true);
 
     try {
@@ -47,11 +48,12 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
 
       setState(() {
         latestNews = results[0] as Map<String, dynamic>?;
-        log("$latestNews");
+        log("Latest news fetched: $latestNews");
         noticesAnnouncements = results[1] as List<dynamic>;
-        log("$noticesAnnouncements");
+        log("Notices fetched: ${noticesAnnouncements.length} items");
         _isLoading = false;
       });
+      log('Data refresh completed successfully');
     } catch (e) {
       log('Error fetching news data: $e');
       if (!mounted) return;
@@ -123,7 +125,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                 ),
               ),
               // Main Content
-              SingleChildScrollView(
+              Padding(
                 padding: EdgeInsets.all(16.w),
                 child: _buildSection(theme, isDark),
               ),
@@ -256,96 +258,116 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
   // ---------------- SECTION UIs ----------------
 
   Widget _latestNewsSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Latest & News',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        TranslatedText(
-          'Daily updates and announcements from the temple',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
-          ),
-        ),
-        SizedBox(height: 20.h),
-        _isLoading
-            ? _buildLatestNewsShimmer(theme, isDark)
-            : latestNews != null
-            ? _buildLatestNewsCard(context, theme: theme, isDark: isDark)
-            : Container(
-                padding: EdgeInsets.all(20.w),
-                decoration: _cardDecoration(theme, isDark),
-                child: Center(
-                  child: TranslatedText(
-                    'No latest news available',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 16.sp,
-                      color: isDark ? Colors.grey.shade300 : null,
+    return RefreshIndicator.adaptive(
+      onRefresh: _fetchData,
+      color: theme.colorScheme.secondary,
+      backgroundColor: theme.colorScheme.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TranslatedText(
+              'Latest & News',
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 22.sp,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : null,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            TranslatedText(
+              'Daily updates and announcements from the temple',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontFamily: 'aBeeZee',
+                color: isDark ? Colors.grey.shade300 : null,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            _isLoading
+                ? _buildLatestNewsShimmer(theme, isDark)
+                : latestNews != null
+                ? _buildLatestNewsCard(context, theme: theme, isDark: isDark)
+                : Container(
+                    padding: EdgeInsets.all(20.w),
+                    decoration: _cardDecoration(theme, isDark),
+                    child: Center(
+                      child: TranslatedText(
+                        'No latest news available',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 16.sp,
+                          color: isDark ? Colors.grey.shade300 : null,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-      ],
+            // Add extra padding at the bottom to ensure scrollable content
+            SizedBox(height: 200.h),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _noticesAnnouncementsSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Notices & Announcements',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        TranslatedText(
-          'Official announcement channel for all updates and notices',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
-          ),
-        ),
-        SizedBox(height: 20.h),
-        _isLoading
-            ? _buildNoticesShimmer(theme, isDark)
-            : noticesAnnouncements.isNotEmpty
-            ? _noticesAnnouncementsCardSection(
-                noticesAnnouncements,
-                theme,
-                isDark,
-              )
-            : Container(
-                padding: EdgeInsets.all(20.w),
-                decoration: _cardDecoration(theme, isDark),
-                child: Center(
-                  child: TranslatedText(
-                    'No notices available',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 16.sp,
-                      color: isDark ? Colors.grey.shade300 : null,
+    return RefreshIndicator.adaptive(
+      onRefresh: _fetchData,
+      color: theme.colorScheme.secondary,
+      backgroundColor: theme.colorScheme.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TranslatedText(
+              'Notices & Announcements',
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 22.sp,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : null,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            TranslatedText(
+              'Official announcement channel for all updates and notices',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontFamily: 'aBeeZee',
+                color: isDark ? Colors.grey.shade300 : null,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            _isLoading
+                ? _buildNoticesShimmer(theme, isDark)
+                : noticesAnnouncements.isNotEmpty
+                ? _noticesAnnouncementsCardSection(
+                    noticesAnnouncements,
+                    theme,
+                    isDark,
+                  )
+                : Container(
+                    padding: EdgeInsets.all(20.w),
+                    decoration: _cardDecoration(theme, isDark),
+                    child: Center(
+                      child: TranslatedText(
+                        'No notices available',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 16.sp,
+                          color: isDark ? Colors.grey.shade300 : null,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-      ],
+            // Add extra padding at the bottom to ensure scrollable content
+            SizedBox(height: 200.h),
+          ],
+        ),
+      ),
     );
   }
 

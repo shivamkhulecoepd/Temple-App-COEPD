@@ -3,7 +3,7 @@ import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../core/services/db_functions.dart';
+import '../../services/db_functions.dart';
 
 class ExploreMediaGallery extends StatefulWidget {
   final String type; // 'images' or 'videos'
@@ -16,7 +16,7 @@ class ExploreMediaGallery extends StatefulWidget {
 class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     with SingleTickerProviderStateMixin {
   final db = DBFunctions();
-  String selectedCategory = ''; 
+  String selectedCategory = '';
   late TabController _tabController;
 
   // Separate categories for images and videos
@@ -48,16 +48,19 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     'Devotee Services and Activities',
   ];
 
-  List<String> get currentCategories => 
+  List<String> get currentCategories =>
       widget.type == 'images' ? imageCategories : videoCategories;
-  
-  List<String> get currentCategoryLabels => 
+
+  List<String> get currentCategoryLabels =>
       widget.type == 'images' ? imageCategoryLabels : videoCategoryLabels;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: currentCategories.length, vsync: this);
+    _tabController = TabController(
+      length: currentCategories.length,
+      vsync: this,
+    );
     selectedCategory = currentCategories.first;
     // Each tab now manages its own content independently
   }
@@ -67,8 +70,6 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
     _tabController.dispose();
     super.dispose();
   }
-
-
 
   void _onCategoryChanged(int index) {
     setState(() {
@@ -80,7 +81,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
   @override
   Widget build(BuildContext context) {
     final isImages = widget.type == 'images';
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -123,10 +124,13 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
               tabs: currentCategories.asMap().entries.map((entry) {
                 final index = entry.key;
                 final label = currentCategoryLabels[index];
-                
+
                 return Tab(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                     child: TranslatedText(
                       label,
                       style: const TextStyle(
@@ -152,11 +156,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
   }
 
   Widget _buildMediaContentForCategory(String category) {
-    return _MediaContentWidget(
-      category: category,
-      type: widget.type,
-      db: db,
-    );
+    return _MediaContentWidget(category: category, type: widget.type, db: db);
   }
 }
 
@@ -193,9 +193,11 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
       if (widget.type == 'images') {
         fetched = await widget.db.fetchGalleryImages(category: widget.category);
       } else {
-        fetched = await widget.db.fetchArchiveVideosByCategory(category: widget.category);
+        fetched = await widget.db.fetchArchiveVideosByCategory(
+          category: widget.category,
+        );
       }
-      
+
       setState(() {
         mediaItems = fetched;
         isLoading = false;
@@ -230,7 +232,9 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              widget.type == 'images' ? Icons.photo_library : Icons.video_library,
+              widget.type == 'images'
+                  ? Icons.photo_library
+                  : Icons.video_library,
               size: 64,
               color: Colors.grey.withValues(alpha: 0.4),
             ),
@@ -284,9 +288,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
       child: Card(
         elevation: 4,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Image.network(
           img['image_url'],
           fit: BoxFit.cover,
@@ -295,9 +297,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
             return Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
-              child: Container(
-                color: Colors.white,
-              ),
+              child: Container(color: Colors.white),
             );
           },
           errorBuilder: (_, __, ___) => Container(
@@ -328,9 +328,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -363,10 +361,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                       return Shimmer.fromColors(
                         baseColor: Colors.grey[300]!,
                         highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          height: 200,
-                          color: Colors.white,
-                        ),
+                        child: Container(height: 200, color: Colors.white),
                       );
                     },
                     errorBuilder: (_, __, ___) => Container(
@@ -430,7 +425,9 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                     video['description'],
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFF043342).withValues(alpha: 0.7), // primaryBlue with opacity
+                      color: const Color(
+                        0xFF043342,
+                      ).withValues(alpha: 0.7), // primaryBlue with opacity
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -491,11 +488,7 @@ class FullScreenImageViewer extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.broken_image,
-                    size: 80,
-                    color: Colors.white54,
-                  ),
+                  Icon(Icons.broken_image, size: 80, color: Colors.white54),
                   SizedBox(height: 16),
                   TranslatedText(
                     'Failed to load image',
