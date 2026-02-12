@@ -18,7 +18,7 @@ import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
 import 'package:mslgd/screens/navigation/about_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/accommodation_screen.dart';
-import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_screen.dart';
 import 'package:mslgd/screens/navigation/festivals_screen.dart';
 import 'package:mslgd/screens/navigation/gallery_screen.dart';
 import 'package:mslgd/screens/navigation/guide_screen.dart';
@@ -28,6 +28,7 @@ import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:mslgd/widgets/translated_text.dart';
+import 'package:mslgd/utils/auth_utils.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -85,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen>
   // Local state variables (will be set from static in initState)
   List<String> marqueeNews = [];
   List<Map<String, dynamic>> banners = [];
-  bool _isLoading = true;
   bool _bannerLoading = true;
   bool _bannerError = false;
 
@@ -109,8 +109,8 @@ class _HomeScreenState extends State<HomeScreen>
             image: _petalAssets[random.nextInt(_petalAssets.length)],
             top: -50, // Start above screen
             left: random.nextDouble() * MediaQuery.of(context).size.width,
-            size: random.nextDouble() * 13 + 10,
-            speed: random.nextDouble() * 1.5 + 2, // Falling speed
+            size: random.nextDouble() * 12 + 12,
+            speed: random.nextDouble() * 0.8 + 0.7, // Slower falling speed
             rotationSpeed: random.nextDouble() * 0.1,
             horizontalSway: random.nextDouble() * 2 - 1, // Slight drift
           ),
@@ -127,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen>
         petal.left += petal.horizontalSway;
         petal.rotation += petal.rotationSpeed;
       }
-      // Remove petals that fall off the 250px height hero section
-      _petals.removeWhere((p) => p.top > 250);
+      // Remove petals that fall off the 250px height hero section (earlier removal for less density)
+      _petals.removeWhere((p) => p.top > 200);
     });
   }
 
@@ -176,7 +176,6 @@ class _HomeScreenState extends State<HomeScreen>
     if (!mounted) return;
     try {
       setState(() {
-        _isLoading = true;
         _bannerLoading = true;
         _bannerError = false;
       });
@@ -203,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen>
         setState(() {
           marqueeNews = _staticMarqueeNews;
           banners = _staticBanners;
-          _isLoading = false;
           _bannerLoading = false;
           _bannerError = false;
         });
@@ -214,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen>
       log('loadData error (attempt ${retryCount + 1}): $e');
       if (mounted) {
         setState(() {
-          _isLoading = false;
           _bannerLoading = false;
           _bannerError = true;
         });
@@ -332,7 +329,6 @@ class _HomeScreenState extends State<HomeScreen>
       marqueeNews = _staticMarqueeNews;
       banners = _staticBanners;
       timings = _staticTimings;
-      _isLoading = false;
     });
 
     // 1. Image Change Timer
@@ -343,8 +339,8 @@ class _HomeScreenState extends State<HomeScreen>
       });
     });
 
-    // 2. Petal Spawner (Every 300ms like your JS)
-    _petalSpawnTimer = Timer.periodic(const Duration(milliseconds: 300), (
+    // 2. Petal Spawner (Reduced frequency - every 600ms instead of 300ms)
+    _petalSpawnTimer = Timer.periodic(const Duration(milliseconds: 600), (
       timer,
     ) {
       if (_isDisposed || !mounted) return;
@@ -405,6 +401,11 @@ class _HomeScreenState extends State<HomeScreen>
             color: Theme.of(context).colorScheme.secondary,
             backgroundColor: Theme.of(context).primaryColor,
             onRefresh: () async {
+              // Show loading states for both sections
+              setState(() {
+                _bannerLoading = true;
+                _bannerError = false;
+              });
               await Future.wait([loadTimings(), loadData()]);
             },
             child: SingleChildScrollView(
@@ -417,18 +418,8 @@ class _HomeScreenState extends State<HomeScreen>
                   _buildQuickActionGrid(),
                   _buildAboutSection(),
                   _buildMarqueeBar(marqueeNews),
-                  _isLoading
-                      ? Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20.h),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).primaryColor,
-                              ),
-                            ),
-                          ),
-                        )
-                      : _buildBannerSection(banners),
+                  _buildBannerSection(banners),
+
                   GalleryWidget(title: 'Sri Devi Sharan Navratri 2025'),
                 ],
               ),
@@ -610,26 +601,44 @@ class _HomeScreenState extends State<HomeScreen>
 
                 SizedBox(width: 10.w),
 
-                // Login Button
-                TextButton(
-                  onPressed: () {
-                    HapticFeedback.selectionClick();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => AuthScreen()),
-                      (route) => route.isFirst,
+                // Login Button - Only shown if user is not logged in
+                Builder(
+                  builder: (context) {
+                    // Check login status synchronously
+                    // final isLoggedIn = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
+                    // Since we can't directly check without async, we'll initially show the button
+                    // and hide it after async check
+                    return FutureBuilder<bool>(
+                      future: AuthUtils.isLoggedIn(),
+                      builder: (context, snapshot) {
+                        bool isLoggedIn = snapshot.data ?? false;
+                        return isLoggedIn
+                            ? SizedBox() // Hide login button if user is logged in
+                            : TextButton(
+                                onPressed: () {
+                                  HapticFeedback.selectionClick();
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AuthScreen(),
+                                    ),
+                                    (route) => route.isFirst,
+                                  );
+                                },
+                                child: TranslatedText(
+                                  "Login",
+                                  style: TextStyle(
+                                    fontFamily: 'aBeeZee',
+                                    color: Colors.white,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                      },
                     );
                   },
-                  child: TranslatedText(
-                    "Login",
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ),
 
                 SizedBox(width: 6.w),
@@ -638,9 +647,8 @@ class _HomeScreenState extends State<HomeScreen>
                 TextButton.icon(
                   onPressed: () {
                     HapticFeedback.selectionClick();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ContactScreen()),
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => LayoutScreen(index: 3)),
                     );
                   },
                   icon: Icon(Icons.phone, color: Colors.white, size: 16.sp),
@@ -906,7 +914,8 @@ class _HomeScreenState extends State<HomeScreen>
       {
         "icon": "assets/images/dashboard/DarshanBooking.png",
         "label": "Darshan Booking",
-        "route": SevaLiveDarshanScreen(),
+        // "route": SevaLiveDarshanScreen(),
+        "route": LayoutScreen(index: 1),
       },
       {
         "icon": "assets/images/dashboard/Festivals.png",
@@ -959,7 +968,7 @@ class _HomeScreenState extends State<HomeScreen>
     ];
 
     return Padding(
-      padding: EdgeInsets.only(left: 10.w, right: 10.w),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -1211,6 +1220,59 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
+              Spacer(),
+              IconButton(
+                onPressed: () async {
+                  // Show loading state
+                  setState(() {
+                    _bannerLoading = true;
+                    _bannerError = false;
+                  });
+                  
+                  try {
+                    final data = await DBFunctions().fetchMarqueeAndBanners();
+                    log('fetchMarqueeAndBanners: ${data.toString()}');
+                    if (mounted) {
+                      // Update static variables
+                      _staticMarqueeNews = List<String>.from(
+                        data['marquee_news'] ?? [],
+                      );
+                      // Convert API banner format to the format expected by the UI
+                      final bannerData = data['banners'] ?? [];
+                      _staticBanners = (bannerData as List)
+                          .map(
+                            (banner) => {
+                              'image': banner['banner_image'],
+                              'title': banner['heading'],
+                              'description': banner['content'],
+                              'date': _formatEventDateTime(
+                                banner['event_datetime'],
+                              ),
+                            },
+                          )
+                          .cast<Map<String, dynamic>>()
+                          .toList();
+                      // Update local state from static
+                      setState(() {
+                        marqueeNews = _staticMarqueeNews;
+                        banners = _staticBanners;
+                        _bannerLoading = false;
+                        _bannerError = false;
+                      });
+                    }
+                  } catch (e) {
+                    log('Refresh banner error: $e');
+                    if (mounted) {
+                      setState(() {
+                        _bannerLoading = false;
+                        _bannerError = true;
+                      });
+                      AppSnackbar.error(context, 'Failed to refresh events');
+                    }
+                  }
+                },
+                icon: Icon(Icons.refresh, size: 20.sp),
+              ),
             ],
           ),
         ),
@@ -1225,7 +1287,10 @@ class _HomeScreenState extends State<HomeScreen>
                   itemBuilder: (context, index) {
                     return Container(
                       width: MediaQuery.of(context).size.width * 0.8.w,
-                      margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 10.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardTheme.color,
                         borderRadius: BorderRadius.circular(16.r),
@@ -1249,7 +1314,9 @@ class _HomeScreenState extends State<HomeScreen>
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.grey[300],
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(16.r),
+                                  ),
                                 ),
                               ),
                             ),
@@ -1260,17 +1327,21 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding: EdgeInsets.all(12.w),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: 100.w,
                                           height: 16.h,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(8.r),
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
                                           ),
                                         ),
                                         SizedBox(height: 4.h),
@@ -1279,7 +1350,9 @@ class _HomeScreenState extends State<HomeScreen>
                                           height: 12.h,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(6.r),
+                                            borderRadius: BorderRadius.circular(
+                                              6.r,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -1292,7 +1365,9 @@ class _HomeScreenState extends State<HomeScreen>
                                           height: 12.h,
                                           decoration: BoxDecoration(
                                             color: Colors.grey[300],
-                                            borderRadius: BorderRadius.circular(6.r),
+                                            borderRadius: BorderRadius.circular(
+                                              6.r,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -1308,68 +1383,64 @@ class _HomeScreenState extends State<HomeScreen>
                   },
                 )
               : _bannerError
-                  ? SizedBox(
-                      height: 280.h,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48.sp,
-                            color: Colors.red,
-                          ),
-                          SizedBox(height: 16.h),
-                          TranslatedText(
-                            "Failed to load events",
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Colors.grey[600],
-                              fontFamily: 'aBeeZee',
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          ElevatedButton(
-                            onPressed: () {
-                              loadData();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: TempleTheme.primaryOrange,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: TranslatedText(
-                              "Retry",
-                              style: TextStyle(
-                                fontFamily: 'aBeeZee',
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : bannerData.isEmpty
-                      ? SizedBox(
-                          height: 280.h,
-                          child: Center(
-                            child: TranslatedText(
-                              "No events available",
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                color: Colors.grey[600],
-                                fontFamily: 'aBeeZee',
-                              ),
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          itemCount: bannerData.length,
-                          itemBuilder: (context, index) {
-                            final item = bannerData[index];
-                            return _buildBannerItem(item);
-                          },
+              ? SizedBox(
+                  height: 280.h,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+                      SizedBox(height: 16.h),
+                      TranslatedText(
+                        "Failed to load events",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.grey[600],
+                          fontFamily: 'aBeeZee',
                         ),
+                      ),
+                      SizedBox(height: 8.h),
+                      ElevatedButton(
+                        onPressed: () {
+                          loadData();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TempleTheme.primaryOrange,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: TranslatedText(
+                          "Retry",
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : bannerData.isEmpty
+              ? SizedBox(
+                  height: 280.h,
+                  child: Center(
+                    child: TranslatedText(
+                      "No events available",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.grey[600],
+                        fontFamily: 'aBeeZee',
+                      ),
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  itemCount: bannerData.length,
+                  itemBuilder: (context, index) {
+                    final item = bannerData[index];
+                    return _buildBannerItem(item);
+                  },
+                ),
         ),
 
         // 3. View All Button Below

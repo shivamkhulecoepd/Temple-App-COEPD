@@ -30,6 +30,7 @@ class DonationsPrasadamScreen extends StatefulWidget {
 class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   late DonationSection _currentSection;
   String? _selectedSchemeType; // Track which specific scheme was selected
+  bool _isSubmitting = false; // Track submission state
 
   // Controllers for E-Hundi form
   final TextEditingController _ehundiFullNameController =
@@ -42,7 +43,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   final TextEditingController _ehundiAddressController =
       TextEditingController();
   final TextEditingController _ehundiCityController = TextEditingController();
-  final TextEditingController _ehundiDonationAmountController =
+  TextEditingController _ehundiDonationAmountController =
       TextEditingController();
   final TextEditingController _ehundiSankalpamController =
       TextEditingController();
@@ -330,9 +331,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
         final isDark = theme.brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? theme.scaffoldBackgroundColor
-              : const Color(0xFFFFE7B3),
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: TranslatedText(
               'Donation & Prasadam',
@@ -600,7 +599,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                 width: double.infinity,
                 height: 54.h,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showDonationInfoBottomSheet('E-Hundi'),
+                  onPressed: () => _showDonationInfoBottomSheet(
+                    'E-Hundi',
+                    amount: int.tryParse(_amountController.text) ?? 0,
+                  ),
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(
                     'Donate Now',
@@ -733,7 +735,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                 width: double.infinity,
                 height: 54.h,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showDonationInfoBottomSheet('Annaprasadam'),
+                  onPressed: () => _showDonationInfoBottomSheet(
+                    'Annaprasadam',
+                    amount: int.tryParse(_amountController.text) ?? 0,
+                  ),
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(
                     'Donate Now',
@@ -797,6 +802,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
           ],
           theme,
           isDark,
+          'Donate'
         ),
       ],
     );
@@ -839,6 +845,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
           ],
           theme,
           isDark,
+          'Order Now'
         ),
       ],
     );
@@ -994,7 +1001,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                         }
                         return;
                       } else {
-                        _showDonationInfoBottomSheet(title);
+                        _showDonationInfoBottomSheet(title, amount: amt);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -1019,7 +1026,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
     );
   }
 
-  Widget _simpleCardSection(List<String> items, ThemeData theme, bool isDark) {
+  Widget _simpleCardSection(List<String> items, ThemeData theme, bool isDark, String buttonText) {
     return Wrap(
       spacing: 16.w,
       runSpacing: 16.h,
@@ -1052,16 +1059,40 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
               ),
               SizedBox(height: 12.h),
               ElevatedButton(
-                onPressed: () {
-                  _setSelectedSchemeType(schemeType);
-                  _showDonationInfoBottomSheet(_currentSection, schemeType);
+                onPressed: () async {
+                  final token = await AuthUtils.getUserToken();
+                  if (token == null) {
+                    if (mounted) {
+                      AppSnackbar.show(
+                        context,
+                        message: 'Please login to continue for donation',
+                        type: SnackbarType.warning,
+                        actionLabel: 'Login',
+                        onActionPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => AuthScreen()),
+                          );
+                        },
+                      );
+                    }
+                    return;
+                  } else {
+                    _setSelectedSchemeType(schemeType);
+                    _showDonationInfoBottomSheet(
+                      _currentSection,
+                      specificSchemeType: schemeType,
+                    );
+                  }
+                  // _setSelectedSchemeType(schemeType);
+                  // _showDonationInfoBottomSheet(_currentSection, specificSchemeType: schemeType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.secondary,
                   foregroundColor: Colors.white,
                 ),
                 child: TranslatedText(
-                  'Order Now',
+                  buttonText,
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontFamily: 'aBeeZee',
@@ -1094,9 +1125,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
 
   // Add this method to show the donation info bottom sheet
   void _showDonationInfoBottomSheet(
-    dynamic type, [
+    dynamic type, {
     String? specificSchemeType = '',
-  ]) async {
+    int? amount,
+  }) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled:
@@ -1117,7 +1149,11 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
               color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
             ),
-            child: _buildDonationForm(type, specificSchemeType),
+            child: _buildDonationForm(
+              type,
+              specificSchemeType: specificSchemeType,
+              amount: amount,
+            ),
           ),
         );
       },
@@ -1125,7 +1161,11 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   }
 
   // Build the form based on current section
-  Widget _buildDonationForm(dynamic type, [String? specificSchemeType]) {
+  Widget _buildDonationForm(
+    dynamic type, {
+    String? specificSchemeType,
+    int? amount,
+  }) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
       child: Column(
@@ -1157,13 +1197,17 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
           SizedBox(height: 16.h),
 
           // Form based on section
-          _buildFormBasedOnSection(type, specificSchemeType),
+          _buildFormBasedOnSection(type, specificSchemeType, amount),
         ],
       ),
     );
   }
 
-  Widget _buildFormBasedOnSection(dynamic type, [String? specificSchemeType]) {
+  Widget _buildFormBasedOnSection(
+    dynamic type, [
+    String? specificSchemeType,
+    int? amount,
+  ]) {
     if (_currentSection == DonationSection.specificScheme &&
         specificSchemeType != null &&
         specificSchemeType.isNotEmpty) {
@@ -1172,20 +1216,23 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
 
     switch (_currentSection) {
       case DonationSection.eHundi:
-        return _buildEHundiForm(type);
+        return _buildEHundiForm(type, amount);
       case DonationSection.nityaAnna:
-        return _buildNityaAnnaForm(type);
+        return _buildNityaAnnaForm(type, amount);
       case DonationSection.specificScheme:
         return _buildSpecificSchemeForm();
       case DonationSection.publications:
-        return _buildPublicationsForm();
+        return _buildPublicationsForm(amount: amount);
       case DonationSection.institutional:
-        return _buildInstitutionalForm();
+        return _buildInstitutionalForm(amount: amount);
     }
   }
 
   // E-Hundi Form
-  Widget _buildEHundiForm(dynamic type) {
+  Widget _buildEHundiForm(dynamic type, int? amount) {
+    if (amount != null && amount > 0) {
+      _ehundiDonationAmountController.text = amount.toString();
+    }
     return Form(
       child: Column(
         children: [
@@ -1269,7 +1316,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   }
 
   // Nitya Anna Form
-  Widget _buildNityaAnnaForm(dynamic type) {
+  Widget _buildNityaAnnaForm(dynamic type, [int? amount]) {
+    if (amount != null && amount > 0) {
+      _nityaAnnaDonationAmountController.text = amount.toString();
+    }
     return Form(
       child: Column(
         children: [
@@ -1779,7 +1829,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   }
 
   // Publications Form
-  Widget _buildPublicationsForm() {
+  Widget _buildPublicationsForm({int? amount}) {
+    if (amount != null && amount > 0) {
+      _pubDonationAmountController.text = amount.toString();
+    }
     return Form(
       child: Column(
         children: [
@@ -1841,7 +1894,10 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   }
 
   // Institutional Form
-  Widget _buildInstitutionalForm() {
+  Widget _buildInstitutionalForm({int? amount}) {
+    if (amount != null && amount > 0) {
+      _instDonationAmountController.text = amount.toString();
+    }
     return Form(
       child: Column(
         children: [
@@ -2041,124 +2097,155 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
       width: double.infinity,
       height: 50.h,
       child: ElevatedButton(
-        onPressed: () async {
-          // Validate form
-          if (donationAmountController?.text.isEmpty ?? true) {
-            AppSnackbar.error(context, "Please enter donation amount");
-            return;
-          }
+        onPressed: _isSubmitting
+            ? null
+            : () async {
+                // Validate form
+                if (donationAmountController?.text.isEmpty ?? true) {
+                  AppSnackbar.error(context, "Please enter donation amount");
+                  return;
+                }
 
-          if (fullNameController != null && fullNameController.text.isEmpty) {
-            AppSnackbar.error(context, "Please enter full name");
-            return;
-          }
+                if (fullNameController != null &&
+                    fullNameController.text.isEmpty) {
+                  AppSnackbar.error(context, "Please enter full name");
+                  return;
+                }
 
-          if (mobileController != null && mobileController.text.isEmpty) {
-            AppSnackbar.error(context, "Please enter mobile number");
-            return;
-          }
+                if (mobileController != null && mobileController.text.isEmpty) {
+                  AppSnackbar.error(context, "Please enter mobile number");
+                  return;
+                }
 
-          if (emailController != null && emailController.text.isEmpty) {
-            AppSnackbar.error(context, "Please enter email ID");
-            return;
-          }
+                if (emailController != null && emailController.text.isEmpty) {
+                  AppSnackbar.error(context, "Please enter email ID");
+                  return;
+                }
 
-          // Prepare data for API call
-          final donationData = {
-            'donationType': _getDonationType(schemeType: schemeType),
-            'sevaType': typeController?.text,
-            'fullName':
-                fullNameController?.text ??
-                organizationNameController?.text ??
-                '',
-            'gotra': gotraController?.text,
-            'nakshatram': nakshatramController?.text,
-            'mobile':
-                mobileController?.text ?? contactPersonController?.text ?? '',
-            'email': emailController?.text,
-            'address': addressController?.text,
-            'cityStatePin': cityController?.text,
-            'preferredDate': preferredDateController?.text,
-            'sessionType': sessionTypeController?.text,
-            'personsCount':
-                int.tryParse(personsCountController?.text ?? '0') ?? 0,
-            'occasion': occasionController?.text,
-            'sankalpam': sankalpamController?.text,
-            'quantity': int.tryParse(quantityController?.text ?? '0') ?? 0,
-            'amount':
-                double.tryParse(donationAmountController?.text ?? '0') ?? 0.0,
-          };
+                // Set loading state
+                setState(() {
+                  _isSubmitting = true;
+                });
 
-          try {
-            // Call the API to submit donation
-            final db = DBFunctions();
-            final token = await AuthUtils.getUserToken();
-            if (token == null) {
-              if (mounted) {
-                AppSnackbar.show(
-                  context,
-                  message: 'Please login to continue for donation',
-                  type: SnackbarType.warning,
-                  actionLabel: 'Login',
-                  onActionPressed: () {
-                    Navigator.push(
+                try {
+                  // Call the API to submit donation
+                  final db = DBFunctions();
+                  final token = await AuthUtils.getUserToken() ?? '';
+
+                  // Prepare data for API call
+                  final donationData = {
+                    'donationType': _getDonationType(schemeType: schemeType),
+                    'sevaType': typeController?.text,
+                    'fullName':
+                        fullNameController?.text ??
+                        organizationNameController?.text ??
+                        '',
+                    'gotra': gotraController?.text,
+                    'nakshatram': nakshatramController?.text,
+                    'mobile':
+                        mobileController?.text ??
+                        contactPersonController?.text ??
+                        '',
+                    'email': emailController?.text,
+                    'address': addressController?.text,
+                    'cityStatePin': cityController?.text,
+                    'preferredDate': preferredDateController?.text,
+                    'sessionType': sessionTypeController?.text,
+                    'personsCount':
+                        int.tryParse(personsCountController?.text ?? '0') ?? 0,
+                    'occasion': occasionController?.text,
+                    'sankalpam': sankalpamController?.text,
+                    'quantity':
+                        int.tryParse(quantityController?.text ?? '0') ?? 0,
+                    'amount':
+                        double.tryParse(
+                          donationAmountController?.text ?? '0',
+                        ) ??
+                        0.0,
+                  };
+
+                  final result = await db.submitDonation(
+                    token: token,
+                    donationType: donationData['donationType'] as String,
+                    sevaType: donationData['sevaType'] as String?,
+                    fullName: donationData['fullName'] as String,
+                    gotra: donationData['gotra'] as String?,
+                    nakshatram: donationData['nakshatram'] as String?,
+                    mobile: donationData['mobile'] as String,
+                    email: donationData['email'] as String?,
+                    address: donationData['address'] as String?,
+                    cityStatePin: donationData['cityStatePin'] as String?,
+                    preferredDate: donationData['preferredDate'] as String?,
+                    sessionType: donationData['sessionType'] as String?,
+                    personsCount: donationData['personsCount'] as int,
+                    occasion: donationData['occasion'] as String?,
+                    sankalpam: donationData['sankalpam'] as String?,
+                    amount: donationData['amount'] as double,
+                  );
+
+                  if (mounted) {
+                    // Show success message
+                    AppSnackbar.success(
                       context,
-                      MaterialPageRoute(builder: (_) => AuthScreen()),
+                      result['message'] ?? 'Donation submitted successfully!',
                     );
-                  },
-                );
-              }
-              return;
-            }
-            // Using an empty token for now, but in a real scenario,
-            // you'd get the user token if logged in
-            final result = await db.submitDonation(
-              token: token!,
-              donationType: donationData['donationType'] as String,
-              sevaType: donationData['sevaType'] as String?,
-              fullName: donationData['fullName'] as String,
-              gotra: donationData['gotra'] as String?,
-              nakshatram: donationData['nakshatram'] as String?,
-              mobile: donationData['mobile'] as String,
-              email: donationData['email'] as String?,
-              address: donationData['address'] as String?,
-              cityStatePin: donationData['cityStatePin'] as String?,
-              preferredDate: donationData['preferredDate'] as String?,
-              sessionType: donationData['sessionType'] as String?,
-              personsCount: donationData['personsCount'] as int,
-              occasion: donationData['occasion'] as String?,
-              sankalpam: donationData['sankalpam'] as String?,
-              amount: donationData['amount'] as double,
-            );
 
-            // Show success message
-            AppSnackbar.success(
-              context,
-              result['message'] ?? 'Donation submitted successfully!',
-            );
-
-            // Close the bottom sheet
-            Navigator.pop(context);
-          } catch (e) {
-            // Show error message
-            AppSnackbar.error(
-              context,
-              'Failed to submit donation: ${e.toString()}',
-            );
-          }
-        },
+                    // Close the bottom sheet
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    // Show error message
+                    AppSnackbar.error(
+                      context,
+                      'Failed to submit donation: ${e.toString()}',
+                    );
+                  }
+                } finally {
+                  // Reset loading state
+                  if (mounted) {
+                    setState(() {
+                      _isSubmitting = false;
+                    });
+                  }
+                }
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.secondary,
           foregroundColor: Colors.white,
+          elevation: _isSubmitting ? 0 : 2,
         ),
-        child: TranslatedText(
-          "Save & Continue »",
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: _isSubmitting
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  TranslatedText(
+                    "Submitting...",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+            : TranslatedText(
+                "Save & Continue »",
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }

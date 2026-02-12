@@ -1,7 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
+import 'package:mslgd/widgets/common/youtube_video_player.dart';
 import 'package:mslgd/widgets/translated_text.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../services/db_functions.dart';
 
@@ -23,7 +25,7 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
   final List<String> imageCategories = [
     'festivals',
     'seva',
-    'temple_views',
+    'views',
     'devotees',
   ];
 
@@ -35,10 +37,10 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
   ];
 
   final List<String> videoCategories = [
-    'festivals_celebrations',
-    'sevas_poojas',
-    'temple_history_spiritual_discourses',
-    'devotee_services_activities',
+    'festivals',
+    'seva',
+    'views',
+    'devotees',
   ];
 
   final List<String> videoCategoryLabels = [
@@ -198,6 +200,9 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
         );
       }
 
+      log('Fetched ${widget.type}: $fetched');
+      print('Fetched ${widget.type}: $fetched');
+
       setState(() {
         mediaItems = fetched;
         isLoading = false;
@@ -212,10 +217,6 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildMediaContent();
-  }
-
-  Widget _buildMediaContent() {
     if (isLoading) {
       return Center(
         child: CircularProgressIndicator(
@@ -243,7 +244,6 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
               'No ${widget.type} found in this category',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.withValues(alpha: 0.6),
               ),
               textAlign: TextAlign.center,
             ),
@@ -337,7 +337,13 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
               final url = video['embed_url'] ?? video['video_url'];
               if (url != null) {
                 try {
-                  await launchUrl(Uri.parse(url));
+                  // await launchUrl(Uri.parse(url));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => VideoPlayerScreen(url: url, isYoutube: true,),
+                    ),
+                  );
                 } catch (e) {
                   if (mounted) {
                     AppSnackbar.error(context, 'Could not open video: $e');
@@ -414,7 +420,6 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF043342), // primaryBlue
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -425,9 +430,6 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                     video['description'],
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(
-                        0xFF043342,
-                      ).withValues(alpha: 0.7), // primaryBlue with opacity
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -492,7 +494,6 @@ class FullScreenImageViewer extends StatelessWidget {
                   SizedBox(height: 16),
                   TranslatedText(
                     'Failed to load image',
-                    style: TextStyle(color: Colors.white54),
                   ),
                 ],
               ),

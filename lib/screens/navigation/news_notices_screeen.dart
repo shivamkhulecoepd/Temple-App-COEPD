@@ -30,7 +30,7 @@ class NewsNoticesScreeen extends StatefulWidget {
 
 class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
   late NewsNoticesSection _currentSection;
-  Map<String, dynamic>? latestNews;
+  List<dynamic>? latestNews;
   List<dynamic> noticesAnnouncements = [];
   bool _isLoading = true;
 
@@ -43,14 +43,18 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
         DBFunctions().fetchLatestBanner(),
         DBFunctions().fetchNotices(),
       ], eagerError: true);
+      log("fetchLatestBanner :- ${results[0]}");
 
       if (!mounted) return;
 
       setState(() {
-        latestNews = results[0] as Map<String, dynamic>?;
-        log("Latest news fetched: $latestNews");
+        // Handle the new API response format - now returns a list of banners
+        List<dynamic>? bannerList = results[0];
+        // Take the first banner if available, otherwise null
+        latestNews = bannerList;
+        // log("Latest news fetched: $latestNews");
         noticesAnnouncements = results[1] as List<dynamic>;
-        log("Notices fetched: ${noticesAnnouncements.length} items");
+        // log("Notices fetched: ${noticesAnnouncements.length} items");
         _isLoading = false;
       });
       log('Data refresh completed successfully');
@@ -85,9 +89,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
         final isDark = theme.brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? theme.scaffoldBackgroundColor
-              : const Color(0xFFFFE7B3),
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: TranslatedText(
               'News and Notices',
@@ -126,7 +128,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
               ),
               // Main Content
               Padding(
-                padding: EdgeInsets.all(16.w),
+                padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.h),
                 child: _buildSection(theme, isDark),
               ),
             ],
@@ -262,52 +264,63 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
       onRefresh: _fetchData,
       color: theme.colorScheme.secondary,
       backgroundColor: theme.colorScheme.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TranslatedText(
-              'Latest & News',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : null,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
-            ),
-            SizedBox(height: 6.h),
-            TranslatedText(
-              'Daily updates and announcements from the temple',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontFamily: 'aBeeZee',
-                color: isDark ? Colors.grey.shade300 : null,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            _isLoading
-                ? _buildLatestNewsShimmer(theme, isDark)
-                : latestNews != null
-                ? _buildLatestNewsCard(context, theme: theme, isDark: isDark)
-                : Container(
-                    padding: EdgeInsets.all(20.w),
-                    decoration: _cardDecoration(theme, isDark),
-                    child: Center(
-                      child: TranslatedText(
-                        'No latest news available',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 16.sp,
-                          color: isDark ? Colors.grey.shade300 : null,
-                        ),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TranslatedText(
+                      'Latest & News',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : null,
                       ),
                     ),
-                  ),
-            // Add extra padding at the bottom to ensure scrollable content
-            SizedBox(height: 200.h),
-          ],
-        ),
+                    SizedBox(height: 6.h),
+                    TranslatedText(
+                      'Daily updates and announcements from the temple',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontFamily: 'aBeeZee',
+                        color: isDark ? Colors.grey.shade300 : null,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    _isLoading
+                        ? _buildLatestNewsShimmer(theme, isDark)
+                        : latestNews != null && latestNews!.isNotEmpty
+                        ? _buildLatestNewsCard(context, theme: theme, isDark: isDark)
+                        : Container(
+                            padding: EdgeInsets.all(20.w),
+                            decoration: _cardDecoration(theme, isDark),
+                            child: Center(
+                              child: TranslatedText(
+                                'No latest news available',
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 16.sp,
+                                  color: isDark ? Colors.grey.shade300 : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                    // Add flexible space to ensure scrollable content
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -317,90 +330,103 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
       onRefresh: _fetchData,
       color: theme.colorScheme.secondary,
       backgroundColor: theme.colorScheme.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TranslatedText(
-              'Notices & Announcements',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : null,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
-            ),
-            SizedBox(height: 6.h),
-            TranslatedText(
-              'Official announcement channel for all updates and notices',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontFamily: 'aBeeZee',
-                color: isDark ? Colors.grey.shade300 : null,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            _isLoading
-                ? _buildNoticesShimmer(theme, isDark)
-                : noticesAnnouncements.isNotEmpty
-                ? _noticesAnnouncementsCardSection(
-                    noticesAnnouncements,
-                    theme,
-                    isDark,
-                  )
-                : Container(
-                    padding: EdgeInsets.all(20.w),
-                    decoration: _cardDecoration(theme, isDark),
-                    child: Center(
-                      child: TranslatedText(
-                        'No notices available',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 16.sp,
-                          color: isDark ? Colors.grey.shade300 : null,
-                        ),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TranslatedText(
+                      'Notices & Announcements',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : null,
                       ),
                     ),
-                  ),
-            // Add extra padding at the bottom to ensure scrollable content
-            SizedBox(height: 200.h),
-          ],
-        ),
+                    SizedBox(height: 6.h),
+                    TranslatedText(
+                      'Official announcement channel for all updates and notices',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontFamily: 'aBeeZee',
+                        color: isDark ? Colors.grey.shade300 : null,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    _isLoading
+                        ? _buildNoticesShimmer(theme, isDark)
+                        : noticesAnnouncements.isNotEmpty
+                        ? _noticesAnnouncementsCardSection(
+                            noticesAnnouncements,
+                            theme,
+                            isDark,
+                          )
+                        : Container(
+                            padding: EdgeInsets.all(20.w),
+                            decoration: _cardDecoration(theme, isDark),
+                            child: Center(
+                              child: TranslatedText(
+                                'No notices available',
+                                style: TextStyle(
+                                  fontFamily: 'aBeeZee',
+                                  fontSize: 16.sp,
+                                  color: isDark ? Colors.grey.shade300 : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                    // Add flexible space to ensure scrollable content
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _circularsDownloadsSection(ThemeData theme, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Circulars & Downloads',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TranslatedText(
+            'Circulars & Downloads',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : null,
+            ),
           ),
-        ),
-        SizedBox(height: 6.h),
-        TranslatedText(
-          'Official circulars and notification for download',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
+          SizedBox(height: 6.h),
+          TranslatedText(
+            'Official circulars and notification for download',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontFamily: 'aBeeZee',
+              color: isDark ? Colors.grey.shade300 : null,
+            ),
           ),
-        ),
-        SizedBox(height: 20.h),
-        _circularsDownloadsCard(theme, isDark),
-        SizedBox(height: 20.h),
-        ElevatedButton(
-          onPressed: () {},
-          child: TranslatedText('View full list'),
-        ),
-      ],
+          SizedBox(height: 20.h),
+          _circularsDownloadsCard(theme, isDark),
+          SizedBox(height: 20.h),
+          ElevatedButton(
+            onPressed: () {},
+            child: TranslatedText('View full list'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -426,89 +452,91 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
           ),
         );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TranslatedText(
-          'Press Releases',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : null,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TranslatedText(
+            'Press Releases',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 22.sp,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : null,
+            ),
           ),
-        ),
-        SizedBox(height: 6.h),
-        TranslatedText(
-          'Latest press releases from temple committee.',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontFamily: 'aBeeZee',
-            color: isDark ? Colors.grey.shade300 : null,
+          SizedBox(height: 6.h),
+          TranslatedText(
+            'Latest press releases from temple committee.',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontFamily: 'aBeeZee',
+              color: isDark ? Colors.grey.shade300 : null,
+            ),
           ),
-        ),
-        SizedBox(height: 20.h),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            spacing: 10.w,
-            children: [
-              DropdownMenu<String>(
-                initialSelection: yearsList.first,
-                onSelected: (String? value) {
-                  // This is called when the user selects an item.
-                  setState(() {});
-                },
-                dropdownMenuEntries: yearsListMenuEntries,
-              ),
-              DropdownMenu<String>(
-                initialSelection: topicsList.first,
-                onSelected: (String? value) {
-                  // This is called when the user selects an item.
-                  setState(() {});
-                },
-                dropdownMenuEntries: topicsListMenuEntries,
-              ),
-              DropdownMenu<String>(
-                initialSelection: 'Newest',
-                showTrailingIcon: false,
-                dropdownMenuEntries: const <DropdownMenuEntry<String>>[
-                  DropdownMenuEntry<String>(value: 'Newest', label: 'Newest'),
-                ],
-              ),
-            ],
+          SizedBox(height: 20.h),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              spacing: 10.w,
+              children: [
+                DropdownMenu<String>(
+                  initialSelection: yearsList.first,
+                  onSelected: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {});
+                  },
+                  dropdownMenuEntries: yearsListMenuEntries,
+                ),
+                DropdownMenu<String>(
+                  initialSelection: topicsList.first,
+                  onSelected: (String? value) {
+                    // This is called when the user selects an item.
+                    setState(() {});
+                  },
+                  dropdownMenuEntries: topicsListMenuEntries,
+                ),
+                DropdownMenu<String>(
+                  initialSelection: 'Newest',
+                  showTrailingIcon: false,
+                  dropdownMenuEntries: const <DropdownMenuEntry<String>>[
+                    DropdownMenuEntry<String>(value: 'Newest', label: 'Newest'),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        _isLoading
-            ? _buildPressReleasesShimmer(theme, isDark)
-            : Column(
-                children: [
-                  _pressReleasesCard(
-                    theme,
-                    title: "Bhooodanam Seva is now live..",
-                    description:
-                        "Bhooodanam Seva is now live. Devotees who wish to participate may register through the temple office or the designated online portal. Contributions support the preparation and distribution of daily prasadam.",
-                    imageUrl:
-                        'https://marakatasrilaxmiganapathi.org/assets/img/press1.jpg',
-                    onReadMorePressed: () {},
-                    isDark: isDark,
-                  ),
-                  _pressReleasesCard(
-                    theme,
-                    title: "Visheshesh Swamy Archana Schedule",
-                    description:
-                        "The Visheshesh Swamy Archana will be conducted monthly as part of the temple's special puja offerings. Devotees are requested to note the schedule:\n"
-                        "• Date: 15th of every month\n"
-                        "• Morning Session",
-                    imageUrl:
-                        'https://marakatasrilaxmiganapathi.org/assets/img/press2.jpg',
-                    buttonText: 'Know More',
-                    onReadMorePressed: () {},
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-      ],
+          _isLoading
+              ? _buildPressReleasesShimmer(theme, isDark)
+              : Column(
+                  children: [
+                    _pressReleasesCard(
+                      theme,
+                      title: "Bhooodanam Seva is now live..",
+                      description:
+                          "Bhooodanam Seva is now live. Devotees who wish to participate may register through the temple office or the designated online portal. Contributions support the preparation and distribution of daily prasadam.",
+                      imageUrl:
+                          'https://marakatasrilaxmiganapathi.org/assets/img/press1.jpg',
+                      onReadMorePressed: () {},
+                      isDark: isDark,
+                    ),
+                    _pressReleasesCard(
+                      theme,
+                      title: "Visheshesh Swamy Archana Schedule",
+                      description:
+                          "The Visheshesh Swamy Archana will be conducted monthly as part of the temple's special puja offerings. Devotees are requested to note the schedule:\n"
+                          "• Date: 15th of every month\n"
+                          "• Morning Session",
+                      imageUrl:
+                          'https://marakatasrilaxmiganapathi.org/assets/img/press2.jpg',
+                      buttonText: 'Know More',
+                      onReadMorePressed: () {},
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+        ],
+      ),
     );
   }
 
@@ -520,7 +548,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
     required bool isDark,
   }) {
     // Additional safety check
-    if (latestNews == null) {
+    if (latestNews == null || latestNews!.isEmpty) {
       return Container(
         padding: EdgeInsets.all(20.w),
         decoration: _cardDecoration(theme, isDark),
@@ -537,76 +565,90 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
       );
     }
 
-    return Container(
-      decoration: _cardDecoration(theme, isDark),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Large image header
-            SizedBox(
-              height: 200.h,
-              child: Image.network(
-                latestNews!['banner_image'] ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        size: 60.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(child: CircularProgressIndicator()),
-                  );
-                },
-              ),
-            ),
+    // Create separate individual cards for each banner
+    return Column(
+      children: List.generate(latestNews!.length, (index) {
+        Map<String, dynamic> banner = latestNews![index];
+        return Container(
+          margin: EdgeInsets.only(
+            bottom: 16.h,
+          ),
+          decoration: _cardDecoration(theme, isDark),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Large image header
+                AspectRatio(
+                  aspectRatio: 16 / 9, // Maintain aspect ratio for images
+                  child: Image.network(
+                    banner['banner_image'] ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            size: 60.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                  ),
+                ),
 
-            Padding(
-              padding: EdgeInsets.all(12.r),
-              child: Column(
-                spacing: 6.h,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TranslatedText(
-                    latestNews!['heading'] ?? 'No title',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : null,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                // Content area
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  color: Theme.of(context).cardColor, // Ensure consistent background color
+                  child: Column(
+                    spacing: 6.h,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TranslatedText(
+                        banner['heading'] ?? 'No title',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      TranslatedText(
+                        '${banner['event_date'] ?? ''}  ⦿  ${banner['event_time'] ?? ''}',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      TranslatedText(
+                        banner['content'] ?? 'No content available',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 14.sp,
+                          height: 1.4,
+                          color: isDark ? Colors.grey.shade300 : null,
+                        ),
+                      ),
+                    ],
                   ),
-                  TranslatedText(
-                    '${latestNews?['event_date'] ?? ''}  ⦿  ${latestNews?['event_time'] ?? ''}',
-                  ),
-                  TranslatedText(
-                    latestNews!['content'] ?? 'No content available',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 15.sp,
-                      height: 1.4,
-                      color: isDark ? Colors.grey.shade300 : null,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -687,9 +729,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark
-            ? theme.cardColor
-            : const Color.fromARGB(255, 207, 231, 250).withValues(alpha: 0.7),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
@@ -794,19 +834,8 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
     return Container(
       margin: EdgeInsets.only(top: 16.h),
       decoration: BoxDecoration(
-        color: isDark
-            ? theme.cardColor
-            : const Color.fromARGB(255, 202, 229, 250).withValues(alpha: 0.75),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(borderRadius.r),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.35)
-                : Colors.black.withValues(alpha: 0.18),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(16.w),
@@ -852,7 +881,10 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? Colors.blueGrey[700]
-                              : const Color.fromARGB(255, 33, 150, 243),
+                              : theme.primaryColor,
+                          // color: isDark
+                          //     ? Colors.blueGrey[700]
+                          //     : const Color.fromARGB(255, 33, 150, 243),
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: TranslatedText(

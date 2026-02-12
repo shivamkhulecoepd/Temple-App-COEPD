@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
-import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_screen.dart';
 import 'package:mslgd/screens/navigation/festivals_screen.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
@@ -86,9 +86,7 @@ class _GuideScreenState extends State<GuideScreen> {
         final isDark = theme.brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? theme.scaffoldBackgroundColor
-              : const Color(0xFFFFE7B3),
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: TranslatedText(
               'Guide',
@@ -317,7 +315,10 @@ class _GuideScreenState extends State<GuideScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10.r),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10.r,
+          ),
         ],
         borderRadius: BorderRadius.circular(12.r),
         border: (isBorder && !isDark)
@@ -589,71 +590,92 @@ class _GuideScreenState extends State<GuideScreen> {
     ThemeData theme,
     bool isDark,
   ) {
-    return Wrap(
-      spacing: 16.w,
-      runSpacing: 16.h,
-      children: items.map((item) {
-        return Container(
-          width: (MediaQuery.of(context).size.width - 48) / 2,
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-          decoration: _cardDecoration(theme, isDark),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                height: 80.h,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Image.network(
-                    item['image'],
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            size: 30.sp,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: theme.colorScheme.secondary,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+    List<Widget> rows = [];
+
+    for (int i = 0; i < items.length; i += 2) {
+      rows.add(
+        Row(
+          children: [
+            Expanded(child: _buildAmenityCard(items[i], theme, isDark)),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: i + 1 < items.length
+                  ? _buildAmenityCard(items[i + 1], theme, isDark)
+                  : SizedBox(), // empty space if odd count
+            ),
+          ],
+        ),
+      );
+
+      rows.add(SizedBox(height: 16.h));
+    }
+
+    return Column(children: rows);
+  }
+
+  Widget _buildAmenityCard(
+    Map<String, dynamic> item,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+      decoration: _cardDecoration(theme, isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 80.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.r),
+              child: Image.network(
+                item['image'],
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(
+                        Icons.image_not_supported,
+                        size: 30.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.secondary,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  );
+                },
               ),
-              SizedBox(height: 8.h),
-              TranslatedText(
-                item['title'],
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16.sp,
-                  color: isDark ? Colors.white : null,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
-        );
-      }).toList(),
+          SizedBox(height: 8.h),
+          TranslatedText(
+            item['title'],
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontWeight: FontWeight.w600,
+              fontSize: 16.sp,
+              color: isDark ? Colors.white : null,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -720,7 +742,11 @@ class _GuideScreenState extends State<GuideScreen> {
                       Expanded(
                         child: TranslatedText(
                           item,
-                          style: TextStyle(fontFamily: 'aBeeZee', height: 1.4, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            height: 1.4,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -757,7 +783,10 @@ class _GuideScreenState extends State<GuideScreen> {
           SizedBox(height: 10.h),
           ElevatedButton(
             onPressed: () {
-              AppSnackbar.show(context, message: 'View on Map for :- ${data['title']}',);
+              AppSnackbar.show(
+                context,
+                message: 'View on Map for :- ${data['title']}',
+              );
             },
             child: TranslatedText('View on Map'),
           ),
@@ -799,12 +828,20 @@ class _GuideScreenState extends State<GuideScreen> {
           SizedBox(height: 10.h),
           ElevatedButton(
             onPressed: () {
-              AppSnackbar.show(context, message: 'View on Map for :- ${data['title']}',);
+              AppSnackbar.show(
+                context,
+                message: 'View on Map for :- ${data['title']}',
+              );
             },
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.all(10.r)
+            style: ElevatedButton.styleFrom(padding: EdgeInsets.all(10.r)),
+            child: TranslatedText(
+              'Call',
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            child: TranslatedText('Call', style: TextStyle(fontFamily: 'aBeeZee',fontSize: 16.sp, fontWeight: FontWeight.bold),),
           ),
         ],
       ),

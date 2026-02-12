@@ -9,7 +9,7 @@ import 'package:mslgd/screens/authentication/auth_screen.dart';
 import 'package:mslgd/screens/dashboard/donations_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/accommodation_screen.dart';
-import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_screen.dart';
 import 'package:mslgd/screens/user/booking_history_screen.dart';
 import 'package:mslgd/screens/user/my_donations_screen.dart';
 import 'package:mslgd/screens/user/user_profile_screen.dart';

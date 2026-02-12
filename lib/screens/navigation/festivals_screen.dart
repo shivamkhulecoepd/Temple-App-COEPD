@@ -32,6 +32,60 @@ class _FestivalScreenState extends State<FestivalsScreen> {
   Map<String, dynamic>? _liveStreamData;
   bool _isLoading = true;
 
+  // Daily rituals data
+  final List<Map<String, String>> _dailyRituals = [
+    {
+      'ritual': 'Suprabhata & Ashtottara Seva',
+      'time': '05:00 AM',
+      'notes': 'Daily (Sun & Sankashti). Benefits: Education, employment, health, wealth, success.'
+    },
+    {
+      'ritual': 'Vastralankarana & 32 Dravya Abhishekam',
+      'time': '05:00 – 05:30 AM',
+      'notes': 'Divine grace, longevity, prosperity, wealth gain.'
+    },
+    {
+      'ritual': 'Chaturavritti Tarpanam',
+      'time': '07:00 AM',
+      'notes': 'Protection, disease relief, career & political growth, prosperity.'
+    },
+    {
+      'ritual': 'Sahasranama Archana',
+      'time': '07:00 – 08:00 AM',
+      'notes': 'Mon, Tue, Thu, Fri, Chaturthi & Sat. Removes poverty, debts, improves growth.'
+    },
+    {
+      'ritual': 'Durva Yugma Puja',
+      'time': '08:00 – 09:00 AM',
+      'notes': 'Mental peace, job stability, business & wealth growth.'
+    },
+    {
+      'ritual': 'Homam Sevas',
+      'time': '08:00 AM',
+      'notes': 'Includes Ganapati Atharvashirsha, Lakshmi Ganapati Mantra, Sri Sukta. Benefits: Career, marriage, progeny, prosperity.'
+    },
+    {
+      'ritual': 'Friday Special Sevas',
+      'time': '10:00 AM & 11:00 AM',
+      'notes': 'Suvarna Pushparchana & Odi Gantla Seva. Lakshmi blessings & prosperity.'
+    },
+    {
+      'ritual': 'Navagraha Abhishekam (Saturday)',
+      'time': '05:00 AM',
+      'notes': 'Panchamrita, Shani Taila, Sesame donation & Homam. Relieves planetary doshas.'
+    },
+    {
+      'ritual': 'Durva Puja (Noon)',
+      'time': '12:00 PM',
+      'notes': 'Daily special puja for peace, political & career growth.'
+    },
+    {
+      'ritual': 'Rajopachara Puja & Donor Blessings',
+      'time': 'Select Days',
+      'notes': 'Darbar Seva & Vedic blessings for Annadanam donors. Removes financial & vastu issues.'
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -328,7 +382,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
         ),
         SizedBox(height: 8.h),
         TranslatedText(
-          'Major festivals are celebrated at the temple with rituals, cultural programmes, and sevas.',
+          'Major festivals are celebrated with special rituals, alankarams, and cultural programs.',
           style: TextStyle(
             fontSize: 14.sp,
             fontFamily: 'aBeeZee',
@@ -343,21 +397,27 @@ class _FestivalScreenState extends State<FestivalsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _festivalCard(
-              'Temple Calendar 2026',
-              'Grand celebration with special sevas and homams',
-              '09-02-2026',
+              'Marakata Lakshmi Ganapati – Devi Sharannavarathrulu',
+              "In every Manvantara, Kalpa, and Yuga, whenever negative forces grow and trouble the worlds, the Supreme Divine Power manifests. The great Ganapati’s divine Shakti appears in feminine form as the Goddess — manifesting as Mahakali, Mahalakshmi, and Mahasaraswati — and destroys powerful demons such as Madhu–Kaitabha, Mahishasura, Shumbha-Nishumbha, Chanda–Munda, Durgamasura, and others.\n\nDuring Sharannavarathri, the Goddess is worshipped in multiple Lakshmi forms including Adi Lakshmi, Dhanya Lakshmi, Dhairya Lakshmi, Gaja Lakshmi, Santana Lakshmi, Vijaya Lakshmi, Vidya Lakshmi, Dhana Lakshmi, and Marakata Lakshmi.\n\nBy worshipping these forms with devotion, devotees obtain Ashta Aishwarya, health, removal of enemy troubles, and success in all directions.",
+              'Ashwayuja Shukla Padyami – Dashami',
               theme,
               isDark,
-              'View Details',
               'Register',
             ),
             _festivalCard(
-              'Navratri',
-              'Nine days of cultural programs and worship',
-              '10-09-2026',
+              'Marakata Lakshmi Ganapati Swamy – Brahmotsavam',
+              'Marakata Lakshmi Ganapati Swamy is described as the embodiment of the primordial Pranava (Om), the supreme leader of the three worlds, and the all-pervading divine presence in the universe.\n\nEvery year, from Chaitra Shuddha Vidiya to Panchami, the grand Brahmotsavam festival is celebrated with Rathotsavam, Homams, Maha Poornahuti, Shanti Kalyanam, and sacred rituals.\n\nParticipation is believed to remove Navagraha doshas, reduce afflictions, remove obstacles, grant wealth, prosperity,success, and overall auspiciousness.',
+              'Chaitra Shuddha Vidiya – Panchami',
               theme,
               isDark,
-              'View Details',
+              'Register',
+            ),
+            _festivalCard(
+              'Marakata Lakshmi Ganapati Swamy – Brahmotsavams',
+              'Marakata Lakshmi Ganapati Swamy is described as the embodiment of the primordial Pranava (Om), the supreme leader of the three worlds, and the all-pervading divine presence in the universe.\n\nEvery year, from Chaitra Shuddha Vidiya to Panchami, the grand Brahmotsavam festival is celebrated with Rathotsavam, Homams, Maha Poornahuti, Shanti Kalyanam, and sacred rituals.\n\nParticipation is believed to remove Navagraha doshas, reduce afflictions, remove obstacles, grant wealth, prosperity, success, and overall auspiciousness.',
+              'Chaitra Shuddha Vidiya – Panchami',
+              theme,
+              isDark,
               'Register',
             ),
           ],
@@ -433,12 +493,12 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                   ),
                 ),
               ],
-              rows: <DataRow>[
-                DataRow(
+              rows: _dailyRituals.map((ritual) {
+                return DataRow(
                   cells: <DataCell>[
                     DataCell(
                       TranslatedText(
-                        'Suprabhatam',
+                        ritual['ritual']!,
                         style: TextStyle(
                           fontFamily: 'aBeeZee',
                           fontSize: 14.sp,
@@ -448,7 +508,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                     ),
                     DataCell(
                       TranslatedText(
-                        '06:00 am',
+                        ritual['time']!,
                         style: TextStyle(
                           fontFamily: 'aBeeZee',
                           fontSize: 14.sp,
@@ -458,7 +518,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                     ),
                     DataCell(
                       TranslatedText(
-                        'Morning invocation',
+                        ritual['notes']!,
                         style: TextStyle(
                           fontFamily: 'aBeeZee',
                           fontSize: 14.sp,
@@ -467,110 +527,8 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                       ),
                     ),
                   ],
-                ),
-                DataRow(
-                  cells: <DataCell>[
-                    DataCell(
-                      TranslatedText(
-                        'Abhishekam',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        '07:30 am',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[300] : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        'Special offerings',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                DataRow(
-                  cells: <DataCell>[
-                    DataCell(
-                      TranslatedText(
-                        'Archana',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        '09:00 am',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[300] : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        'Open to devotees',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                DataRow(
-                  cells: <DataCell>[
-                    DataCell(
-                      TranslatedText(
-                        'Evening Aarathi',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        '06:30 pm',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[300] : Colors.black,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      TranslatedText(
-                        'All Devotees welcome',
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          fontSize: 14.sp,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                );
+              }).toList(),
             ),
           ),
         ),
@@ -957,7 +915,6 @@ class _FestivalScreenState extends State<FestivalsScreen> {
     String date,
     ThemeData theme,
     bool isDark,
-    String viewDetailsText,
     String registerText,
   ) {
     return Container(
@@ -1009,63 +966,29 @@ class _FestivalScreenState extends State<FestivalsScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          Row(
-            spacing: 10.w,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Handle view details
-                    AppSnackbar.info(context, 'View Details clicked');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                  child: TranslatedText(
-                    viewDetailsText,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontFamily: 'aBeeZee',
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+          ElevatedButton(
+            onPressed: () {
+              // Handle register
+              // AppSnackbar.info(context, 'Register clicked');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Handle register
-                    AppSnackbar.info(context, 'Register clicked');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                  ),
-                  child: TranslatedText(
-                    registerText,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontFamily: 'aBeeZee',
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+            ),
+            child: TranslatedText(
+              registerText,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontFamily: 'aBeeZee',
+                fontWeight: FontWeight.bold,
               ),
-            ],
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

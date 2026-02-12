@@ -97,9 +97,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
         final isDark = theme.brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? theme.scaffoldBackgroundColor
-              : const Color(0xFFFFE7B3),
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: TranslatedText(
               'Temple Facilities',
@@ -354,7 +352,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
             'https://housing.com/news/wp-content/uploads/2023/04/modular-bathroom-shutterstock_609094331-1200x700-compressed.jpg',
       },
     ];
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -641,7 +639,9 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value.trim())) {
+                    if (!RegExp(
+                      r'^[^@]+@[^@]+\.[^@]+',
+                    ).hasMatch(value.trim())) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -716,7 +716,9 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _isSubmitting ? null : _submitVolunteerApplication,
+                    onPressed: _isSubmitting
+                        ? null
+                        : _submitVolunteerApplication,
                     icon: _isSubmitting
                         ? SizedBox(
                             width: 20.w,
@@ -801,17 +803,11 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(
-                    color: Colors.red,
-                    width: 2,
-                  ),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(
-                    color: Colors.red,
-                    width: 2,
-                  ),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
                 ),
               ),
             );
@@ -879,11 +875,13 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     return BlocBuilder<LanguageBloc, LanguageState>(
       builder: (context, languageState) {
         return FutureBuilder<String>(
-          future: context.read<LanguageBloc>().getTranslation('Select Service Timing'),
+          future: context.read<LanguageBloc>().getTranslation(
+            'Select Service Timing',
+          ),
           builder: (context, snapshot) {
             String displayText = snapshot.data ?? 'Select Service Timing';
             return DropdownButtonFormField<String>(
-              value: _selectedTimeLabel,
+              initialValue: _selectedTimeLabel,
               decoration: InputDecoration(
                 labelText: displayText,
                 labelStyle: TextStyle(color: theme.colorScheme.secondary),
@@ -959,7 +957,7 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
           builder: (context, snapshot) {
             String displayText = snapshot.data ?? 'Select Service';
             return DropdownButtonFormField<String>(
-              value: _selectedService,
+              initialValue: _selectedService,
               decoration: InputDecoration(
                 labelText: displayText,
                 labelStyle: TextStyle(color: theme.colorScheme.secondary),
@@ -1122,7 +1120,10 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            AppSnackbar.show(context, message: 'Booking confirmed for $title',);
+                            AppSnackbar.show(
+                              context,
+                              message: 'Booking confirmed for $title',
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.secondary,
@@ -1158,76 +1159,169 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     );
   }
 
+  // Widget _amenitiesCardSection(
+  //   List<Map<String, dynamic>> items,
+  //   ThemeData theme,
+  //   bool isDark,
+  // ) {
+  //   return Wrap(
+  //     spacing: 16.w,
+  //     runSpacing: 16.h,
+  //     children: items.map((item) {
+  //       return Container(
+  //         width: (MediaQuery.of(context).size.width - 48) / 2,
+  //         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+  //         decoration: _cardDecoration(theme, isDark),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             Container(
+  //               height: 80.h,
+  //               decoration: BoxDecoration(
+  //                 borderRadius: BorderRadius.circular(12.r),
+  //               ),
+  //               child: ClipRRect(
+  //                 borderRadius: BorderRadius.circular(12.r),
+  //                 child: Image.network(
+  //                   item['image'],
+  //                   fit: BoxFit.cover,
+  //                   errorBuilder: (context, error, stackTrace) {
+  //                     return Container(
+  //                       color: Colors.grey[300],
+  //                       child: Center(
+  //                         child: Icon(
+  //                           Icons.image_not_supported,
+  //                           size: 30.sp,
+  //                           color: Colors.grey,
+  //                         ),
+  //                       ),
+  //                     );
+  //                   },
+  //                   loadingBuilder: (context, child, loadingProgress) {
+  //                     if (loadingProgress == null) return child;
+  //                     return Container(
+  //                       color: Colors.grey[200],
+  //                       child: Center(
+  //                         child: CircularProgressIndicator(
+  //                           color: theme.colorScheme.secondary,
+  //                           strokeWidth: 2,
+  //                         ),
+  //                       ),
+  //                     );
+  //                   },
+  //                 ),
+  //               ),
+  //             ),
+  //             SizedBox(height: 8.h),
+  //             TranslatedText(
+  //               item['title'],
+  //               style: TextStyle(
+  //                 fontFamily: 'aBeeZee',
+  //                 fontWeight: FontWeight.w600,
+  //                 fontSize: 16.sp,
+  //                 color: isDark ? Colors.white : null,
+  //               ),
+  //               textAlign: TextAlign.center,
+  //               maxLines: 1,
+  //               overflow: TextOverflow.ellipsis,
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     }).toList(),
+  //   );
+  // }
   Widget _amenitiesCardSection(
     List<Map<String, dynamic>> items,
     ThemeData theme,
     bool isDark,
   ) {
-    return Wrap(
-      spacing: 16.w,
-      runSpacing: 16.h,
-      children: items.map((item) {
-        return Container(
-          width: (MediaQuery.of(context).size.width - 48) / 2,
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-          decoration: _cardDecoration(theme, isDark),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                height: 80.h,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Image.network(
-                    item['image'],
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            size: 30.sp,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: theme.colorScheme.secondary,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+    List<Widget> rows = [];
+
+    for (int i = 0; i < items.length; i += 2) {
+      rows.add(
+        Row(
+          children: [
+            Expanded(child: _buildAmenityCard(items[i], theme, isDark)),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: i + 1 < items.length
+                  ? _buildAmenityCard(items[i + 1], theme, isDark)
+                  : SizedBox(), // empty space if odd count
+            ),
+          ],
+        ),
+      );
+
+      rows.add(SizedBox(height: 16.h));
+    }
+
+    return Column(children: rows);
+  }
+
+  Widget _buildAmenityCard(
+    Map<String, dynamic> item,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+      decoration: _cardDecoration(theme, isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 80.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.r),
+              child: Image.network(
+                item['image'],
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(
+                        Icons.image_not_supported,
+                        size: 30.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.secondary,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  );
+                },
               ),
-              SizedBox(height: 8.h),
-              TranslatedText(
-                item['title'],
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16.sp,
-                  color: isDark ? Colors.white : null,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
-        );
-      }).toList(),
+          SizedBox(height: 8.h),
+          TranslatedText(
+            item['title'],
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontWeight: FontWeight.w600,
+              fontSize: 16.sp,
+              color: isDark ? Colors.white : null,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1378,8 +1472,6 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     }
   }
 
-
-
   Future<void> _submitVolunteerApplication() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -1412,14 +1504,18 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
         address: _addressController.text.trim(),
         city: _cityController.text.trim(),
         state: _stateController.text.trim(),
-        serviceDate: '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+        serviceDate:
+            '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
         serviceTime: _selectedTimeLabel!,
         service: _selectedService!,
       );
 
       if (response['success'] == true) {
-        AppSnackbar.success(context, response['message'] ?? 'Application submitted successfully!');
-        
+        AppSnackbar.success(
+          context,
+          response['message'] ?? 'Application submitted successfully!',
+        );
+
         // Clear form
         _formKey.currentState!.reset();
         _fullNameController.clear();
@@ -1434,7 +1530,10 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
           _selectedDate = null;
         });
       } else {
-        AppSnackbar.error(context, response['message'] ?? 'Failed to submit application');
+        AppSnackbar.error(
+          context,
+          response['message'] ?? 'Failed to submit application',
+        );
       }
     } catch (e) {
       AppSnackbar.error(context, 'Error: ${e.toString()}');

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ThemeModeType { system, light, dark }
@@ -42,9 +43,9 @@ class TempleTheme {
           backgroundColor: primaryOrange,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
         ),
       ),
       textButtonTheme: TextButtonThemeData(

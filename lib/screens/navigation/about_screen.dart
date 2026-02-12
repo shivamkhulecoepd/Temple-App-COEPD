@@ -203,14 +203,7 @@ class _AboutScreenState extends State<AboutScreen>
         centerTitle: true,
         title: TranslatedText(
           'About Us',
-          style: TextStyle(
-            fontFamily: 'aBeeZee',
-            color: Theme.of(context).appBarTheme.foregroundColor,
-            fontSize: 16.sp,
-          ),
-        ),
-        iconTheme: IconThemeData(
-          color: Theme.of(context).appBarTheme.foregroundColor,
+          style: TextStyle(fontFamily: 'aBeeZee'),
         ),
       ),
       body: Stack(
@@ -241,7 +234,7 @@ class _AboutScreenState extends State<AboutScreen>
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  itemCount: 5, // Changed to hardcoded count
+                  itemCount: 6, // Changed to hardcoded count
                   onPageChanged: (index) {
                     setState(() {
                       _currentIndex = index;
@@ -273,7 +266,7 @@ class _AboutScreenState extends State<AboutScreen>
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               scrollDirection: Axis.horizontal,
               itemCount:
-                  5, // Changed to hardcoded count since we removed the list
+                  6, // Changed to hardcoded count since we removed the list
               separatorBuilder: (_, __) => SizedBox(width: 10.w),
               itemBuilder: (context, index) {
                 final section = _getSectionByIndex(index);
@@ -370,22 +363,22 @@ class _AboutScreenState extends State<AboutScreen>
               'A concise narrated history follows the founding of the temple, local legends, and important milestones.',
           timelineEvents: [
             TimelineEvent(
-              year: '2017',
-              title: 'Temple Founded',
+              year: '1',
+              title: 'Sacred Origins ~200 Years Ago',
               details:
-                  'Founding and early years with traditional patronage. The temple was established with blessings from Dr. M. Satyanarayana Shastry Garu and support from local devotees.',
+                  'The site was once agricultural land with a sacred step-well containing Goddess Mahalakshmi. Farmers worshipped Her annually during Deepavali for health and prosperity..',
             ),
             TimelineEvent(
-              year: '2019',
-              title: 'Community Programs',
+              year: '2',
+              title: 'Divine Vision & Temple Construction 2016',
               details:
-                  'Launch of annadanam (free food distribution) and education schemes for underprivileged children.',
+                  'Following a divine vision of Goddess Lalita Parameswari to Sri Satyanarayana Shastri Garu, the temple was constructed at this holy site and the idol was consecrated by a revered Peethadhipati.',
             ),
             TimelineEvent(
-              year: '2020',
-              title: 'Major Renovation',
+              year: '3',
+              title: 'Spiritual Significance Present Day',
               details:
-                  'Complete renovation of Gopuram (tower) and Mandapam (hall).',
+                  'Devotees perform 16 and 108 pradakshinas, Abhishekam, and Homam for wish fulfillment. Worship here is believed to reduce planetary afflictions and bring success, prosperity, marriage blessings, career growth, and spiritual merit.',
             ),
           ],
           hasAudio: true,
@@ -393,13 +386,52 @@ class _AboutScreenState extends State<AboutScreen>
           hasDownload: true,
           downloadUrl: '',
           content: '''
-The Marakatha Sri Lakshmi Ganapathi Devasthanam was established in 2017 under the divine guidance of Dr. M. Satyanarayana Shastry Garu. The temple follows strict Agamic traditions and Vedic rituals.
-
-Visitors can explore the timeline and download scholarly notes.''',
+Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred shrine housing the divine Emerald (Marakata) Lakshmi Ganapati along with Navagrahas with their consorts and vehicles. The deity represents Omkara, removes obstacles, and grants prosperity, wisdom, and spiritual upliftment.''',
         );
       case 1:
         return TempleSection(
           id: 1,
+          title: 'Sacred Narrative & Significance',
+          icon: Icons.book_rounded,
+          color: const Color(0xFF9B59B6), // Purple
+          subtitle:
+              'The divine story of Sri Lakshmi Ganapati and the sacred significance of worship.',
+          timelineEvents: [
+            TimelineEvent(
+              year: 'The Curse of Sage Durvasa',
+              title:
+                  'Sage Durvasa received a divine Parijata garland from Lord Vishnu and later offered it to Indra. Due to pride, Indra disrespected the sacred garland, leading to Durvasa’s curse that the gods would lose their power and prosperity.',
+              details: '',
+            ),
+            TimelineEvent(
+              year: 'Divine Guidance',
+              title:
+                  'The gods prayed to Lord Vishnu, who advised them to worship Lord Ganapati — the Supreme Primordial Form — to regain strength and fortune.',
+              details: '',
+            ),
+            TimelineEvent(
+              year: 'Churning of the Ocean',
+              title:
+                  'During the churning of the Milk Ocean, many divine treasures emerged, including Kamadhenu, Kalpavriksha, Airavata, the Moon, Halahala poison, and Dhanvantari with nectar. Finally, Goddess Mahalakshmi manifested in divine glory.',
+              details: '',
+            ),
+            TimelineEvent(
+              year: 'Manifestation of Lakshmi Ganapati',
+              title:
+                  'From Mahalakshmi’s divine essence, one aspect united with Mahavishnu and another empowered Maha Ganapati, who manifested as Sri Lakshmi Ganapati — the embodiment of prosperity and cosmic energy.',
+              details: '',
+            ),
+          ],
+          hasAudio: false,
+          audioUrl: '',
+          hasDownload: false,
+          downloadUrl: '',
+          content:
+              'This sacred narrative reveals the divine grace of Sri Lakshmi Ganapati, the primordial remover of obstacles and bestower of prosperity.',
+        );
+      case 2:
+        return TempleSection(
+          id: 2,
           title: 'Deities & Sub-Shrines',
           icon: Icons.temple_hindu_rounded,
           color: const Color(0xFF8E44AD), // Purple
@@ -407,22 +439,10 @@ Visitors can explore the timeline and download scholarly notes.''',
               'Details of the main deity, sub-shrines and important rituals.',
           timelineEvents: [
             TimelineEvent(
-              year: 'Daily',
-              title: 'Morning Pooja',
-              details:
-                  'Suprabhatam at 6 AM, followed by Abhishekam and Archana. Morning rituals conclude with Maha Naivedyam.',
-            ),
-            TimelineEvent(
-              year: 'Weekly',
-              title: 'Special Abhishekam',
-              details:
-                  'Friday: Sri Lakshmi Ganapathi special puja. Saturday: Sri Anjaneya Swamy homam. Sunday: Navagraha shanti puja.',
-            ),
-            TimelineEvent(
-              year: 'Yearly',
-              title: 'Brahmotsavam',
-              details:
-                  '10-day annual festival during Vinayaka Chaturthi with processions, cultural programs, and special rituals.',
+              year:
+                  'https://marakatasrilaxmiganapathi.org/assets/img/navagrahallu.jpeg',
+              title: 'Sri Navgrahallu',
+              details: 'Celestial influence and remedies',
             ),
           ],
           hasAudio: false,
@@ -433,101 +453,61 @@ Visitors can explore the timeline and download scholarly notes.''',
           deities: [
             Deity(
               name: 'Sri Laxmi Ganapathi',
-              description:
-                  'Main deity, guardian of prosperity and remover of obstacles',
-              icon: '🕉️',
+              description: 'Main deity, guardian of prosperity',
               imageUrl:
-                  'assets/images/about/abt2.1.jpg', // Lakshmi Ganesh beautiful murti
+                  'https://marakatasrilaxmiganapathi.org/assets/img/mslgidol1.jpeg', // Lakshmi Ganesh beautiful murti
             ),
             Deity(
-              name: 'Sri Anjaneya Swamy',
-              description: 'Protector and obstacle remover, south-facing deity',
-              icon: '🐒',
+              name: 'Lakshmi',
+              description: 'Invoke the grace of Maa Laxmi Devi',
               imageUrl:
-                  'assets/images/about/abt2.2.jpg', // Classic Hanuman photo
+                  'https://marakatasrilaxmiganapathi.org/assets/img/laxmi.jpeg', // Classic Hanuman photo
             ),
             Deity(
-              name: 'Sri Navagraha',
-              description:
-                  'Celestial influence and remedies for planetary positions',
-              icon: '☀️',
-              imageUrl: 'assets/images/about/abt2.3.jpg', // Navagraha realistic
-            ),
-          ],
-        );
-      case 2:
-        return TempleSection(
-          id: 2,
-          title: 'Architecture & Sacred Places',
-          icon: Icons.architecture_rounded,
-          color: const Color(0xFF27AE60), // Green
-          subtitle:
-              'Photographs and descriptions highlight the Gopuram, Mandapam, Dwajasthambham and temple tank.',
-          timelineEvents: [
-            TimelineEvent(
-              year: 'East',
-              title: 'Main Gopuram',
-              details:
-                  '5-tier Rajagopuram built in Dravidian style with intricate sculptures depicting various deities.',
-            ),
-            TimelineEvent(
-              year: 'Center',
-              title: 'Maha Mandapam',
-              details:
-                  'Main hall with 16 pillars, each carved with different avataras of Lord Vishnu.',
-            ),
-            TimelineEvent(
-              year: 'West',
-              title: 'Temple Tank',
-              details:
-                  'Sacred pushkarini (water tank) used for ritual baths and theertham distribution.',
-            ),
-          ],
-          hasAudio: false,
-          audioUrl: '',
-          hasDownload: false,
-          downloadUrl: '',
-          content:
-              'Architectural notes explain the vastu consideration of the temple design.',
-          images: [
-            TempleImageInfo(
-              url: 'assets/images/about/abt3.1.jpg',
-              caption: 'Main Gopuram - South Indian style',
-            ),
-            TempleImageInfo(
-              url: 'assets/images/about/abt3.2.jpg',
-              caption: 'Virtual 360° Tour',
+              name: 'Sivalingam',
+              description: 'Where devotion meets divinity',
+              imageUrl:
+                  'https://marakatasrilaxmiganapathi.org/assets/img/shivalingam.jpeg', // Navagraha realistic
             ),
           ],
         );
       case 3:
         return TempleSection(
           id: 3,
+          title: 'Architecture & Sacred Places',
+          icon: Icons.architecture_rounded,
+          color: const Color(0xFF27AE60), // Green
+          subtitle:
+              'Photographs and descriptions highlight the Gopuram, Mandapam, Dwajasthambham and temple tank.',
+          timelineEvents: [],
+          hasAudio: false,
+          audioUrl: '',
+          hasDownload: false,
+          downloadUrl: '',
+          content:
+              'Photographs and descriptions highlight the Gopuram, Mandapam, Dwajasthambham and temple tank. Architectural notes explain you vastu consideration.',
+          images: [
+            TempleImageInfo(
+              url:
+                  'https://marakatasrilaxmiganapathi.org/assets/img/templepic2.jpeg',
+              caption: 'Main Gopuram',
+            ),
+            TempleImageInfo(
+              url:
+                  'https://marakatasrilaxmiganapathi.org/assets/img/templepic1.jpeg',
+              caption: 'Temple Architecture',
+            ),
+          ],
+        );
+      case 4:
+        return TempleSection(
+          id: 4,
           title: 'Temple Administration',
           icon: Icons.admin_panel_settings_rounded,
           color: const Color(0xFF2980B9), // Blue
           subtitle:
               'Details of the management, governance policies, and contact points for administrative queries.',
-          timelineEvents: [
-            TimelineEvent(
-              year: '2017',
-              title: 'Trust Formed',
-              details:
-                  'Initial trust board formation with 5 members under chairmanship of Dr. M. Satyanarayana Shastry.',
-            ),
-            TimelineEvent(
-              year: '2019',
-              title: 'Governance Charter',
-              details:
-                  'Formal governance policies and financial systems established.',
-            ),
-            TimelineEvent(
-              year: '2022',
-              title: 'Digital Transformation',
-              details:
-                  'Implementation of online donation systems and digital record keeping.',
-            ),
-          ],
+          timelineEvents: [],
           hasAudio: false,
           audioUrl: '',
           hasDownload: true,
@@ -566,33 +546,14 @@ Visitors can explore the timeline and download scholarly notes.''',
             ),
           ],
         );
-      case 4:
+      case 5:
         return TempleSection(
-          id: 4,
+          id: 5,
           title: 'About Dr. M Satyanarayana Shastry',
           icon: Icons.person_rounded,
           color: const Color(0xFFC0392B), // Red
           subtitle: 'Spiritual mentor and guiding force behind the temple.',
-          timelineEvents: [
-            TimelineEvent(
-              year: '1975',
-              title: 'Early Education',
-              details:
-                  'Born into traditional Vedic family, began Vedic studies at age 5.',
-            ),
-            TimelineEvent(
-              year: '1995',
-              title: 'Vedic Scholarship',
-              details:
-                  'Completed advanced studies in Vedas, Agamas, and Shastras.',
-            ),
-            TimelineEvent(
-              year: '2017',
-              title: 'Temple Foundation',
-              details:
-                  'Led establishment of Marakatha Sri Lakshmi Ganapathi Devasthanam.',
-            ),
-          ],
+          timelineEvents: [],
           hasAudio: false,
           audioUrl: '',
           hasDownload: false,
@@ -639,13 +600,15 @@ Visitors can explore the timeline and download scholarly notes.''',
     switch (section.id) {
       case 0: // History & Legend
         return _buildHistoryContent(section);
-      case 1: // Deities & Sub-Shrines
+      case 1: // Sacred Narrative & Significance
+        return _buildSacredNarrativeContent(section);
+      case 2: // Deities & Sub-Shrines
         return _buildDeitiesContent(section);
-      case 2: // Architecture & Sacred Places
+      case 3: // Architecture & Sacred Places
         return _buildArchitectureContent(section);
-      case 3: // Temple Administration
+      case 4: // Temple Administration
         return _buildAdministrationContent(section);
-      case 4: // About Dr. M Satyanarayana Shastry
+      case 5: // About Dr. M Satyanarayana Shastry
         return _buildScholarContent(section);
       default:
         return _buildDefaultContent(section);
@@ -815,6 +778,195 @@ Visitors can explore the timeline and download scholarly notes.''',
     );
   }
 
+  // Unique UI for Sacred Narrative & Significance section
+  Widget _buildSacredNarrativeContent(TempleSection section) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF9B59B6).withValues(alpha: 0.1),
+                    Color(0xFF8E44AD).withValues(alpha: 0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(
+                  color: Color(0xFF9B59B6).withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                children: [
+                  TranslatedText(
+                    section.title,
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF9B59B6),
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  TranslatedText(
+                    'The divine story of Sri Lakshmi Ganapati',
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 14.sp,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+
+            if (section.content.isNotEmpty)
+              _buildAuthCard(
+                child: TranslatedText(
+                  section.content,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            TranslatedText(
+              'Sacred Narrative',
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 12.h),
+
+            ...section.timelineEvents.asMap().entries.map((entry) {
+              TimelineEvent event = entry.value;
+              return Container(
+                margin: EdgeInsets.only(bottom: 12.h),
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]!.withValues(alpha: 0.7)
+                        : Colors.white.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(12.r),
+                      bottomLeft: Radius.circular(12.r),
+                      bottomRight: Radius.circular(12.r),
+                    ),
+                    border: Border.all(
+                      color: Color(0xFF9B59B6).withValues(alpha: 0.3),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TranslatedText(
+                        event.year,
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF9B59B6),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      TranslatedText(
+                        event.title,
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          fontSize: 12.sp,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white60
+                              : textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+
+            SizedBox(height: 20.h),
+            TranslatedText(
+              'Blessings of Worship',
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 12.h),
+
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[800]!.withValues(alpha: 0.7)
+                    : Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: Color(0xFF9B59B6).withValues(alpha: 0.3),
+                  width: 1.w,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildBlessingItem('Success and fulfillment of goals'),
+                  SizedBox(height: 8.h),
+                  _buildBlessingItem('Health and long life'),
+                  SizedBox(height: 8.h),
+                  _buildBlessingItem('Wealth and prosperity'),
+                  SizedBox(height: 8.h),
+                  _buildBlessingItem('Mental peace and spiritual growth'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widget for blessing items
+  Widget _buildBlessingItem(String text) {
+    return Row(
+      children: [
+        Icon(Icons.check_circle, color: Color(0xFF9B59B6), size: 16.sp),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: TranslatedText(
+            text,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 13.sp,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // Unique UI for Deities & Sub-Shrines section
   Widget _buildDeitiesContent(TempleSection section) {
     return FadeTransition(
@@ -919,19 +1071,62 @@ Visitors can explore the timeline and download scholarly notes.''',
                     children: [
                       // Show deity image if available, otherwise show the icon
                       if (deity.imageUrl != null && deity.imageUrl!.isNotEmpty)
+                        // Container(
+                        //   width: 100.w,
+                        //   decoration: BoxDecoration(
+                        //     color: Color(0xFF8E44AD).withValues(alpha: 0.1),
+                        //     borderRadius: BorderRadius.only(
+                        //       topLeft: Radius.circular(12.r),
+                        //       bottomLeft: Radius.circular(12.r),
+                        //       topRight: Radius.circular(12.r),
+                        //       bottomRight: Radius.circular(12.r),
+                        //     ),
+                        //     image: DecorationImage(
+                        //       image: NetworkImage(deity.imageUrl!),
+                        //       fit: BoxFit.cover,
+                        //     ),
+                        //   ),
+                        // )
                         Container(
                           width: 100.w,
                           decoration: BoxDecoration(
                             color: Color(0xFF8E44AD).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(12.r),
-                              bottomLeft: Radius.circular(12.r),
-                              topRight: Radius.circular(12.r),
-                              bottomRight: Radius.circular(12.r),
-                            ),
-                            image: DecorationImage(
-                              image: AssetImage(deity.imageUrl!),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Image.network(
+                              deity.imageUrl!,
                               fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFF8E44AD),
+                                        value:
+                                            loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         )
@@ -998,21 +1193,8 @@ Visitors can explore the timeline and download scholarly notes.''',
               },
             ),
             SizedBox(height: 16.h),
-            TranslatedText(
-              'Daily Rituals',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 12.h),
-
             ...section.timelineEvents.map(
               (event) => Container(
-                margin: EdgeInsets.only(bottom: 12.h),
-                padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.grey[800]!.withValues(alpha: 0.7)
@@ -1024,46 +1206,48 @@ Visitors can explore the timeline and download scholarly notes.''',
                   ),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4.h,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 6.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF8E44AD).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8.r),
-                            border: Border.all(
+                    ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(12.r)),
+                      child: Image.network(
+                        event.year,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 80.h,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
                               color: Color(0xFF8E44AD),
-                              width: 1.w,
+                              padding: EdgeInsets.symmetric(vertical: 4.h),
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
-                          ),
-                          child: TranslatedText(
-                            event.year,
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              color: Color(0xFF8E44AD),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12.sp,
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              size: 40,
+                              color: Colors.grey,
                             ),
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        TranslatedText(
-                          event.title,
-                          style: TextStyle(
-                            fontFamily: 'aBeeZee',
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+                          );
+                        },
+                      ),
                     ),
-                    SizedBox(height: 8.h),
+                    TranslatedText(
+                      event.title,
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                     TranslatedText(
                       event.details,
                       style: TextStyle(
@@ -1073,7 +1257,10 @@ Visitors can explore the timeline and download scholarly notes.''',
                             ? Colors.white60
                             : textMuted,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    SizedBox(height: 4.h),
                   ],
                 ),
               ),
@@ -1179,20 +1366,38 @@ Visitors can explore the timeline and download scholarly notes.''',
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: double.infinity,
-                          height: 180.h,
-                          decoration: BoxDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage(imageInfo.url),
-                            //   fit: BoxFit.cover,
-                            // ),
-                            image: DecorationImage(
-                              image: AssetImage(imageInfo.url),
-                              fit: BoxFit.contain,
-                            ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12.r),
+                          child: Image.network(
+                            imageInfo.url,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 200.h,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                                  color: const Color(0xFF27AE60),
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         Padding(
@@ -1201,7 +1406,7 @@ Visitors can explore the timeline and download scholarly notes.''',
                             imageInfo.caption,
                             style: TextStyle(
                               fontFamily: 'aBeeZee',
-                              fontSize: 14.sp,
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -1213,84 +1418,6 @@ Visitors can explore the timeline and download scholarly notes.''',
                 ),
               ),
             ],
-
-            SizedBox(height: 16.h),
-            TranslatedText(
-              'Architectural Features',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 12.h),
-
-            ...section.timelineEvents.map(
-              (feature) => Container(
-                margin: EdgeInsets.only(bottom: 12.h),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]!.withValues(alpha: 0.7)
-                      : Colors.white.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                    color: Color(0xFF27AE60).withValues(alpha: 0.3),
-                    width: 1.w,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: ExpansionTile(
-                    title: Row(
-                      children: [
-                        Icon(
-                          Icons.location_pin,
-                          color: Color(0xFF27AE60),
-                          size: 20.sp,
-                        ),
-                        SizedBox(width: 8.w),
-                        TranslatedText(
-                          feature.title,
-                          style: TextStyle(
-                            fontFamily: 'aBeeZee',
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: TranslatedText(
-                      feature.year,
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 12.sp,
-                        color: Color(0xFF27AE60),
-                      ),
-                    ),
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(16.w),
-                        child: TranslatedText(
-                          feature.details,
-                          style: TextStyle(
-                            fontFamily: 'aBeeZee',
-                            fontSize: 13.sp,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white60
-                                : textMuted,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
             if (section.hasDownload) _buildDownloadCard(),
           ],
         ),
@@ -1586,85 +1713,6 @@ Visitors can explore the timeline and download scholarly notes.''',
               ),
               SizedBox(height: 16.h),
             ],
-
-            SizedBox(height: 16.h),
-            TranslatedText(
-              'Academic Journey',
-              style: TextStyle(
-                fontFamily: 'aBeeZee',
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 12.h),
-
-            ...section.timelineEvents.map(
-              (milestone) => Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(bottom: 12.h),
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]!.withValues(alpha: 0.7)
-                      : Colors.white.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                    color: Color(0xFFC0392B).withValues(alpha: 0.3),
-                    width: 1.w,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFC0392B).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(
-                          color: Color(0xFFC0392B),
-                          width: 1.w,
-                        ),
-                      ),
-                      child: TranslatedText(
-                        milestone.year,
-                        style: TextStyle(
-                          fontFamily: 'aBeeZee',
-                          color: Color(0xFFC0392B),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    TranslatedText(
-                      milestone.title,
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    TranslatedText(
-                      milestone.details,
-                      style: TextStyle(
-                        fontFamily: 'aBeeZee',
-                        fontSize: 12.sp,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white60
-                            : textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -1774,7 +1822,7 @@ Visitors can explore the timeline and download scholarly notes.''',
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TranslatedText(
-                    d.icon,
+                    d.icon!,
                     style: TextStyle(fontFamily: 'aBeeZee', fontSize: 30.sp),
                   ),
                   SizedBox(height: 8.h),

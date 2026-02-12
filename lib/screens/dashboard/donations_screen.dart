@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/screens/navigation/donation_prasadam_scree.dart';
+import 'package:mslgd/screens/navigation/donation_prasadam_screen.dart';
 import 'package:mslgd/widgets/common/gallery_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
@@ -24,8 +24,9 @@ class _DonationsScreenState extends State<DonationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isDisposed)
+    if (_isDisposed) {
       return const SizedBox.shrink(); // Return empty widget if disposed
+    }
 
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {

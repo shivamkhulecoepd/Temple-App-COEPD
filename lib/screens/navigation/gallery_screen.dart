@@ -1,11 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
-import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/explore_media_gallery.dart';
+import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/common/inlinevideoplayer_widget.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
+import 'package:mslgd/widgets/common/youtube_video_player.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,10 +28,40 @@ class GalleryScreen extends StatefulWidget {
 class _GalleryScreenState extends State<GalleryScreen> {
   late GallerySection _currentSection;
 
+  final DBFunctions db = DBFunctions();
+  bool isLoading = false;
+
+  List photoAssets = [];
+
+  Future<void> _loadMedia() async {
+    setState(() => isLoading = true);
+    try {
+      List<dynamic> fetched;
+      if (_currentSection == GallerySection.photos) {
+        fetched = await db.fetchGalleryImages();
+      } else {
+        fetched = await db.fetchArchiveVideosByCategory();
+      }
+      log("$fetched");
+
+      setState(() {
+        // mediaItems = fetched;
+        photoAssets = fetched;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      if (mounted) {
+        AppSnackbar.error(context, 'Failed to load ${_currentSection}: $e');
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _currentSection = widget.initialSection;
+    _loadMedia();
   }
 
   void _selectSection(GallerySection section) {
@@ -44,9 +77,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         final isDark = theme.brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: isDark
-              ? theme.scaffoldBackgroundColor
-              : const Color(0xFFFFE7B3),
+          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: TranslatedText(
               'Gallery',
@@ -83,11 +114,22 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       : Colors.transparent,
                 ),
               ),
-              // Content
-              SingleChildScrollView(
-                padding: EdgeInsets.all(16.w),
-                child: _buildSection(theme, isDark),
-              ),
+              // Content with Refresh Indicator for Photos section
+              _currentSection == GallerySection.photos ||
+                      _currentSection == GallerySection.videos
+                  ? RefreshIndicator.adaptive(
+                      color: theme.colorScheme.secondary,
+                      backgroundColor: theme.primaryColor,
+                      onRefresh: _loadMedia,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(16.w),
+                        child: _buildSection(theme, isDark),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.all(16.w),
+                      child: _buildSection(theme, isDark),
+                    ),
             ],
           ),
         );
@@ -184,15 +226,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
   // ── SECTIONS ──────────────────────────────────────────────────────────────
 
   Widget _photosSection(ThemeData theme, bool isDark) {
-    // You can load real list from assets / network / provider
-    final photoAssets = [
-      'https://marakatasrilaxmiganapathi.org/assets/img/seva1.jpg',
-      'https://marakatasrilaxmiganapathi.org/assets/img/seva2.jpg',
-      'https://marakatasrilaxmiganapathi.org/assets/img/seva3.jpg',
-      'https://marakatasrilaxmiganapathi.org/assets/img/seva4.jpg',
-      'https://marakatasrilaxmiganapathi.org/assets/img/seva1.jpg',
-      // ...
-    ];
+    // Use dynamic image URLs from API response
+    final imageUrls = photoAssets.map((item) => item['image_url']).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,26 +239,41 @@ class _GalleryScreenState extends State<GalleryScreen> {
           isDark: isDark,
         ),
         SizedBox(height: 16.h),
-        ...photoAssets.map((path) => _photoItem(path, theme)),
-
-        SizedBox(height: 16.h),
-        OutlinedButton(
-          onPressed: () {
-            // Handle view all navigation
-          },
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: theme.colorScheme.secondary),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
+        if (isLoading) ...[
+          for (int i = 0; i < 5; i++) _imageShimmer(theme),
+        ] else if (imageUrls.isNotEmpty) ...[
+          ...imageUrls.take(5).map((path) => _photoItem(path, theme)),
+        ] else ...[
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.w),
+              child: TranslatedText(
+                'No photos available',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 16.sp,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
+              ),
             ),
-            minimumSize: Size(double.infinity, 45.h),
           ),
-          child: GestureDetector(
-            onTap: () => Navigator.push(
+        ],
+
+        if (!isLoading && imageUrls.isNotEmpty) ...[
+          SizedBox(height: 16.h),
+          OutlinedButton(
+            onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ExploreMediaGallery(type: 'images'),
               ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: theme.colorScheme.secondary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              minimumSize: Size(double.infinity, 45.h),
             ),
             child: Row(
               spacing: 10.w,
@@ -251,7 +301,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ],
             ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -291,6 +341,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
               // height: 220.h,
               width: double.infinity,
               fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
               errorBuilder: (_, __, ___) {
                 return Container(
                   height: 220.h,
@@ -344,9 +406,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
         SizedBox(height: 16.h),
         OutlinedButton(
-          onPressed: () {
-            // Handle view all navigation
-          },
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExploreMediaGallery(type: 'videos'),
+            ),
+          ),
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: theme.colorScheme.secondary),
             shape: RoundedRectangleBorder(
@@ -354,38 +419,30 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             minimumSize: Size(double.infinity, 45.h),
           ),
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ExploreMediaGallery(type: 'videos'),
-              ),
-            ),
-            child: Row(
-              spacing: 10.w,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.62.w,
-                  child: TranslatedText(
-                    "View All",
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      color: theme.colorScheme.secondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+          child: Row(
+            spacing: 10.w,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.62.w,
+                child: TranslatedText(
+                  "View All",
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    color: theme.colorScheme.secondary,
+                    fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
-                SizedBox(width: 8.w),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16.sp,
-                  color: theme.colorScheme.secondary,
-                ),
-              ],
-            ),
+              ),
+              SizedBox(width: 8.w),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16.sp,
+                color: theme.colorScheme.secondary,
+              ),
+            ],
           ),
         ),
       ],
@@ -681,13 +738,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 fit: BoxFit.cover,
 
                 /// 🔹 SHIMMER UNTIL IMAGE LOADS
+                // loadingBuilder: (context, child, loadingProgress) {
+                //   if (loadingProgress == null) return child;
+
+                //   return Shimmer.fromColors(
+                //     baseColor: theme.colorScheme.surface,
+                //     highlightColor: theme.colorScheme.surface,
+                //     child: Container(color: Colors.white),
+                //   );
+                // },
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
-
-                  return Shimmer.fromColors(
-                    baseColor: theme.colorScheme.surface,
-                    highlightColor: theme.colorScheme.surface,
-                    child: Container(color: Colors.white),
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
                   );
                 },
 

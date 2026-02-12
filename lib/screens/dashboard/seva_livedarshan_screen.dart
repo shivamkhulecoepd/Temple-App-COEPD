@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/screens/authentication/auth_screen.dart';
 import 'package:mslgd/widgets/common/gallery_widget.dart';
+import 'package:mslgd/widgets/common/youtube_video_player.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/services/db_functions.dart';
@@ -25,7 +26,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   String? title;
   String? description;
 
-  List<Map<String, dynamic>> timings = [];
   List<Map<String, dynamic>> upcomingEvents = [];
   List<Map<String, dynamic>> pastVideos = [];
   List<Map<String, dynamic>> sevas = [];
@@ -70,20 +70,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         liveUrl = liveStreamData['embed_code'] as String?;
         title = liveStreamData['title'] as String?;
         description = liveStreamData['subtitle'] as String?;
-
-        // 2. Timings (Hardcoded as per temple schedule)
-        timings = [
-          {
-            'title': 'Morning Darshan',
-            'time': '5:00 AM - 12:00 PM',
-            'icon': Icons.wb_sunny_outlined,
-          },
-          {
-            'title': 'Evening Darshan',
-            'time': '4:00 PM - 9:00 PM',
-            'icon': Icons.nightlight_outlined,
-          },
-        ];
 
         // 3. Upcoming Event
         if (upcomingEventData != null) {
@@ -137,7 +123,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
           _controller = YoutubePlayerController(
             initialVideoId: videoId,
             flags: const YoutubePlayerFlags(
-              autoPlay: false,
+              autoPlay: true,
               mute: false,
               forceHD: true,
             ),
@@ -150,89 +136,27 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
       if (!mounted || _isDisposed) return;
 
-      // Use fallback data on error
+      // Set empty data instead of fallback data
       setState(() {
-        liveUrl = 'https://www.youtube.com/watch?v=IL-72PQszxg';
-        title = 'Daily Divine Darshan';
-        description = 'Live from MSLGD temple, Secunderabad';
-
-        timings = [
-          {
-            'title': 'Morning Darshan',
-            'time': '5:00 AM - 12:00 PM',
-            'icon': Icons.wb_sunny_outlined,
-          },
-          {
-            'title': 'Evening Darshan',
-            'time': '4:00 PM - 9:00 PM',
-            'icon': Icons.nightlight_outlined,
-          },
-        ];
-
-        upcomingEvents = [
-          {'title': 'Special Pooja', 'date': 'Nov 20, 2025 | 6:00 AM'},
-          {'title': 'Festival Celebration', 'date': 'Nov 22, 2025 | 7:00 PM'},
-        ];
-
-        pastVideos = [
-          {
-            'id': null,
-            'title': 'Past Darshan 1',
-            'date': 'Oct 15, 2025',
-            'url': 'https://www.youtube.com/shorts/yNBh5-arDaw',
-            'thumbnail': null,
-          },
-          {
-            'id': null,
-            'title': 'Past Darshan 2',
-            'date': 'Oct 10, 2025',
-            'url': 'https://www.youtube.com/shorts/5ksioZM5NC8',
-            'thumbnail': null,
-          },
-        ];
-
-        sevas = [
-          {
-            'poojaId': 1,
-            'name': 'Daily Seva',
-            'imageUrl': 'assets/images/live_seva/seva1.jpg',
-            'description':
-                'Participate in the morning rituals including lighting lamps and offering fresh flowers to the deity as part of the everyday worship routine.',
-            'price': 100,
-          },
-          {
-            'poojaId': 2,
-            'name': 'Special Seva',
-            'imageUrl': 'assets/images/live_seva/seva2.jpg',
-            'description':
-                'Exclusive access to inner sanctum for personalized darshan and blessings during peak festival hours with priority entry.',
-            'price': 200,
-          },
-        ];
-
+        liveUrl = null;
+        title = null;
+        description = null;
+        upcomingEvents = [];
+        pastVideos = [];
+        sevas = [];
         isLoading = false;
       });
-
-      if (liveUrl != null) {
-        final videoId = YoutubePlayer.convertUrlToId(liveUrl!);
-        if (videoId != null) {
-          _controller?.dispose(); // Dispose existing controller
-          _controller = YoutubePlayerController(
-            initialVideoId: videoId,
-            flags: const YoutubePlayerFlags(
-              autoPlay: false,
-              mute: false,
-              forceHD: true,
-            ),
-          )..addListener(_playerListener);
-          setState(() {});
-        }
-      }
 
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: TranslatedText('Failed to load data: $e')),
+          SnackBar(
+            content: TranslatedText('Failed to load data. Please try again.'),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: fetchData,
+            ),
+          ),
         );
       }
     }
@@ -735,6 +659,36 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   }
 
   Widget _buildLiveStreamVideo(bool showPlayer) {
+    // Handle case when no live stream data is available
+    if (liveUrl == null || liveUrl!.isEmpty) {
+      return Container(
+        height: 240.h,
+        width: double.infinity,
+        color: Colors.grey[300],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.live_tv,
+                size: 48.sp,
+                color: Colors.grey[600],
+              ),
+              SizedBox(height: 12.h),
+              TranslatedText(
+                'No live stream available',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 16.sp,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 240.h,
       width: double.infinity,
@@ -742,7 +696,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
         fit: StackFit.expand,
         children: [
           if (!showPlayer)
-            Image.asset('assets/images/about/abt2.1.jpg', fit: BoxFit.cover),
+            Image.asset('assets/images/dashboard/bg3.jpg', fit: BoxFit.cover),
           if (showPlayer)
             YoutubePlayer(
               controller: _controller!,
@@ -779,6 +733,25 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
   }
 
   Widget _buildTitleDescription() {
+    // Handle case when no title/description data is available
+    if ((title == null || title!.isEmpty) && (description == null || description!.isEmpty)) {
+      return Container(
+        padding: EdgeInsets.all(16.w),
+        color: Theme.of(context).cardColor.withValues(alpha: 0.1),
+        width: double.infinity,
+        child: Center(
+          child: TranslatedText(
+            'Live stream information not available',
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 16.sp,
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.all(16.w),
       color: Theme.of(context).cardColor.withValues(alpha: 0.1),
@@ -786,24 +759,26 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TranslatedText(
-            title ?? '',
-            style: TextStyle(
-              fontFamily: 'aBeeZee',
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.titleLarge?.color,
+          if (title != null && title!.isNotEmpty)
+            TranslatedText(
+              title!,
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
             ),
-          ),
-          SizedBox(height: 4.h),
-          TranslatedText(
-            description ?? '',
-            style: TextStyle(
-              fontFamily: 'aBeeZee',
-              color: Colors.grey,
-              fontSize: 14.sp,
+          if (title != null && title!.isNotEmpty) SizedBox(height: 4.h),
+          if (description != null && description!.isNotEmpty)
+            TranslatedText(
+              description!,
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                color: Colors.grey,
+                fontSize: 14.sp,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -827,24 +802,56 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
             ),
           ),
           SizedBox(height: 12.h),
-          SizedBox(
-            height: 280.h,
-            child: ListView.builder(
-              padding: EdgeInsets.only(right: 16.w),
-              scrollDirection: Axis.horizontal,
-              itemCount: pastVideos.length,
-              itemBuilder: (context, index) {
-                final v = pastVideos[index];
-                return _buildPastVideoItem(
-                  v['id'],
-                  v['title'],
-                  v['date'],
-                  v['url'],
-                  v['thumbnail'],
-                );
-              },
+          if (pastVideos.isEmpty)
+            SizedBox(
+              height: 280.h,
+              width: double.infinity,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.video_library,
+                      size: 48.sp,
+                      color: Colors.grey[600],
+                    ),
+                    SizedBox(height: 12.h),
+                    TranslatedText(
+                      'No past videos available',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 16.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    OutlinedButton(
+                      onPressed: fetchData,
+                      child: TranslatedText('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 280.h,
+              child: ListView.builder(
+                padding: EdgeInsets.only(right: 16.w),
+                scrollDirection: Axis.horizontal,
+                itemCount: pastVideos.length,
+                itemBuilder: (context, index) {
+                  final v = pastVideos[index];
+                  return _buildPastVideoItem(
+                    v['id'],
+                    v['title'],
+                    v['date'],
+                    v['url'],
+                    v['thumbnail'],
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -866,31 +873,63 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(), // Important!
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 14.h,
-              childAspectRatio:
-                  0.56 *
-                  MediaQuery.of(context).size.height *
-                  0.00125, // ← tune this (smaller = taller cards)
+          if (sevas.isEmpty)
+            SizedBox(
+              height: 300.h,
+              width: double.infinity,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.bookmark,
+                      size: 48.sp,
+                      color: Colors.grey[600],
+                    ),
+                    SizedBox(height: 12.h),
+                    TranslatedText(
+                      'No sevas available for booking',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 16.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    OutlinedButton(
+                      onPressed: fetchData,
+                      child: TranslatedText('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(), // Important!
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 14.h,
+                childAspectRatio:
+                    0.56 *
+                    MediaQuery.of(context).size.height *
+                    0.00125, // ← tune this (smaller = taller cards)
+              ),
+              itemCount: sevas.length,
+              itemBuilder: (context, index) {
+                final seva = sevas[index];
+                // log('**Seva = $seva');
+                return _buildSevaCard(
+                  poojaId: seva['poojaId'],
+                  name: seva['name'],
+                  imageUrl: seva['imageUrl'],
+                  description: seva['description'],
+                  price: seva['price'],
+                );
+              },
             ),
-            itemCount: sevas.length,
-            itemBuilder: (context, index) {
-              final seva = sevas[index];
-              // log('**Seva = $seva');
-              return _buildSevaCard(
-                poojaId: seva['poojaId'],
-                name: seva['name'],
-                imageUrl: seva['imageUrl'],
-                description: seva['description'],
-                price: seva['price'],
-              );
-            },
-          ),
         ],
       ),
     );
@@ -1240,53 +1279,6 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       context: context,
       isScrollControlled: true,
       builder: (_) => BookingBottomSheet(seva: seva),
-    );
-  }
-}
-
-/* ================= VIDEO PLAYER SCREEN ================= */
-
-class VideoPlayerScreen extends StatefulWidget {
-  final String url;
-  const VideoPlayerScreen({super.key, required this.url});
-
-  @override
-  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
-}
-
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late YoutubePlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    final videoId = YoutubePlayer.convertUrlToId(widget.url);
-    if (videoId != null) {
-      _controller = YoutubePlayerController(initialVideoId: videoId);
-    } else {
-      // Fallback to a default video if conversion fails
-      _controller = YoutubePlayerController(initialVideoId: 'IL-72PQszxg');
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: TranslatedText(
-          'Watch Video',
-          style: TextStyle(fontFamily: 'aBeeZee'),
-        ),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      body: YoutubePlayer(controller: _controller),
     );
   }
 }

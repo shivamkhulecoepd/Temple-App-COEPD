@@ -344,14 +344,12 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
                                                 ),
                                               ),
                                             ),
-                                            Expanded(
-                                              child: _statusChip(
-                                                donation['payment_status']
-                                                        ?.toString() ??
-                                                    donation['status']
-                                                        ?.toString() ??
-                                                    'Success',
-                                              ),
+                                            _statusChip(
+                                              donation['payment_status']
+                                                      ?.toString() ??
+                                                  donation['status']
+                                                      ?.toString() ??
+                                                  'Success',
                                             ),
                                           ],
                                         ),
@@ -393,7 +391,7 @@ class _MyDonationsScreenState extends State<UserDonationsScreen> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 3.h),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12.r),

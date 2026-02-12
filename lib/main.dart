@@ -10,6 +10,7 @@ import 'package:mslgd/screens/authentication/splash_screen.dart';
 import 'package:mslgd/utils/error_handler.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   // Set up error handling
   FlutterError.onError = (FlutterErrorDetails details) {
     ErrorHandler.handleError(
@@ -26,6 +27,9 @@ class TempleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => TranslationService()),
@@ -47,7 +51,8 @@ class TempleApp extends StatelessWidget {
           ),
         ],
         child: ScreenUtilInit(
-          designSize: const Size(375, 812), // Standard design size
+          // designSize: const Size(375, 812), // Standard design size
+          designSize: Size(screenWidth, screenHeight), // Standard design size
           minTextAdapt: true,
           splitScreenMode: true,
           builder: (context, child) {
@@ -70,6 +75,7 @@ class TempleApp extends StatelessWidget {
                     return widget ?? const SizedBox.shrink();
                   },
                   home: const SplashScreen(),
+                  // home: AboutScreen(),
                 );
               },
             );

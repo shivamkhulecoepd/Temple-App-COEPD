@@ -55,13 +55,13 @@ class TimelineEvent {
 class Deity {
   final String name;
   final String description;
-  final String icon;
+  final String? icon;
   final String? imageUrl; // Added for deity images
 
   Deity({
     required this.name,
     required this.description,
-    required this.icon,
+    this.icon,
     this.imageUrl,
   });
 }

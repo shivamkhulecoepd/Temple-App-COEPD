@@ -202,10 +202,10 @@ class _AuthScreenState extends State<AuthScreen> {
         floatingLabelBehavior: FloatingLabelBehavior.never,
         suffixIcon: showIcon
             ? InkWell(
+                onTap: onToggleVisibility,
                 child: (obscure
                     ? Icon(Icons.visibility_off)
                     : Icon(Icons.visibility)),
-                onTap: onToggleVisibility,
               )
             : null,
         filled: true,

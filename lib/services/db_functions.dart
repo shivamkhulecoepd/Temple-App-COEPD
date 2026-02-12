@@ -26,7 +26,19 @@ class DBFunctions {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
 
         if (json['success'] == true) {
-          return json['data'] as Map<String, dynamic>;
+          // Handle both possible response formats for backward compatibility
+          var dataResult = json['data'];
+          if (dataResult is Map<String, dynamic>) {
+            // Original format: {marquee_news: [...], banners: [...]}
+            return dataResult as Map<String, dynamic>;
+          } else {
+            // New format: banners are returned directly as a list
+            // Return in the expected format {banners: [...], marquee_news: [...]}
+            return {
+              'banners': dataResult as List<dynamic>?,
+              'marquee_news': [],
+            };
+          }
         } else {
           throw Exception(json['message'] ?? 'API returned failure');
         }
@@ -48,7 +60,7 @@ class DBFunctions {
     try {
       final response = await http
           .get(Uri.parse(baseUrl + endpoint))
-          .timeout(const Duration(seconds: 12));
+          .timeout(const Duration(seconds: 15));
 
       log('Timings → Status: ${response.statusCode}');
 
@@ -428,7 +440,7 @@ class DBFunctions {
   // ──────────────────────────────────────────────────────────────
   // 14. Fetch latest active banner (News and Notices screen)
   // ──────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>?> fetchLatestBanner() async {
+  Future<List<dynamic>?> fetchLatestBanner() async {
     const String endpoint = 'latest_banner.php';
 
     try {
@@ -442,13 +454,14 @@ class DBFunctions {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
 
         if (json['success'] == true) {
-          return json['data'] as Map<String, dynamic>?;
+          // Updated to handle the new API response format - returns a list of banners
+          return json['data'] as List<dynamic>?;
         }
       }
-      return null;
+      return [];
     } catch (e) {
       log('fetchLatestBanner error: $e');
-      return null;
+      return [];
     }
   }
 
@@ -719,17 +732,17 @@ class DBFunctions {
       'donation_type': donationType.trim(),
       'seva_type': sevaType?.trim(),
       'full_name': fullName.trim(),
-      'gotra': gotra?.trim(),
-      'nakshatram': nakshatram?.trim(),
+      'gotra': gotra?.trim() ?? '',
+      'nakshatram': nakshatram?.trim() ?? '',
       'mobile': mobile.trim(),
-      'email': email?.trim(),
-      'address': address?.trim(),
-      'city_state_pin': cityStatePin?.trim(),
-      'preferred_date': preferredDate?.trim(),
-      'session_type': sessionType?.trim(),
+      'email': email?.trim() ?? '',
+      'address': address?.trim() ?? '',
+      'city_state_pin': cityStatePin?.trim() ?? '',
+      'preferred_date': preferredDate?.trim() ?? '',
+      'session_type': sessionType?.trim() ?? '',
       'persons_count': personsCount,
-      'occasion': occasion?.trim(),
-      'sankalpam': sankalpam?.trim(),
+      'occasion': occasion?.trim() ?? '',
+      'sankalpam': sankalpam?.trim() ?? '',
       'amount': amount,
     };
 
@@ -746,8 +759,14 @@ class DBFunctions {
           .timeout(const Duration(seconds: 20));
 
       log('Donation Submit → Status: ${response.statusCode}');
+      log('Donation Submit → Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
+        // Check if response is JSON
+        if (!response.body.startsWith('{')) {
+          throw Exception('Server returned HTML instead of JSON. Please check server configuration.');
+        }
+        
         final json = jsonDecode(response.body);
         if (json['success'] == true) {
           return json;
