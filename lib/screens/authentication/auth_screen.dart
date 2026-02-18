@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mslgd/screens/authentication/forgot_password.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/layout_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +26,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final nameCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
+  final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final confirmCtrl = TextEditingController();
 
@@ -36,6 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void dispose() {
     nameCtrl.dispose();
     phoneCtrl.dispose();
+    emailCtrl.dispose();
     passCtrl.dispose();
     confirmCtrl.dispose();
     super.dispose();
@@ -98,6 +101,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     keyboard: TextInputType.phone,
                   ),
 
+                  if (!isLogin) ...[
+                    SizedBox(height: 20.h),
+                    _label("Email"),
+                    _input(emailCtrl, "Please enter your email"),
+                  ],
+
                   SizedBox(height: 20.h),
 
                   _label("Password"),
@@ -113,8 +122,32 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 10.h),
+                  if (isLogin) ...[
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Forgot Password",
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            color: Colors.amber,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
 
+                  // SizedBox(height: 20.h),
                   if (!isLogin) ...[
                     _label("Confirm Password"),
                     _input(
@@ -197,7 +230,7 @@ class _AuthScreenState extends State<AuthScreen> {
       keyboardType: keyboard,
       decoration: InputDecoration(
         // We use 'label' because it accepts a Widget (TranslatedText)
-        label: TranslatedText(hint),
+        label: TranslatedText(hint, style: TextStyle(fontFamily: 'aBeeZee')),
         // This ensures the label doesn't float up, making it look like a hint
         floatingLabelBehavior: FloatingLabelBehavior.never,
         suffixIcon: showIcon
@@ -305,6 +338,7 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
+      SizedBox(height: 20.h),
     ],
   );
 
@@ -333,14 +367,17 @@ class _AuthScreenState extends State<AuthScreen> {
                     fontFamily: 'aBeeZee',
                     color: Colors.amber,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13.sp, // Match the parent font size
+                    fontSize: 13.sp,
                   ),
                 ),
               ),
             ),
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
-              child: TranslatedText(" and "),
+              child: TranslatedText(
+                " and ",
+                style: TextStyle(fontFamily: 'aBeeZee', fontSize: 13.sp),
+              ),
             ),
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
@@ -433,10 +470,15 @@ class _AuthScreenState extends State<AuthScreen> {
   void _register() async {
     final name = nameCtrl.text.trim();
     final mobile = phoneCtrl.text.trim();
+    final email = emailCtrl.text.trim();
     final password = passCtrl.text.trim();
     final confirm = confirmCtrl.text.trim();
 
-    if (name.isEmpty || mobile.isEmpty || password.isEmpty || confirm.isEmpty) {
+    if (name.isEmpty ||
+        mobile.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirm.isEmpty) {
       AppSnackbar.warning(context, 'All fields are required');
       return;
     }
@@ -457,6 +499,7 @@ class _AuthScreenState extends State<AuthScreen> {
         body: jsonEncode({
           'name': name,
           'mobile': mobile,
+          'email': email,
           'password': password,
           'confirm_password': confirm,
         }),
@@ -464,6 +507,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
+        log('Register Response: ${response.body}');
 
         if (json['success'] == true) {
           if (mounted) {
@@ -475,6 +519,7 @@ class _AuthScreenState extends State<AuthScreen> {
             // Clear form fields
             nameCtrl.clear();
             phoneCtrl.clear();
+            emailCtrl.clear();
             passCtrl.clear();
             confirmCtrl.clear();
           }

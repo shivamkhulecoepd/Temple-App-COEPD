@@ -113,8 +113,6 @@ class _ContactScreenState extends State<ContactScreen> {
     _emailController.dispose();
     _subjectController.dispose();
     _messageController.dispose();
-    // Dispose WebView controller properly
-    // Note: WebViewController doesn't have a dispose method, but we should null it
     super.dispose();
   }
 
@@ -200,7 +198,6 @@ class _ContactScreenState extends State<ContactScreen> {
               // Main Content
               SafeArea(
                 child: SingleChildScrollView(
-                  // padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -265,15 +262,15 @@ class _ContactScreenState extends State<ContactScreen> {
                                 controller: _phoneController,
                                 label: 'Enter your Phone',
                                 keyboardType: TextInputType.phone,
-                                // validator: (v) {
-                                //   if (v?.trim().isEmpty ?? true) {
-                                //     return 'Please enter phone number';
-                                //   }
-                                //   if ((v?.length ?? 0) < 10) {
-                                //     return 'Invalid phone number';
-                                //   }
-                                //   return null;
-                                // },
+                                validator: (v) {
+                                  if (v?.trim().isEmpty ?? true) {
+                                    return 'Please enter phone number';
+                                  }
+                                  if ((v?.length ?? 0) < 10) {
+                                    return 'Invalid phone number';
+                                  }
+                                  return null;
+                                },
                               ),
                               SizedBox(height: 14.h),
 
@@ -282,17 +279,17 @@ class _ContactScreenState extends State<ContactScreen> {
                                 controller: _emailController,
                                 label: 'Enter your Email ID',
                                 keyboardType: TextInputType.emailAddress,
-                                // validator: (v) {
-                                //   if (v?.trim().isEmpty ?? true) {
-                                //     return 'Please enter email';
-                                //   }
-                                //   if (!RegExp(
-                                //     r'^[^@]+@[^@]+\.[^@]+',
-                                //   ).hasMatch(v ?? '')) {
-                                //     return 'Please enter a valid email';
-                                //   }
-                                //   return null;
-                                // },
+                                validator: (v) {
+                                  if (v?.trim().isEmpty ?? true) {
+                                    return 'Please enter email';
+                                  }
+                                  if (!RegExp(
+                                    r'^[^@]+@[^@]+\.[^@]+',
+                                  ).hasMatch(v ?? '')) {
+                                    return 'Please enter a valid email';
+                                  }
+                                  return null;
+                                },
                               ),
                               SizedBox(height: 14.h),
 

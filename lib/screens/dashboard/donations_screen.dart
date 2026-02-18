@@ -49,10 +49,8 @@ class _DonationsScreenState extends State<DonationsScreen> {
             ),
           ),
 
-          // 🔥 FIXED BACKGROUND + SCROLLABLE CONTENT
           body: Stack(
             children: [
-              /// ✅ Fixed Background Image
               Positioned.fill(
                 child: Image.asset(
                   'assets/images/background/main_bg1.jpg',
@@ -60,7 +58,6 @@ class _DonationsScreenState extends State<DonationsScreen> {
                 ),
               ),
 
-              /// ✅ Dark Overlay (fixed)
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -71,10 +68,8 @@ class _DonationsScreenState extends State<DonationsScreen> {
                 ),
               ),
 
-              /// ✅ Scrollable Content ONLY
               SafeArea(
                 child: SingleChildScrollView(
-                  // padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 30.h),
                   child: Column(
                     children: [
                       Padding(
@@ -150,7 +145,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
                             image: AssetImage(
                               'assets/images/background/bannerbg.png',
                             ),
-                            fit: BoxFit.fill, // ✅ fills banner nicely
+                            fit: BoxFit.fill,
                           ),
                         ),
                         padding: EdgeInsets.only(
@@ -158,19 +153,19 @@ class _DonationsScreenState extends State<DonationsScreen> {
                           right: 20.w,
                           top: 24.h,
                           bottom: 30.h,
-                        ), // ✅ spacing from edges
-                        alignment: Alignment.center, // ✅ centers text
+                        ),
+                        alignment: Alignment.center,
                         child: TranslatedText(
                           "Through Annadanam flows compassion,\n"
                           "Through Bhudanam rises righteousness,\n"
                           "Deeds that reflect the highest generosity of spirit,\n"
                           "Honored in the divine presence of Lakshmi-Ganapati",
-                          textAlign: TextAlign.center, // ✅ center alignment
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'aBeeZee',
                             color: Colors.white,
                             fontSize: 10.sp,
-                            height: 1.4, // ✅ line spacing
+                            height: 1.4,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -223,7 +218,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// 🖼 Image
+          ///  Image
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Image.asset(
@@ -236,7 +231,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
 
           const SizedBox(height: 16),
 
-          /// 🏷 Title
+          ///  Title
           TranslatedText(
             title,
             style: TextStyle(
@@ -249,7 +244,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
 
           const SizedBox(height: 10),
 
-          /// 📄 Description
+          ///  Description
           TranslatedText(
             description,
             style: TextStyle(
@@ -262,7 +257,7 @@ class _DonationsScreenState extends State<DonationsScreen> {
 
           const SizedBox(height: 24),
 
-          /// 🔥 Donate Button
+          ///  Donate Button
           SizedBox(
             width: double.infinity,
             height: 50,

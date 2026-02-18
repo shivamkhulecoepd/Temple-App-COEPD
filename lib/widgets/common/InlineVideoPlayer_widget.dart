@@ -32,7 +32,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
 
     _initializeFuture = _controller.initialize();
 
-    // ✅ IMPORTANT: listen to controller changes
+    //  IMPORTANT: listen to controller changes
     _controller.addListener(_videoListener);
   }
 
@@ -57,7 +57,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
           future: _initializeFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              /// 🔹 SHIMMER WHILE VIDEO LOADS
+              ///  SHIMMER WHILE VIDEO LOADS
               return Shimmer.fromColors(
                 baseColor: theme.colorScheme.surface,
                 highlightColor: theme.colorScheme.surface,
@@ -69,7 +69,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
               );
             }
 
-            /// 🔹 VIDEO READY
+            ///  VIDEO READY
             return Stack(
               alignment: Alignment.center,
               children: [
@@ -78,7 +78,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
                   child: VideoPlayer(_controller),
                 ),
 
-                // ✅ Icon reacts to real-time video state
+                //  Icon reacts to real-time video state
                 ValueListenableBuilder<VideoPlayerValue>(
                   valueListenable: _controller,
                   builder: (context, value, child) {
@@ -92,7 +92,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
                       },
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
-                        opacity: value.isPlaying ? 0.0 : 1.0, // 👈 KEY FIX
+                        opacity: value.isPlaying ? 0.0 : 1.0, //  KEY FIX
                         child: CircleAvatar(
                           radius: 28.r,
                           backgroundColor: Colors.black54,

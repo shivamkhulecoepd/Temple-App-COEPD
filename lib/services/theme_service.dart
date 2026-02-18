@@ -8,11 +8,13 @@ class TempleTheme {
   // Temple Color Palette
   static const Color primaryBlue = Color(0xFF043342); // #043342
   static const Color lightBlue = Color(0xFF0066CC); // #0066cc - for minor buttons
-  static const Color primaryOrange = Color(0xFFFF5621); // #ff5621 - alternate to #f15a29
+  // static const Color primaryOrange = Color(0xFFFF5621); // #ff5621 - alternate to #f15a29  ----- ORIGINAL
+  static const Color primaryOrange = Color(0xFFE07B2A); // #ff5621 - alternate to #f15a29  ----- NEW THEME ONE
   static const Color gradientStart = Color(0xFFE26400); // #e26400 - orange gradient start
   static const Color gradientEnd = Color(0xFF9B0200); // #9b0200 - orange gradient end
   static const Color secondaryBlue = Color(0xFF124660); // #124660
-  static const Color backgroundTertiary = Color(0xFFF7F3E8); // #f7f3e8 - for background
+  // static const Color backgroundTertiary = Color(0xFFF7F3E8); // #f7f3e8 - for background   ----- ORIGINAL
+  static const Color backgroundTertiary = Color(0xFFFDF6EE); // #f7f3e8 - for background   ----- NEW THEME ONE
   static const Color yellowButton = Color(0xFFFF9800); // #ff9800 - for buttons
   static const Color greenMinor = Color(0xFF0F8F2F); // #0f8f2f - for minor buttons
 

@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
-enum SnackbarType {
-  success,
-  error,
-  warning,
-  info,
-}
+enum SnackbarType { success, error, warning, info }
 
 class AppSnackbar {
   // ─────────────── Main entry point ───────────────
@@ -30,7 +25,7 @@ class AppSnackbar {
     );
 
     ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()        // ← avoids stacking multiple snackbars
+      ..hideCurrentSnackBar() // ← avoids stacking multiple snackbars
       ..showSnackBar(snackBar);
   }
 
@@ -46,9 +41,9 @@ class AppSnackbar {
     // ── Colors & Icons per type ──
     final (Color bgColor, IconData iconData) = switch (type) {
       SnackbarType.success => (Colors.green.shade700, Icons.check_circle),
-      SnackbarType.error   => (Colors.red.shade700,    Icons.error),
+      SnackbarType.error => (Colors.red.shade700, Icons.error),
       SnackbarType.warning => (Colors.orange.shade800, Icons.warning),
-      SnackbarType.info    => (Colors.blue.shade700,   Icons.info),
+      SnackbarType.info => (Colors.blue.shade700, Icons.info),
     };
 
     return SnackBar(
@@ -59,7 +54,11 @@ class AppSnackbar {
           Expanded(
             child: TranslatedText(
               message,
-              style: TextStyle(color: Colors.white, fontSize: 15.sp),
+              style: TextStyle(
+                fontFamily: 'aBeeZee',
+                color: Colors.white,
+                fontSize: 15.sp,
+              ),
             ),
           ),
         ],
@@ -83,16 +82,43 @@ class AppSnackbar {
   }
 
   // ─────────────── Convenience methods ───────────────
-  static void success(BuildContext context, String message, {Duration? duration}) {
-    show(context, message: message, type: SnackbarType.success, duration: duration ?? const Duration(seconds: 3));
+  static void success(
+    BuildContext context,
+    String message, {
+    Duration? duration,
+  }) {
+    show(
+      context,
+      message: message,
+      type: SnackbarType.success,
+      duration: duration ?? const Duration(seconds: 3),
+    );
   }
 
-  static void error(BuildContext context, String message, {Duration? duration}) {
-    show(context, message: message, type: SnackbarType.error, duration: duration ?? const Duration(seconds: 5));
+  static void error(
+    BuildContext context,
+    String message, {
+    Duration? duration,
+  }) {
+    show(
+      context,
+      message: message,
+      type: SnackbarType.error,
+      duration: duration ?? const Duration(seconds: 5),
+    );
   }
 
-  static void warning(BuildContext context, String message, {Duration? duration}) {
-    show(context, message: message, type: SnackbarType.warning, duration: duration ?? const Duration(seconds: 4));
+  static void warning(
+    BuildContext context,
+    String message, {
+    Duration? duration,
+  }) {
+    show(
+      context,
+      message: message,
+      type: SnackbarType.warning,
+      duration: duration ?? const Duration(seconds: 4),
+    );
   }
 
   static void info(BuildContext context, String message, {Duration? duration}) {

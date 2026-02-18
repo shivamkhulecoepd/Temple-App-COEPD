@@ -18,6 +18,7 @@ class TempleSection {
   final String? image;
   final String? name;
   final String? description;
+  final bool? hasWhatsApp;
 
   TempleSection({
     required this.id,
@@ -37,6 +38,7 @@ class TempleSection {
     this.image,
     this.name,
     this.description,
+    this.hasWhatsApp,
   });
 }
 

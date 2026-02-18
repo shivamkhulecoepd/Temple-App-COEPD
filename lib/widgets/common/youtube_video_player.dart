@@ -57,6 +57,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       await launchUrl(Uri.parse(widget.url));
                     } catch (e) {
                       if (mounted) {
+                        // ignore: use_build_context_synchronously
                         AppSnackbar.error(context, 'Could not open video: $e');
                       }
                     }

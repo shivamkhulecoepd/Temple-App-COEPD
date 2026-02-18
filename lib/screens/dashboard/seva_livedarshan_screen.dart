@@ -151,11 +151,11 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: TranslatedText('Failed to load data. Please try again.'),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: fetchData,
+            content: TranslatedText(
+              'Failed to load data. Please try again.',
+              style: TextStyle(fontFamily: 'aBeeZee'),
             ),
+            action: SnackBarAction(label: 'Retry', onPressed: fetchData),
           ),
         );
       }
@@ -212,7 +212,12 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: TranslatedText('Could not open YouTube')),
+          const SnackBar(
+            content: TranslatedText(
+              'Could not open YouTube',
+              style: TextStyle(fontFamily: 'aBeeZee'),
+            ),
+          ),
         );
       }
     }
@@ -669,11 +674,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.live_tv,
-                size: 48.sp,
-                color: Colors.grey[600],
-              ),
+              Icon(Icons.live_tv, size: 48.sp, color: Colors.grey[600]),
               SizedBox(height: 12.h),
               TranslatedText(
                 'No live stream available',
@@ -734,7 +735,8 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
 
   Widget _buildTitleDescription() {
     // Handle case when no title/description data is available
-    if ((title == null || title!.isEmpty) && (description == null || description!.isEmpty)) {
+    if ((title == null || title!.isEmpty) &&
+        (description == null || description!.isEmpty)) {
       return Container(
         padding: EdgeInsets.all(16.w),
         color: Theme.of(context).cardColor.withValues(alpha: 0.1),
@@ -827,7 +829,10 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                     SizedBox(height: 16.h),
                     OutlinedButton(
                       onPressed: fetchData,
-                      child: TranslatedText('Retry'),
+                      child: TranslatedText(
+                        'Retry',
+                        style: TextStyle(fontFamily: 'aBeeZee'),
+                      ),
                     ),
                   ],
                 ),
@@ -881,11 +886,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.bookmark,
-                      size: 48.sp,
-                      color: Colors.grey[600],
-                    ),
+                    Icon(Icons.bookmark, size: 48.sp, color: Colors.grey[600]),
                     SizedBox(height: 12.h),
                     TranslatedText(
                       'No sevas available for booking',
@@ -898,7 +899,10 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                     SizedBox(height: 16.h),
                     OutlinedButton(
                       onPressed: fetchData,
-                      child: TranslatedText('Retry'),
+                      child: TranslatedText(
+                        'Retry',
+                        style: TextStyle(fontFamily: 'aBeeZee'),
+                      ),
                     ),
                   ],
                 ),
@@ -942,141 +946,150 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
     required String description,
     required int price,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: Offset(0, 4.h),
-          ),
-        ],
-      ),
-      clipBehavior:
-          Clip.hardEdge, // Important for rounded image + bottom button
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image (placeholder - replace with real asset/network image)
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: Container(
-              color: Colors.orange.shade100,
-              child: Stack(
-                children: [
-                  // You can replace with real image
-                  Center(child: Image.network(imageUrl, fit: BoxFit.cover)),
-                ],
-              ),
+    return GestureDetector(
+      onTap: () => _showBookingDetailsBottomSheet(context, {
+        'poojaId': poojaId,
+        'name': name,
+        'imageUrl': imageUrl,
+        'description': description,
+        'price': price,
+      }),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4.h),
             ),
-          ),
-
-          // Content
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 6.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TranslatedText(
-                    name,
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.titleMedium?.color,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // SizedBox(height: 4.h),
-                  TranslatedText(
-                    description,
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 13.sp,
-                      color: Colors.grey.shade700,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Spacer(),
-                  TranslatedText(
-                    '₹ $price',
-                    style: TextStyle(
-                      fontFamily: 'aBeeZee',
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepOrange,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Book Now Button - attached to bottom with rounded corners
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.orange.shade700,
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(16.r),
-              ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(16.r),
+          ],
+        ),
+        clipBehavior:
+            Clip.hardEdge, // Important for rounded image + bottom button
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image (placeholder - replace with real asset/network image)
+            AspectRatio(
+              aspectRatio: 4 / 3,
+              child: Container(
+                color: Colors.orange.shade100,
+                child: Stack(
+                  children: [
+                    // You can replace with real image
+                    Center(child: Image.network(imageUrl, fit: BoxFit.cover)),
+                  ],
                 ),
-                onTap: () async {
-                  final token = await AuthUtils.getUserToken();
-                  if (token == null) {
-                    if (mounted) {
-                      AppSnackbar.show(
-                        context,
-                        message: 'Please login to book seva',
-                        type: SnackbarType.warning,
-                        actionLabel: 'Login',
-                        onActionPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => AuthScreen()),
-                          );
-                        },
-                      );
-                    }
-                    return;
-                  }
-                  _showBookingBottomSheet(context, {
-                    'pooja_id': poojaId,
-                    'name': name,
-                    'description': description,
-                    'price': price,
-                  });
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                  child: Center(
-                    child: TranslatedText(
-                      'Book Now',
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 6.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TranslatedText(
+                      name,
                       style: TextStyle(
                         fontFamily: 'aBeeZee',
-                        color: Colors.white,
-                        fontSize: 15.sp,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // SizedBox(height: 4.h),
+                    TranslatedText(
+                      description,
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 13.sp,
+                        color: Colors.grey.shade700,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Spacer(),
+                    TranslatedText(
+                      '₹ $price',
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Book Now Button - attached to bottom with rounded corners
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.orange.shade700,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(16.r),
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(16.r),
+                  ),
+                  onTap: () async {
+                    final token = await AuthUtils.getUserToken();
+                    if (token == null) {
+                      if (mounted) {
+                        AppSnackbar.show(
+                          context,
+                          message: 'Please login to book seva',
+                          type: SnackbarType.warning,
+                          actionLabel: 'Login',
+                          onActionPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => AuthScreen()),
+                            );
+                          },
+                        );
+                      }
+                      return;
+                    }
+                    _showBookingBottomSheet(context, {
+                      'pooja_id': poojaId,
+                      'name': name,
+                      'description': description,
+                      'price': price,
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.h),
+                    child: Center(
+                      child: TranslatedText(
+                        'Book Now',
+                        style: TextStyle(
+                          fontFamily: 'aBeeZee',
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1182,7 +1195,7 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔥 REAL VIDEO PREVIEW (NOT STATIC)
+          //  REAL VIDEO PREVIEW (NOT STATIC)
           Stack(
             children: [
               SizedBox(
@@ -1251,8 +1264,8 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _launchYouTube(videoUrl, context);
+                    onPressed: () async{
+                      await _launchYouTube(videoUrl, context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -1260,7 +1273,10 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
-                    child: TranslatedText('Watch Now'),
+                    child: TranslatedText(
+                      'Watch Now',
+                      style: TextStyle(fontFamily: 'aBeeZee'),
+                    ),
                   ),
                 ),
               ],
@@ -1279,6 +1295,17 @@ class _SevaLiveDarshanScreenState extends State<SevaLiveDarshanScreen> {
       context: context,
       isScrollControlled: true,
       builder: (_) => BookingBottomSheet(seva: seva),
+    );
+  }
+
+  void _showBookingDetailsBottomSheet(
+    BuildContext context,
+    Map<String, dynamic> seva,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BookingDetailsBottomSheet(seva: seva),
     );
   }
 }
@@ -1383,7 +1410,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                               foregroundColor: Colors.white,
                             ),
                             onPressed: details.onStepCancel,
-                            child: TranslatedText("Back"),
+                            child: TranslatedText(
+                              "Back",
+                              style: TextStyle(fontFamily: 'aBeeZee'),
+                            ),
                           ),
                         SizedBox(width: 12.w),
                         Expanded(
@@ -1412,6 +1442,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                     currentStep == 2
                                         ? "Confirm Booking"
                                         : "Next",
+                                    style: TextStyle(fontFamily: 'aBeeZee'),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1447,7 +1478,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                 steps: [
                   // Step 1: Seva + Devotee Details
                   Step(
-                    title: TranslatedText("Details"),
+                    title: TranslatedText(
+                      "Details",
+                      style: TextStyle(fontFamily: 'aBeeZee'),
+                    ),
                     content: Form(
                       key: _formKey1,
                       child: SingleChildScrollView(
@@ -1544,7 +1578,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
 
                   // Step 2: Scheduling + Sankalpam
                   Step(
-                    title: TranslatedText("Schedule"),
+                    title: TranslatedText(
+                      "Schedule",
+                      style: TextStyle(fontFamily: 'aBeeZee'),
+                    ),
                     content: Form(
                       key: _formKey2,
                       child: SingleChildScrollView(
@@ -1642,7 +1679,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             Column(
                               children: [
                                 CheckboxListTile(
-                                  title: TranslatedText("In Person"),
+                                  title: TranslatedText(
+                                    "In Person",
+                                    style: TextStyle(fontFamily: 'aBeeZee'),
+                                  ),
                                   value: inPerson,
                                   onChanged: (v) =>
                                       setState(() => inPerson = v ?? false),
@@ -1650,7 +1690,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                       ListTileControlAffinity.leading,
                                 ),
                                 CheckboxListTile(
-                                  title: TranslatedText("Proxy (Priest)"),
+                                  title: TranslatedText(
+                                    "Proxy (Priest)",
+                                    style: TextStyle(fontFamily: 'aBeeZee'),
+                                  ),
                                   value: proxyPriest,
                                   onChanged: (v) =>
                                       setState(() => proxyPriest = v ?? false),
@@ -1688,7 +1731,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
 
                   // Step 3: Prasadam + Payment
                   Step(
-                    title: TranslatedText("Payment"),
+                    title: TranslatedText(
+                      "Payment",
+                      style: TextStyle(fontFamily: 'aBeeZee'),
+                    ),
                     content: Form(
                       key: _formKey3,
                       child: SingleChildScrollView(
@@ -1697,7 +1743,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                           children: [
                             _buildSectionTitle("Prasadam & Delivery"),
                             RadioListTile<String>(
-                              title: TranslatedText("In Person"),
+                              title: TranslatedText(
+                                "In Person",
+                                style: TextStyle(fontFamily: 'aBeeZee'),
+                              ),
                               value: "In person",
                               activeColor: Theme.of(
                                 context,
@@ -1709,7 +1758,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                   setState(() => selectedDelivery = v),
                             ),
                             RadioListTile<String>(
-                              title: TranslatedText("Courier (Paid)"),
+                              title: TranslatedText(
+                                "Courier (Paid)",
+                                style: TextStyle(fontFamily: 'aBeeZee'),
+                              ),
                               value: "Courier",
                               activeColor: Theme.of(
                                 context,
@@ -1746,7 +1798,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                             SizedBox(height: 24.h),
                             _buildSectionTitle("Payment Method"),
                             RadioListTile<String>(
-                              title: TranslatedText("UPI"),
+                              title: TranslatedText(
+                                "UPI",
+                                style: TextStyle(fontFamily: 'aBeeZee'),
+                              ),
                               value: "UPI",
                               activeColor: Theme.of(
                                 context,
@@ -1758,7 +1813,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                   setState(() => selectedPayment = v),
                             ),
                             RadioListTile<String>(
-                              title: TranslatedText("Debit / Credit Card"),
+                              title: TranslatedText(
+                                "Debit / Credit Card",
+                                style: TextStyle(fontFamily: 'aBeeZee'),
+                              ),
                               value: "Debit/Credit Card",
                               activeColor: Theme.of(
                                 context,
@@ -1770,7 +1828,10 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
                                   setState(() => selectedPayment = v),
                             ),
                             RadioListTile<String>(
-                              title: TranslatedText("Net Banking"),
+                              title: TranslatedText(
+                                "Net Banking",
+                                style: TextStyle(fontFamily: 'aBeeZee'),
+                              ),
                               value: "Net Banking",
                               activeColor: Theme.of(
                                 context,
@@ -2021,5 +2082,171 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+}
+
+/* ================= BOOKING DETAILS BOTTOM SHEET ================= */
+
+class BookingDetailsBottomSheet extends StatefulWidget {
+  final Map<String, dynamic> seva;
+  const BookingDetailsBottomSheet({super.key, required this.seva});
+
+  @override
+  State<BookingDetailsBottomSheet> createState() =>
+      _BookingDetailsBottomSheetState();
+}
+
+class _BookingDetailsBottomSheetState extends State<BookingDetailsBottomSheet> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final seva = widget.seva;
+
+    return SafeArea(
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+        ),
+        child: Column(
+          children: [
+            /// Drag Handle
+            SizedBox(height: 12.h),
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            /// Header
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                children: [
+                  TranslatedText(
+                    "Seva Details",
+                    style: TextStyle(
+                      fontFamily: 'aBeeZee',
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        // color: Colors.grey.shade100,
+                        color: Colors.grey.shade100,
+                      ),
+                      child: Icon(Icons.close, size: 20.sp, color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 20.h),
+
+            /// Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Image
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20.r),
+                      child: AspectRatio(
+                        aspectRatio: 8 / 7,
+                        child: Image.network(
+                          seva["imageUrl"],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey.shade200,
+                            child: Icon(Icons.image, size: 40.sp),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 24.h),
+
+                    /// Name
+                    TranslatedText(
+                      seva["name"],
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+
+                    SizedBox(height: 10.h),
+
+                    /// Price
+                    TranslatedText(
+                      "₹ ${seva["price"]}",
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+
+                    SizedBox(height: 10.h),
+
+                    /// Divider
+                    Divider(color: Colors.grey.shade300),
+
+                    SizedBox(height: 16.h),
+
+                    /// Description Title
+                    TranslatedText(
+                      "About this Seva",
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    SizedBox(height: 10.h),
+
+                    /// Description
+                    TranslatedText(
+                      seva["description"],
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 14.sp,
+                        height: 1.6,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+
+                    SizedBox(height: 40.h),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

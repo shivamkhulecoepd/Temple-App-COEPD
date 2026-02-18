@@ -30,7 +30,7 @@ class DBFunctions {
           var dataResult = json['data'];
           if (dataResult is Map<String, dynamic>) {
             // Original format: {marquee_news: [...], banners: [...]}
-            return dataResult as Map<String, dynamic>;
+            return dataResult;
           } else {
             // New format: banners are returned directly as a list
             // Return in the expected format {banners: [...], marquee_news: [...]}
@@ -78,12 +78,12 @@ class DBFunctions {
       } else {
         log('Timings failed: ${response.statusCode}');
         // return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
-        return 'Refresh for latest timings';
+        return 'Pull down for latest timings';
       }
     } catch (e) {
       log('fetchTempleTimings error: $e');
       // return '6:00 AM – 12:30 PM | 4:00 PM – 8:00 PM';
-      return 'Refresh for latest timings';
+      return 'Pull down for latest timings';
     }
   }
 
@@ -764,9 +764,11 @@ class DBFunctions {
       if (response.statusCode == 200) {
         // Check if response is JSON
         if (!response.body.startsWith('{')) {
-          throw Exception('Server returned HTML instead of JSON. Please check server configuration.');
+          throw Exception(
+            'Server returned HTML instead of JSON. Please check server configuration.',
+          );
         }
-        
+
         final json = jsonDecode(response.body);
         if (json['success'] == true) {
           return json;
@@ -834,6 +836,64 @@ class DBFunctions {
     } catch (e) {
       log('submitVolunteerApplication error: $e');
       rethrow;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 22. Send forgot password request
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    const String endpoint = 'forgot_password.php';
+
+    final body = {'email': email.trim()};
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(baseUrl + endpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      log('Forgot Password → Status: ${response.statusCode}');
+      log('Forgot Password → Response: ${jsonDecode(response.body)}');
+      log('RAW BODY: ${response.body}');
+
+      // Process the response regardless of status code since API returns meaningful data for both 200 and 400
+      if (response.body.startsWith('{')) {
+        final json = jsonDecode(response.body);
+        return json;
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } catch (e) {
+      log('forgotPassword error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 23. Fetch upcoming events for Download Upcoming Events button in festivals screen
+  // ──────────────────────────────────────────────────────────────
+  Future<List<dynamic>> fetchUpcomingEvents() async {
+    const String endpoint = 'upcoming_events.php';
+
+    try {
+      final response = await http
+          .get(Uri.parse(baseUrl + endpoint))
+          .timeout(const Duration(seconds: 12));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true) {
+          return json['data'] as List<dynamic>? ?? [];
+        }
+      }
+      return [];
+    } catch (e) {
+      log('fetchUpcomingEvents error: $e');
+      return [];
     }
   }
 }

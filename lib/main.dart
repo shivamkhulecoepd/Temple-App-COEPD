@@ -3,11 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mslgd/blocs/language/language_bloc.dart';
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
+import 'package:mslgd/screens/dashboard/new_home_screen.dart';
 import 'package:mslgd/services/storage_service.dart';
 import 'package:mslgd/services/translation_service.dart';
 import 'package:mslgd/services/theme_service.dart';
 import 'package:mslgd/screens/authentication/splash_screen.dart';
 import 'package:mslgd/utils/error_handler.dart';
+import 'package:mslgd/widgets/layout_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,8 +76,10 @@ class TempleApp extends StatelessWidget {
                     };
                     return widget ?? const SizedBox.shrink();
                   },
-                  home: const SplashScreen(),
+                  // home: const SplashScreen(),
                   // home: AboutScreen(),
+                  // home: TempleHomeScreen(),
+                  home: LayoutScreen(),
                 );
               },
             );

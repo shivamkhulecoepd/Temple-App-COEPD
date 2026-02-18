@@ -1,13 +1,21 @@
 import 'dart:developer';
+import 'dart:io';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart' as http;
 import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/translated_text.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:excel/excel.dart';
 
 // Define enum for different sections
 enum FestivalsSection {
@@ -32,57 +40,67 @@ class _FestivalScreenState extends State<FestivalsScreen> {
   Map<String, dynamic>? _liveStreamData;
   bool _isLoading = true;
 
+  List<dynamic> eventsForDownload = [];
+  bool isLoadingEventsForDownload = true;
+
   // Daily rituals data
   final List<Map<String, String>> _dailyRituals = [
     {
       'ritual': 'Suprabhata & Ashtottara Seva',
       'time': '05:00 AM',
-      'notes': 'Daily (Sun & Sankashti). Benefits: Education, employment, health, wealth, success.'
+      'notes':
+          'Daily (Sun & Sankashti). Benefits: Education, employment, health, wealth, success.',
     },
     {
       'ritual': 'Vastralankarana & 32 Dravya Abhishekam',
       'time': '05:00 – 05:30 AM',
-      'notes': 'Divine grace, longevity, prosperity, wealth gain.'
+      'notes': 'Divine grace, longevity, prosperity, wealth gain.',
     },
     {
       'ritual': 'Chaturavritti Tarpanam',
       'time': '07:00 AM',
-      'notes': 'Protection, disease relief, career & political growth, prosperity.'
+      'notes':
+          'Protection, disease relief, career & political growth, prosperity.',
     },
     {
       'ritual': 'Sahasranama Archana',
       'time': '07:00 – 08:00 AM',
-      'notes': 'Mon, Tue, Thu, Fri, Chaturthi & Sat. Removes poverty, debts, improves growth.'
+      'notes':
+          'Mon, Tue, Thu, Fri, Chaturthi & Sat. Removes poverty, debts, improves growth.',
     },
     {
       'ritual': 'Durva Yugma Puja',
       'time': '08:00 – 09:00 AM',
-      'notes': 'Mental peace, job stability, business & wealth growth.'
+      'notes': 'Mental peace, job stability, business & wealth growth.',
     },
     {
       'ritual': 'Homam Sevas',
       'time': '08:00 AM',
-      'notes': 'Includes Ganapati Atharvashirsha, Lakshmi Ganapati Mantra, Sri Sukta. Benefits: Career, marriage, progeny, prosperity.'
+      'notes':
+          'Includes Ganapati Atharvashirsha, Lakshmi Ganapati Mantra, Sri Sukta. Benefits: Career, marriage, progeny, prosperity.',
     },
     {
       'ritual': 'Friday Special Sevas',
       'time': '10:00 AM & 11:00 AM',
-      'notes': 'Suvarna Pushparchana & Odi Gantla Seva. Lakshmi blessings & prosperity.'
+      'notes':
+          'Suvarna Pushparchana & Odi Gantla Seva. Lakshmi blessings & prosperity.',
     },
     {
       'ritual': 'Navagraha Abhishekam (Saturday)',
       'time': '05:00 AM',
-      'notes': 'Panchamrita, Shani Taila, Sesame donation & Homam. Relieves planetary doshas.'
+      'notes':
+          'Panchamrita, Shani Taila, Sesame donation & Homam. Relieves planetary doshas.',
     },
     {
       'ritual': 'Durva Puja (Noon)',
       'time': '12:00 PM',
-      'notes': 'Daily special puja for peace, political & career growth.'
+      'notes': 'Daily special puja for peace, political & career growth.',
     },
     {
       'ritual': 'Rajopachara Puja & Donor Blessings',
       'time': 'Select Days',
-      'notes': 'Darbar Seva & Vedic blessings for Annadanam donors. Removes financial & vastu issues.'
+      'notes':
+          'Darbar Seva & Vedic blessings for Annadanam donors. Removes financial & vastu issues.',
     },
   ];
 
@@ -91,6 +109,348 @@ class _FestivalScreenState extends State<FestivalsScreen> {
     super.initState();
     _currentSection = widget.initialSection ?? FestivalsSection.annualFestivals;
     _fetchData();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    try {
+      log('Loading upcoming events...');
+      final fetched = await DBFunctions().fetchUpcomingEvents();
+      log('Events fetched. Count: ${fetched.length}, Data: $fetched');
+      setState(() {
+        eventsForDownload = fetched;
+        isLoadingEventsForDownload = false;
+      });
+      log('Events state updated. eventsForDownload length: ${eventsForDownload.length}');
+    } catch (e) {
+      log('Error loading events: $e');
+      setState(() => isLoadingEventsForDownload = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load events: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadAsXls() async {
+    if (eventsForDownload.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: TranslatedText('No events to download')),
+        );
+      }
+      return;
+    }
+
+    // Request storage permissions for Android
+    if (Platform.isAndroid) {
+      log('Requesting storage permissions for Android');
+      final storageStatus = await Permission.storage.request();
+      if (!storageStatus.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Storage permission required to save files')),
+          );
+        }
+        return;
+      }
+      
+      // For Android 11+, also request manage external storage
+      if (await Permission.manageExternalStorage.isDenied) {
+        final manageStatus = await Permission.manageExternalStorage.request();
+        log('Manage external storage permission: ${manageStatus.isGranted}');
+      }
+    }
+
+    try {
+      log('Starting XLSX generation. Events count: ${eventsForDownload.length}');
+      log('Events data: $eventsForDownload');
+      
+      // Create Excel file with explicit cell creation
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['Upcoming Events'];
+      log('Excel sheet created');
+
+      // Add header row with explicit cell creation
+      sheet.cell(CellIndex.indexByString('A1')).value = TextCellValue('Title');
+      sheet.cell(CellIndex.indexByString('B1')).value = TextCellValue('Date');
+      sheet.cell(CellIndex.indexByString('C1')).value = TextCellValue('Time');
+      sheet.cell(CellIndex.indexByString('D1')).value = TextCellValue('Description');
+      log('Header row added with explicit cell creation');
+
+      // Add event rows with explicit cell creation
+      for (int i = 0; i < eventsForDownload.length; i++) {
+        final event = eventsForDownload[i];
+        log('Processing event $i: $event');
+        final title = event['title'] ?? 'N/A';
+        final date = event['date'] ?? 'N/A';
+        final time = event['time'] ?? 'N/A';
+        final description = (event['description'] ?? '').replaceAll('\n', ' ').trim();
+        
+        log('Event data - Title: $title, Date: $date, Time: $time, Description: $description');
+        
+        final row = i + 2; // Start from row 2 (A2, B2, C2, D2)
+        sheet.cell(CellIndex.indexByString('A$row')).value = TextCellValue(title);
+        sheet.cell(CellIndex.indexByString('B$row')).value = TextCellValue(date);
+        sheet.cell(CellIndex.indexByString('C$row')).value = TextCellValue(time);
+        sheet.cell(CellIndex.indexByString('D$row')).value = TextCellValue(description);
+        
+        // Verify cell values were set
+        final testTitle = sheet.cell(CellIndex.indexByString('A$row')).value;
+        log('Cell A$row value set to: $testTitle');
+        
+        log('Added event data to row $row');
+      }
+      
+      log('Total events processed: ${eventsForDownload.length}');
+      log('Sheet maxRows: ${sheet.maxRows}');
+      log('Sheet rows length: ${sheet.rows.length}');
+      
+      // Verify specific cells have data
+      if (eventsForDownload.isNotEmpty) {
+        final testCell = sheet.cell(CellIndex.indexByString('A2')).value;
+        log('Test cell A2 value: $testCell');
+      }
+
+      // Encode to bytes
+      final bytes = excel.encode();
+      log('Excel encoded. Bytes length: ${bytes?.length ?? 0}');
+      
+      if (bytes == null) {
+        throw Exception('Failed to generate Excel file - encoding returned null');
+      }
+      
+      if (bytes.isEmpty) {
+        throw Exception('Failed to generate Excel file - encoded bytes are empty');
+      }
+      
+
+
+      // Save to system Downloads directory
+      String downloadsPath;
+      
+      if (Platform.isAndroid) {
+        // For Android, use the standard Downloads directory
+        downloadsPath = '/storage/emulated/0/Download';
+        log('Using Android Downloads path: $downloadsPath');
+      } else {
+        // For other platforms, use application documents
+        final appDir = await getApplicationDocumentsDirectory();
+        downloadsPath = '${appDir.path}/Downloads';
+        log('Using app documents path: $downloadsPath');
+      }
+      
+      Directory downloadsDir = Directory(downloadsPath);
+      
+      // Check if Downloads directory exists
+      if (!await downloadsDir.exists()) {
+        log('Downloads directory does not exist, trying to create');
+        try {
+          await downloadsDir.create(recursive: true);
+          log('Downloads directory created successfully');
+        } catch (e) {
+          log('Failed to create Downloads directory: $e');
+          // Fallback to app documents
+          final appDir = await getApplicationDocumentsDirectory();
+          downloadsPath = '${appDir.path}/Downloads';
+          downloadsDir = Directory(downloadsPath);
+          if (!await downloadsDir.exists()) {
+            await downloadsDir.create(recursive: true);
+          }
+        }
+      }
+      
+      final fileName = 'Upcoming_Events_${DateTime.now().millisecondsSinceEpoch}.xlsx';
+      final path = '${downloadsDir.path}/$fileName';
+      log('Full file path: $path');
+      
+      final file = File(path);
+      await file.writeAsBytes(bytes);
+      
+      // Verify file was created
+      final fileExists = await file.exists();
+      final fileSize = await file.length();
+      log('File created successfully. Exists: $fileExists, Size: $fileSize bytes');
+      
+      // Additional verification - read back a small portion
+      if (fileExists && fileSize > 0) {
+        try {
+          final content = await file.readAsBytes();
+          log('File content verification - First 100 bytes: ${content.sublist(0, content.length > 100 ? 100 : content.length)}');
+          
+          // Verify the file starts with the correct Excel signature
+          if (content.length >= 4) {
+            final signature = String.fromCharCodes(content.take(4));
+            log('File signature: $signature');
+          }
+        } catch (readError) {
+          log('Error reading file for verification: $readError');
+        }
+      }
+
+      // Show success message with file location
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const TranslatedText(
+                  'Events downloaded as XLSX!',
+                ),
+                Text(
+                  Platform.isAndroid 
+                    ? 'Saved to system Downloads folder' 
+                    : 'Saved to app Downloads folder',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Text(
+                  'File size: $fileSize bytes',
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+                Text(
+                  path,
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: 'Open File',
+              onPressed: () {
+                // Try to open the file
+                _openFileLocation(path);
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      log('Failed to create XLS file: $e');
+      log('Stack trace: $stackTrace');
+      String errorMessage = 'Failed to create XLS file: ${e.toString()}';
+      
+      // Provide more specific error messages for common issues
+      if (e.toString().contains('Permission')) {
+        errorMessage = 'Storage permission denied. Please grant permission to save files.';
+      } else if (e.toString().contains('Directory')) {
+        errorMessage = 'Unable to access Downloads folder. Please check storage permissions.';
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadPdf() async {
+    try {
+      // Check and request storage permissions
+      if (Platform.isAndroid) {
+        final status = await Permission.storage.request();
+        if (!status.isGranted) {
+          if (mounted) {
+            AppSnackbar.error(
+              context,
+              'Storage permission is required to download files',
+            );
+          }
+          return;
+        }
+
+        // For Android 11+ also check manage external storage
+        if (await Permission.manageExternalStorage.isDenied) {
+          final manageStatus = await Permission.manageExternalStorage.request();
+          if (!manageStatus.isGranted && mounted) {
+            AppSnackbar.info(
+              context,
+              'Some features may be limited without full storage access',
+            );
+          }
+        }
+      }
+
+      // Show initial download starting message
+      if (mounted) {
+        AppSnackbar.info(context, 'Starting PDF download...');
+      }
+
+      final url =
+          'https://marakatasrilaxmiganapathi.org/assets/pdf/poojadetails.pdf';
+
+      // Use direct download for better performance
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'Accept': 'application/pdf',
+              'User-Agent': 'Mozilla/5.0 (compatible; Flutter App)',
+            },
+          )
+          .timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/poojadetails.pdf');
+
+        // Show writing file message
+        if (mounted) {
+          AppSnackbar.info(context, 'Saving PDF file...');
+        }
+
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Show completion message
+        if (mounted) {
+          AppSnackbar.info(context, 'Download complete, opening file...');
+        }
+
+        // Open the downloaded file
+        if (Platform.isAndroid) {
+          // For Android, we need to use open_filex package which handles FileProvider properly
+          await OpenFilex.open(file.path);
+        } else {
+          // For iOS and other platforms, use url_launcher
+          await launchUrl(
+            Uri.file(file.path),
+            mode: LaunchMode.externalApplication,
+          );
+        }
+
+        if (mounted) {
+          AppSnackbar.success(context, 'PDF downloaded successfully');
+        }
+      } else {
+        if (mounted) {
+          AppSnackbar.error(
+            context,
+            'Failed to download PDF (Status: ${response.statusCode})',
+          );
+        }
+      }
+    } on TimeoutException {
+      if (mounted) {
+        AppSnackbar.error(
+          context,
+          'Download timeout - please check your connection',
+        );
+      }
+    } catch (e) {
+      log('Error downloading PDF: $e');
+      if (mounted) {
+        AppSnackbar.error(
+          context,
+          'Error downloading PDF: ${e.toString().split(':').first}',
+        );
+      }
+    }
   }
 
   Future<void> _fetchData() async {
@@ -132,9 +492,53 @@ class _FestivalScreenState extends State<FestivalsScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      AppSnackbar.error(context, 'Could not open YouTube');
+      if (mounted) {
+        AppSnackbar.error(context, 'Could not open YouTube');
+      }
     }
   }
+
+  Future<void> _openFileLocation(String filePath) async {
+    try {
+      log('Attempting to open file location: $filePath');
+      final file = File(filePath);
+      if (await file.exists()) {
+        log('File exists, attempting to open');
+        if (Platform.isAndroid) {
+          // For Android, try to open the file directly first
+          try {
+            final result = await OpenFilex.open(filePath);
+            log('OpenFilex result: ${result.message}');
+            if (result.type != ResultType.done) {
+              // If direct file opening fails, open parent directory
+              await OpenFilex.open(file.parent.path);
+            }
+          } catch (openError) {
+            log('OpenFilex failed: $openError, trying parent directory');
+            await OpenFilex.open(file.parent.path);
+          }
+        } else {
+          // For other platforms, open the file directly
+          await launchUrl(
+            Uri.file(filePath),
+            mode: LaunchMode.externalApplication,
+          );
+        }
+      } else {
+        log('File does not exist: $filePath');
+        if (mounted) {
+          AppSnackbar.error(context, 'File not found at: $filePath');
+        }
+      }
+    } catch (e) {
+      log('Error opening file location: $e');
+      if (mounted) {
+        AppSnackbar.error(context, 'Could not open file location: ${e.toString()}');
+      }
+    }
+  }
+  
+
 
   void _selectSection(FestivalsSection section) {
     Navigator.pop(context);
@@ -534,10 +938,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
         ),
         SizedBox(height: 20.h),
         ElevatedButton(
-          onPressed: () {
-            // Handle download schedule
-            AppSnackbar.info(context, 'Download Schedule clicked');
-          },
+          onPressed: _downloadPdf,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
@@ -645,6 +1046,21 @@ class _FestivalScreenState extends State<FestivalsScreen> {
               ],
             ],
           ),
+          SizedBox(height: 20.h),
+          if (eventsForDownload.isNotEmpty)
+            ElevatedButton.icon(
+              onPressed: _downloadAsXls,
+              icon: const Icon(Icons.download_rounded, size: 18),
+              label: const TranslatedText('Download XLS'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -789,38 +1205,28 @@ class _FestivalScreenState extends State<FestivalsScreen> {
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        if (_events.isEmpty)
-                          TranslatedText(
-                            'No upcoming live sessions',
-                            style: TextStyle(
-                              fontFamily: 'aBeeZee',
-                              fontSize: 14.sp,
-                              color: isDark ? Colors.grey[300] : Colors.black,
-                            ),
-                          )
-                        else ...[
-                          for (var i = 0; i < _events.length && i < 2; i++)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 4.h),
-                              child: TranslatedText(
-                                '• ${_events[i]['event_title']} – ${_formatDate(_events[i]['event_date'] ?? '')}',
-                                style: TextStyle(
-                                  fontFamily: 'aBeeZee',
-                                  fontSize: 14.sp,
-                                  color: isDark
-                                      ? Colors.grey[300]
-                                      : Colors.black,
-                                ),
-                              ),
-                            ),
-                        ],
+                        TranslatedText(
+                          '• Vinayaka Chavithi Pooja – Sep 17, 2025',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 14.sp,
+                            color: isDark ? Colors.grey[300] : Colors.black,
+                          ),
+                        ),
+                        TranslatedText(
+                          '• Navratri Kalakshetra – Sep 17, 2025',
+                          style: TextStyle(
+                            fontFamily: 'aBeeZee',
+                            fontSize: 14.sp,
+                            color: isDark ? Colors.grey[300] : Colors.black,
+                          ),
+                        ),
                         SizedBox(height: 16.h),
                         ElevatedButton(
-                          onPressed: () {
-                            // Handle subscribe for reminder
-                            AppSnackbar.info(
+                          onPressed: () async {
+                            await _launchYouTube(
+                              "https://www.youtube.com/@mslgdevasthanam",
                               context,
-                              'Subscribe for reminder clicked',
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -921,9 +1327,10 @@ class _FestivalScreenState extends State<FestivalsScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.1)
-            : Colors.white.withValues(alpha: 0.6),
+        // color: isDark
+        //     ? Colors.white.withValues(alpha: 0.1)
+        //     : Colors.white.withValues(alpha: 0.9),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
@@ -1075,9 +1482,7 @@ class _FestivalScreenState extends State<FestivalsScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.1)
-            : Colors.white.withValues(alpha: 0.7),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(

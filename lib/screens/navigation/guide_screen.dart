@@ -788,7 +788,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 message: 'View on Map for :- ${data['title']}',
               );
             },
-            child: TranslatedText('View on Map'),
+            child: TranslatedText('View on Map',),
           ),
         ],
       ),

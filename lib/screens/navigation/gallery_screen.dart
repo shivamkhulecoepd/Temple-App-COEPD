@@ -52,7 +52,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
-        AppSnackbar.error(context, 'Failed to load ${_currentSection}: $e');
+        AppSnackbar.error(context, 'Failed to load $_currentSection: $e');
       }
     }
   }
@@ -598,7 +598,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔥 REAL VIDEO PREVIEW (NOT STATIC)
+          //  REAL VIDEO PREVIEW (NOT STATIC)
           Stack(
             children: [
               SizedBox(
@@ -676,7 +676,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
-                    child: TranslatedText('Watch Now'),
+                    child: TranslatedText('Watch Now', style: TextStyle(fontFamily: 'aBeeZee',),),
                   ),
                 ),
               ],
@@ -726,7 +726,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         children: [
           Container(
             width: 90.w,
-            height: 90.w, // 🔒 fixed height prevents layout jump
+            height: 90.w, //  fixed height prevents layout jump
             decoration: BoxDecoration(
               color: theme.colorScheme.secondary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12.r),
@@ -737,7 +737,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 imageUrl,
                 fit: BoxFit.cover,
 
-                /// 🔹 SHIMMER UNTIL IMAGE LOADS
+                ///  SHIMMER UNTIL IMAGE LOADS
                 // loadingBuilder: (context, child, loadingProgress) {
                 //   if (loadingProgress == null) return child;
 
@@ -759,7 +759,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   );
                 },
 
-                /// 🔹 OPTIONAL ERROR STATE
+                ///  OPTIONAL ERROR STATE
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     alignment: Alignment.center,

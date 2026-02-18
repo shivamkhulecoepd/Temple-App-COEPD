@@ -14,7 +14,9 @@ class _GalleryWidgetState extends State<GalleryWidget> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Container(child: _buildGallerySection(widget.title ?? 'Image Gallery')),
+      child: Container(
+        child: _buildGallerySection(widget.title ?? 'Image Gallery'),
+      ),
     );
   }
 
@@ -36,7 +38,7 @@ class _GalleryWidgetState extends State<GalleryWidget> {
             overflow: TextOverflow.ellipsis,
           ),
         Padding(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(10.r),
           child: Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -54,19 +56,20 @@ class _GalleryWidgetState extends State<GalleryWidget> {
   }
 
   Widget _galleryImage(String path) {
-    // return ClipRRect(
-    //   borderRadius: BorderRadius.circular(8),
-    //   child: Image.asset(path, width: 100, height: 100, fit: BoxFit.cover),
-    // );
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         color: Theme.of(context).cardTheme.color,
-        border: Border.all(color: Colors.white, width: 3),
+        border: Border.all(color: Colors.white, width: 3.w),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.asset(path, width: 100, height: 100, fit: BoxFit.cover),
+        borderRadius: BorderRadius.circular(8.r),
+        child: Image.asset(
+          path,
+          width: 100.w,
+          height: 100.h,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

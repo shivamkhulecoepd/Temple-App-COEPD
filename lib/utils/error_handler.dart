@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/widgets/translated_text.dart';
 
 class ErrorHandler {
@@ -20,37 +21,37 @@ class ErrorHandler {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 60,
-              ),
-              const SizedBox(height: 16),
-              const TranslatedText(
+              Icon(Icons.error_outline, color: Colors.red, size: 60.sp),
+              SizedBox(height: 16.h),
+              TranslatedText(
                 'Something went wrong!',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontFamily: 'aBeeZee',
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               if (kDebugMode)
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: EdgeInsets.all(16.r),
                   child: TranslatedText(
                     details.exception.toString(),
-                    style: const TextStyle(fontSize: 12),
+                    style: TextStyle(fontFamily: 'aBeeZee', fontSize: 12.sp),
                     textAlign: TextAlign.center,
                   ),
                 ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               ElevatedButton(
                 onPressed: () {
                   // Try to restart the app or go back
                   // This is a simplified approach - in production you might want
                   // to navigate to a safe screen
                 },
-                child: const TranslatedText('Try Again'),
+                child: const TranslatedText(
+                  'Try Again',
+                  style: TextStyle(fontFamily: 'aBeeZee'),
+                ),
               ),
             ],
           ),

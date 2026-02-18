@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
 import 'package:mslgd/screens/dashboard/donations_screen.dart';
 import 'package:mslgd/screens/dashboard/home_screen.dart';
+import 'package:mslgd/screens/dashboard/new_home_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/dashboard/user_dashbaord_screen.dart';
 import 'package:mslgd/widgets/translated_text.dart';
@@ -23,7 +24,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   // List of pages to display for each tab
   final List<Widget> _pages = [
-    const HomeScreen(),
+    // const HomeScreen(),
+    const TempleHomeScreen(),
     const DonationsScreen(),
     const SevaLiveDarshanScreen(),
     const ContactScreen(),
@@ -57,8 +59,10 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isDisposed) return const SizedBox.shrink(); // Return empty widget if disposed
-    
+    if (_isDisposed) {
+      return const SizedBox.shrink(); // Return empty widget if disposed
+    }
+
     return Scaffold(
       extendBody: true,
       // 3. Replace IndexedStack with PageView
@@ -82,8 +86,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
   Widget _buildEnhancedBottomBar() {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: 6.h.clamp(4.0, 12.0), 
-        horizontal: 8.w.clamp(4.0, 16.0)
+        vertical: 6.h.clamp(4.0, 12.0),
+        horizontal: 8.w.clamp(4.0, 16.0),
       ),
       color: Theme.of(context).colorScheme.surface,
       child: Row(
@@ -96,9 +100,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
             (Icons.quick_contacts_mail_rounded, "Contact", 3),
             (Icons.person_rounded, "Profile", 4),
           ];
-    
+
           final (icon, label, idx) = items[index];
-    
+
           return Expanded(child: _buildNavItem(idx, icon, label));
         }),
       ),
@@ -114,8 +118,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         padding: EdgeInsets.symmetric(
-          horizontal: 4.w.clamp(2.0, 8.0), 
-          vertical: 6.h.clamp(4.0, 10.0)
+          horizontal: 4.w.clamp(2.0, 8.0),
+          vertical: 6.h.clamp(4.0, 10.0),
         ),
         decoration: BoxDecoration(
           color: isSelected
@@ -128,8 +132,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected 
-                  ? Theme.of(context).colorScheme.secondary 
+              color: isSelected
+                  ? Theme.of(context).colorScheme.secondary
                   : Colors.grey[400],
               size: (isSelected ? 26.r : 24.r).clamp(20.0, 30.0),
             ),
@@ -140,8 +144,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
                 fontFamily: 'aBeeZee',
                 fontSize: 10.5.sp.clamp(9.0, 12.0),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected 
-                    ? Theme.of(context).colorScheme.secondary 
+                color: isSelected
+                    ? Theme.of(context).colorScheme.secondary
                     : Colors.grey[600],
               ),
               maxLines: 1,

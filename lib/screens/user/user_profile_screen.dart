@@ -252,20 +252,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Title
-                                // Center(
-                                //   child: TranslatedText(
-                                //     'My Profile',
-                                //     style: TextStyle(
-                                //       fontFamily: 'aBeeZee',
-                                //       fontSize: 26.sp,
-                                //       fontWeight: FontWeight.bold,
-                                //       color: const Color(0xFF8B0000),
-                                //     ),
-                                //   ),
-                                // ),
-                                // SizedBox(height: 32.h),
-
                                 // Full Name
                                 _buildLabel('Full Name'),
                                 _buildTextField(

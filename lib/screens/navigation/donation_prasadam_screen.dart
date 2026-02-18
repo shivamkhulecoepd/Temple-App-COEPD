@@ -43,7 +43,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   final TextEditingController _ehundiAddressController =
       TextEditingController();
   final TextEditingController _ehundiCityController = TextEditingController();
-  TextEditingController _ehundiDonationAmountController =
+  final TextEditingController _ehundiDonationAmountController =
       TextEditingController();
   final TextEditingController _ehundiSankalpamController =
       TextEditingController();
@@ -498,7 +498,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   // ---------------- SECTION UIs ----------------
 
   Widget _eHundiSection(ThemeData theme, bool isDark) {
-    final TextEditingController _amountController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,7 +536,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
 
               // ── Amount TextField ──
               TextField(
-                controller: _amountController,
+                controller: amountController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
@@ -599,10 +599,31 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                 width: double.infinity,
                 height: 54.h,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showDonationInfoBottomSheet(
-                    'E-Hundi',
-                    amount: int.tryParse(_amountController.text) ?? 0,
-                  ),
+                  onPressed: () async {
+                    final token = await AuthUtils.getUserToken();
+                    if (token == null) {
+                      if (mounted) {
+                        AppSnackbar.show(
+                          context,
+                          message: 'Please login to continue for donation',
+                          type: SnackbarType.warning,
+                          actionLabel: 'Login',
+                          onActionPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => AuthScreen()),
+                            );
+                          },
+                        );
+                      }
+                      return;
+                    } else {
+                      _showDonationInfoBottomSheet(
+                        'E-Hundi',
+                        amount: int.tryParse(amountController.text) ?? 0,
+                      );
+                    }
+                  },
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(
                     'Donate Now',
@@ -630,7 +651,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
   }
 
   Widget _nityaAnnaSection(ThemeData theme, bool isDark) {
-    final TextEditingController _amountController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
 
     return Column(
       children: [
@@ -672,7 +693,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
 
               // ── Amount TextField ──
               TextField(
-                controller: _amountController,
+                controller: amountController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
@@ -735,10 +756,31 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                 width: double.infinity,
                 height: 54.h,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showDonationInfoBottomSheet(
-                    'Annaprasadam',
-                    amount: int.tryParse(_amountController.text) ?? 0,
-                  ),
+                  onPressed: () async {
+                    final token = await AuthUtils.getUserToken();
+                    if (token == null) {
+                      if (mounted) {
+                        AppSnackbar.show(
+                          context,
+                          message: 'Please login to continue for donation',
+                          type: SnackbarType.warning,
+                          actionLabel: 'Login',
+                          onActionPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => AuthScreen()),
+                            );
+                          },
+                        );
+                      }
+                      return;
+                    } else {
+                      _showDonationInfoBottomSheet(
+                        'Annaprasadam',
+                        amount: int.tryParse(amountController.text) ?? 0,
+                      );
+                    }
+                  },
                   icon: const Icon(Icons.volunteer_activism, size: 22),
                   label: TranslatedText(
                     'Donate Now',
@@ -802,7 +844,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
           ],
           theme,
           isDark,
-          'Donate'
+          'Donate',
         ),
       ],
     );
@@ -845,7 +887,7 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
           ],
           theme,
           isDark,
-          'Order Now'
+          'Order Now',
         ),
       ],
     );
@@ -898,7 +940,28 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () => _showDonationInfoBottomSheet('Education'),
+                  onPressed: () async {
+                      final token = await AuthUtils.getUserToken();
+                      if (token == null) {
+                        if (mounted) {
+                          AppSnackbar.show(
+                            context,
+                            message: 'Please login to continue for donation',
+                            type: SnackbarType.warning,
+                            actionLabel: 'Login',
+                            onActionPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => AuthScreen()),
+                              );
+                            },
+                          );
+                        }
+                        return;
+                      } else {
+                        _showDonationInfoBottomSheet('Education');
+                      }
+                    },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: Colors.white,
@@ -1026,7 +1089,12 @@ class _DonationsPublicationScreenState extends State<DonationsPrasadamScreen> {
     );
   }
 
-  Widget _simpleCardSection(List<String> items, ThemeData theme, bool isDark, String buttonText) {
+  Widget _simpleCardSection(
+    List<String> items,
+    ThemeData theme,
+    bool isDark,
+    String buttonText,
+  ) {
     return Wrap(
       spacing: 16.w,
       runSpacing: 16.h,

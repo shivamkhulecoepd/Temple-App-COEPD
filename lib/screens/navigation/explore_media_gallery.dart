@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/widgets/common/snackbar_widget.dart';
 import 'package:mslgd/widgets/common/youtube_video_player.dart';
 import 'package:mslgd/widgets/translated_text.dart';
@@ -90,37 +91,40 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
         title: TranslatedText(
           isImages ? 'Image Gallery' : 'Video Archive',
           style: const TextStyle(
+            fontFamily: 'aBeeZee',
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        backgroundColor: const Color(0xFF043342), // primaryBlue
+        backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: Size.fromHeight(48.h),
           child: Container(
-            color: const Color(0xFF043342), // primaryBlue for both themes
+            color: Theme.of(context).primaryColor,
             child: TabBar(
               controller: _tabController,
               onTap: _onCategoryChanged,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               padding: EdgeInsets.zero,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+              labelPadding: EdgeInsets.symmetric(horizontal: 8.w),
               indicatorColor: const Color(0xFFFF5621), // primaryOrange
               indicatorWeight: 3,
-              indicatorPadding: const EdgeInsets.symmetric(horizontal: 4),
+              indicatorPadding: EdgeInsets.symmetric(horizontal: 4.w),
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
-              labelStyle: const TextStyle(
+              labelStyle: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: 14.sp,
               ),
-              unselectedLabelStyle: const TextStyle(
+              unselectedLabelStyle: TextStyle(
+                fontFamily: 'aBeeZee',
                 fontWeight: FontWeight.w400,
-                fontSize: 14,
+                fontSize: 14.sp,
               ),
               dividerColor: Colors.transparent,
               tabs: currentCategories.asMap().entries.map((entry) {
@@ -129,14 +133,15 @@ class _ExploreMediaGalleryState extends State<ExploreMediaGallery>
 
                 return Tab(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 8.h,
                     ),
                     child: TranslatedText(
                       label,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TextStyle(
+                        fontFamily: 'aBeeZee',
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -201,7 +206,6 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
       }
 
       log('Fetched ${widget.type}: $fetched');
-      print('Fetched ${widget.type}: $fetched');
 
       setState(() {
         mediaItems = fetched;
@@ -221,7 +225,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
       return Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(
-            const Color(0xFFFF5621), // primaryOrange
+            Theme.of(context).colorScheme.secondary,
           ),
         ),
       );
@@ -236,15 +240,13 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
               widget.type == 'images'
                   ? Icons.photo_library
                   : Icons.video_library,
-              size: 64,
+              size: 64.sp,
               color: Colors.grey.withValues(alpha: 0.4),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             TranslatedText(
               'No ${widget.type} found in this category',
-              style: TextStyle(
-                fontSize: 16,
-              ),
+              style: TextStyle(fontSize: 16.sp),
               textAlign: TextAlign.center,
             ),
           ],
@@ -288,7 +290,9 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
       child: Card(
         elevation: 4,
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
         child: Image.network(
           img['image_url'],
           fit: BoxFit.cover,
@@ -304,7 +308,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
             color: Colors.grey[100],
             child: Icon(
               Icons.broken_image,
-              size: 60,
+              size: 60.sp,
               color: Colors.grey.withValues(alpha: 0.4),
             ),
           ),
@@ -315,7 +319,7 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
 
   Widget _buildVideoList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       itemCount: mediaItems.length,
       itemBuilder: (context, index) {
         final video = mediaItems[index];
@@ -326,9 +330,9 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
 
   Widget _buildVideoCard(dynamic video) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 16.r),
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -341,7 +345,8 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => VideoPlayerScreen(url: url, isYoutube: true,),
+                      builder: (context) =>
+                          VideoPlayerScreen(url: url, isYoutube: true),
                     ),
                   );
                 } catch (e) {
@@ -354,12 +359,12 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(12.r),
                   ),
                   child: Image.network(
                     video['thumbnail'] ?? '',
-                    height: 200,
+                    height: 200.h,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
@@ -367,16 +372,16 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                       return Shimmer.fromColors(
                         baseColor: Colors.grey[300]!,
                         highlightColor: Colors.grey[100]!,
-                        child: Container(height: 200, color: Colors.white),
+                        child: Container(height: 200.h, color: Colors.white),
                       );
                     },
                     errorBuilder: (_, __, ___) => Container(
-                      height: 200,
+                      height: 200.h,
                       color: Colors.grey[100],
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.video_library,
-                          size: 60,
+                          size: 60.sp,
                           color: Colors.grey,
                         ),
                       ),
@@ -387,21 +392,21 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(12.r),
                       ),
                     ),
                     child: Center(
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16.r),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.6),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.play_arrow_rounded,
                           color: Colors.white,
-                          size: 48,
+                          size: 48.sp,
                         ),
                       ),
                     ),
@@ -411,26 +416,25 @@ class _MediaContentWidgetState extends State<_MediaContentWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TranslatedText(
                   video['title'] ?? 'Video',
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (video['description'] != null) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   TranslatedText(
                     video['description'],
-                    style: TextStyle(
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(fontFamily: 'aBeeZee', fontSize: 14.sp),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -461,7 +465,7 @@ class FullScreenImageViewer extends StatelessWidget {
       appBar: AppBar(
         title: TranslatedText(
           title,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(fontFamily: 'aBeeZee', color: Colors.white),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -479,22 +483,20 @@ class FullScreenImageViewer extends StatelessWidget {
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
                   child: Container(
-                    width: 200,
-                    height: 200,
+                    width: 200.w,
+                    height: 200.h,
                     color: Colors.white,
                   ),
                 ),
               );
             },
-            errorBuilder: (_, __, ___) => const Center(
+            errorBuilder: (_, __, ___) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.broken_image, size: 80, color: Colors.white54),
-                  SizedBox(height: 16),
-                  TranslatedText(
-                    'Failed to load image',
-                  ),
+                  Icon(Icons.broken_image, size: 80.sp, color: Colors.white54),
+                  SizedBox(height: 16.h),
+                  TranslatedText('Failed to load image', style: TextStyle(fontFamily: 'aBeeZee', fontSize: 16.sp),),
                 ],
               ),
             ),

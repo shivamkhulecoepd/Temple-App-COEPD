@@ -146,8 +146,53 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            child: // Festival Spotlight Section
-            Column(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/dashboard/gallery5.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: TranslatedText(
+                'News & Notices',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  color: Colors.white,
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          _drawerItem(
+            'Latest News',
+            NewsNoticesSection.latestNews,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Notices & Announcements',
+            NewsNoticesSection.noticesAnnouncements,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Circulars & Downloads',
+            NewsNoticesSection.circularsDownloads,
+            theme,
+            isDark,
+          ),
+          _drawerItem(
+            'Press Releases',
+            NewsNoticesSection.pressReleases,
+            theme,
+            isDark,
+          ),
+          Divider(),
+          Padding(
+            padding: EdgeInsets.only(left: 16.w, top: 8.h),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -188,30 +233,6 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                 ),
               ],
             ),
-          ),
-          _drawerItem(
-            'Latest News',
-            NewsNoticesSection.latestNews,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Notices & Announcements',
-            NewsNoticesSection.noticesAnnouncements,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Circulars & Downloads',
-            NewsNoticesSection.circularsDownloads,
-            theme,
-            isDark,
-          ),
-          _drawerItem(
-            'Press Releases',
-            NewsNoticesSection.pressReleases,
-            theme,
-            isDark,
           ),
         ],
       ),
@@ -269,9 +290,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +317,11 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                     _isLoading
                         ? _buildLatestNewsShimmer(theme, isDark)
                         : latestNews != null && latestNews!.isNotEmpty
-                        ? _buildLatestNewsCard(context, theme: theme, isDark: isDark)
+                        ? _buildLatestNewsCard(
+                            context,
+                            theme: theme,
+                            isDark: isDark,
+                          )
                         : Container(
                             padding: EdgeInsets.all(20.w),
                             decoration: _cardDecoration(theme, isDark),
@@ -335,9 +358,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +444,10 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
           SizedBox(height: 20.h),
           ElevatedButton(
             onPressed: () {},
-            child: TranslatedText('View full list'),
+            child: TranslatedText(
+              'View full list',
+              style: TextStyle(fontFamily: 'aBeeZee'),
+            ),
           ),
         ],
       ),
@@ -570,9 +594,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
       children: List.generate(latestNews!.length, (index) {
         Map<String, dynamic> banner = latestNews![index];
         return Container(
-          margin: EdgeInsets.only(
-            bottom: 16.h,
-          ),
+          margin: EdgeInsets.only(bottom: 16.h),
           decoration: _cardDecoration(theme, isDark),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12.r),
@@ -599,9 +621,21 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                     },
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey[200],
-                        child: const Center(child: CircularProgressIndicator()),
+                      return Shimmer.fromColors(
+                        baseColor: isDark
+                            ? Colors.grey[800]!
+                            : Colors.grey[300]!,
+                        highlightColor: isDark
+                            ? Colors.grey[700]!
+                            : Colors.grey[100]!,
+                        child: Container(
+                          height: 20.h,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -610,7 +644,9 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                 // Content area
                 Container(
                   padding: EdgeInsets.all(12.r),
-                  color: Theme.of(context).cardColor, // Ensure consistent background color
+                  color: Theme.of(
+                    context,
+                  ).cardColor, // Ensure consistent background color
                   child: Column(
                     spacing: 6.h,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,6 +666,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: Colors.grey,
+                          fontFamily: 'aBeeZee',
                         ),
                       ),
                       TranslatedText(
@@ -700,11 +737,7 @@ class NewsNoticesScreeenState extends State<NewsNoticesScreeen> {
               ),
               TranslatedText(
                 item['content'],
-                style: TextStyle(
-                  fontFamily: 'aBeeZee',
-                  // fontWeight: FontWeight.w200,
-                  fontSize: 13.sp,
-                ),
+                style: TextStyle(fontFamily: 'aBeeZee', fontSize: 13.sp),
               ),
             ],
           ),

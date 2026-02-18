@@ -14,7 +14,6 @@ import 'package:mslgd/blocs/theme/theme_bloc.dart';
 import 'package:mslgd/services/db_functions.dart';
 import 'package:mslgd/models/petal.model.dart';
 import 'package:mslgd/screens/authentication/auth_screen.dart';
-import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
 import 'package:mslgd/screens/navigation/about_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/navigation/accommodation_screen.dart';
@@ -88,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen>
   List<Map<String, dynamic>> banners = [];
   bool _bannerLoading = true;
   bool _bannerError = false;
+  bool _initialDataLoaded = false; // Track if initial data load completed
 
   String timings = 'Loading...';
 
@@ -172,15 +172,27 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // DB data
-  Future<void> loadData({int retryCount = 0}) async {
-    if (!mounted) return;
-    try {
+  Future<void> loadData({int retryCount = 0, bool isRefresh = false}) async {
+    if (!mounted && !isRefresh) return;
+
+    // Only show loading state for refresh actions
+    if (isRefresh) {
       setState(() {
         _bannerLoading = true;
         _bannerError = false;
       });
+    }
 
-      final data = await DBFunctions().fetchMarqueeAndBanners();
+    try {
+      // Add timeout to prevent hanging
+      final data = await DBFunctions().fetchMarqueeAndBanners().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          log('Data loading timeout after 15 seconds');
+          return <String, dynamic>{};
+        },
+      );
+
       if (mounted) {
         // Update static variables
         _staticMarqueeNews = List<String>.from(data['marquee_news'] ?? []);
@@ -199,42 +211,58 @@ class _HomeScreenState extends State<HomeScreen>
             .toList();
 
         // Update local state from static
+        if (mounted) {
+          setState(() {
+            marqueeNews = _staticMarqueeNews;
+            banners = _staticBanners;
+            _bannerLoading = false;
+            _bannerError = false;
+            _initialDataLoaded = true; // Mark as successfully loaded
+          });
+        }
+        log(
+          'Data loaded successfully: ${marqueeNews.length} news, ${banners.length} banners',
+        );
+      } else if (mounted) {
+        // Handle empty data case
         setState(() {
-          marqueeNews = _staticMarqueeNews;
-          banners = _staticBanners;
           _bannerLoading = false;
           _bannerError = false;
+          _initialDataLoaded = true;
         });
+        log('No data received from API');
       }
-      log(marqueeNews.toString());
-      log(banners.toString());
     } catch (e) {
       log('loadData error (attempt ${retryCount + 1}): $e');
+
       if (mounted) {
-        setState(() {
-          _bannerLoading = false;
-          _bannerError = true;
-        });
+        // Only show error state if this is a refresh or we haven't loaded initial data
+        if (isRefresh || !_initialDataLoaded) {
+          setState(() {
+            _bannerLoading = false;
+            _bannerError = true;
+          });
+        }
 
         // Retry logic: retry up to 3 times with increasing delays
         if (retryCount < 3) {
           final delaySeconds = [
-            10,
-            30,
-            60,
-          ][retryCount]; // 10s, 30sec, 1min delays
+            5, // Reduced initial delay
+            15, // Reduced second delay
+            30, // Keep third delay
+          ][retryCount];
           log('Retrying loadData in ${delaySeconds}s...');
 
           Timer(Duration(seconds: delaySeconds), () {
             if (mounted) {
-              loadData(retryCount: retryCount + 1);
+              loadData(retryCount: retryCount + 1, isRefresh: isRefresh);
             }
           });
         } else {
-          AppSnackbar.error(
-            context,
-            'Failed to load data after multiple attempts',
-          );
+          // Only show error message if we haven't loaded initial data successfully
+          if (!_initialDataLoaded && context.mounted) {
+            AppSnackbar.error(context, 'Failed to load events data');
+          }
         }
       }
     }
@@ -242,11 +270,22 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> loadTimings({int retryCount = 0}) async {
     try {
-      final fetchedTimings = await DBFunctions().fetchTempleTimings();
+      final fetchedTimings = await DBFunctions().fetchTempleTimings().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          log('Timings loading timeout after 10 seconds');
+          return 'Timings unavailable';
+        },
+      );
       log("Fetched timings: $fetchedTimings");
-      // Update static
-      _staticTimings = fetchedTimings;
+
       if (mounted) {
+        // Update static
+        _staticTimings = fetchedTimings;
+        setState(() => timings = _staticTimings);
+      } else if (mounted) {
+        // Handle null response
+        _staticTimings = 'Timings unavailable';
         setState(() => timings = _staticTimings);
       }
     } catch (e) {
@@ -255,10 +294,10 @@ class _HomeScreenState extends State<HomeScreen>
       // Retry logic: retry up to 3 times with increasing delays
       if (retryCount < 3) {
         final delaySeconds = [
+          10, // Reduced delays
           20,
-          45,
-          90,
-        ][retryCount]; // 20s, 45s, 1.5min delays
+          30,
+        ][retryCount];
         log('Retrying loadTimings in ${delaySeconds}s...');
 
         Timer(Duration(seconds: delaySeconds), () {
@@ -364,11 +403,37 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Load data only on first app open
     if (_firstLoad) {
-      loadTimings();
-      loadData();
-      _firstLoad = false;
+      // Load both in parallel for better performance
+      Future.wait([loadTimings(), loadData()])
+          .then((_) {
+            _firstLoad = false;
+            log('Initial data loading completed');
+          })
+          .catchError((error) {
+            log('Initial data loading failed: $error');
+            // Even if initial load fails, mark as done to prevent infinite shimmer
+            _firstLoad = false;
+            if (mounted) {
+              setState(() {
+                _bannerLoading = false;
+                _bannerError = true;
+                _initialDataLoaded = false;
+              });
+            }
+          });
+    } else {
+      // If not first load, use cached data
+      setState(() {
+        marqueeNews = _staticMarqueeNews;
+        banners = _staticBanners;
+        timings = _staticTimings;
+        _bannerLoading = false; // Don't show loading for cached data
+        _bannerError = _staticBanners.isEmpty && _staticMarqueeNews.isEmpty;
+        _initialDataLoaded = true;
+      });
     }
 
+    // loadData();
     // Initialize audio player
     _initAudioPlayer();
   }
@@ -401,12 +466,7 @@ class _HomeScreenState extends State<HomeScreen>
             color: Theme.of(context).colorScheme.secondary,
             backgroundColor: Theme.of(context).primaryColor,
             onRefresh: () async {
-              // Show loading states for both sections
-              setState(() {
-                _bannerLoading = true;
-                _bannerError = false;
-              });
-              await Future.wait([loadTimings(), loadData()]);
+              await Future.wait([loadTimings(), loadData(isRefresh: true)]);
             },
             child: SingleChildScrollView(
               child: Column(
@@ -1222,54 +1282,8 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               Spacer(),
               IconButton(
-                onPressed: () async {
-                  // Show loading state
-                  setState(() {
-                    _bannerLoading = true;
-                    _bannerError = false;
-                  });
-                  
-                  try {
-                    final data = await DBFunctions().fetchMarqueeAndBanners();
-                    log('fetchMarqueeAndBanners: ${data.toString()}');
-                    if (mounted) {
-                      // Update static variables
-                      _staticMarqueeNews = List<String>.from(
-                        data['marquee_news'] ?? [],
-                      );
-                      // Convert API banner format to the format expected by the UI
-                      final bannerData = data['banners'] ?? [];
-                      _staticBanners = (bannerData as List)
-                          .map(
-                            (banner) => {
-                              'image': banner['banner_image'],
-                              'title': banner['heading'],
-                              'description': banner['content'],
-                              'date': _formatEventDateTime(
-                                banner['event_datetime'],
-                              ),
-                            },
-                          )
-                          .cast<Map<String, dynamic>>()
-                          .toList();
-                      // Update local state from static
-                      setState(() {
-                        marqueeNews = _staticMarqueeNews;
-                        banners = _staticBanners;
-                        _bannerLoading = false;
-                        _bannerError = false;
-                      });
-                    }
-                  } catch (e) {
-                    log('Refresh banner error: $e');
-                    if (mounted) {
-                      setState(() {
-                        _bannerLoading = false;
-                        _bannerError = true;
-                      });
-                      AppSnackbar.error(context, 'Failed to refresh events');
-                    }
-                  }
+                onPressed: () {
+                  loadData(isRefresh: true);
                 },
                 icon: Icon(Icons.refresh, size: 20.sp),
               ),
@@ -1279,7 +1293,7 @@ class _HomeScreenState extends State<HomeScreen>
         // 2. Horizontal Scrollable Banners
         SizedBox(
           height: 280.h, // Fixed height to accommodate the white content area
-          child: _bannerLoading
+          child: _bannerLoading && !_initialDataLoaded
               ? ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -1401,7 +1415,7 @@ class _HomeScreenState extends State<HomeScreen>
                       SizedBox(height: 8.h),
                       ElevatedButton(
                         onPressed: () {
-                          loadData();
+                          loadData(isRefresh: true);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TempleTheme.primaryOrange,
@@ -1448,7 +1462,14 @@ class _HomeScreenState extends State<HomeScreen>
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           child: OutlinedButton(
             onPressed: () {
-              // Handle view all navigation
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsNoticesScreeen(
+                    initialSection: NewsNoticesSection.latestNews,
+                  ),
+                ),
+              );
             },
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: TempleTheme.primaryOrange),

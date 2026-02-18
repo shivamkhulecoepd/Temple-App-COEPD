@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
@@ -157,6 +158,14 @@ class _AboutScreenState extends State<AboutScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const PdfViewerScreen()),
+    );
+  }
+
+  Future<void> _handleShareOnWhatsAppAction() async {
+    launchUrl(
+      Uri.parse(
+        'https://wa.me/?text=Download%20the%20Historical%20Notes%20PDF:%20https://marakatasrilaxmiganapathi.org/assets/pdf/Temple_history.pdf',
+      ),
     );
   }
 
@@ -384,6 +393,7 @@ class _AboutScreenState extends State<AboutScreen>
           hasAudio: true,
           audioUrl: '',
           hasDownload: true,
+          hasWhatsApp: true,
           downloadUrl: '',
           content: '''
 Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred shrine housing the divine Emerald (Marakata) Lakshmi Ganapati along with Navagrahas with their consorts and vehicles. The deity represents Omkara, removes obstacles, and grants prosperity, wisdom, and spiritual upliftment.''',
@@ -515,34 +525,19 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
           content: '',
           trustees: [
             Trustee(
-              name: 'Dr. M. Satyanarayana Shastry',
-              position: 'Chairman & Chief Priest',
+              name: 'Dr. Mothkuru Sathyanarayana Shastri',
+              position: 'Founder and Chairman ',
               contact: 'chairman@marakathatemple.org',
             ),
             Trustee(
-              name: 'Sri R. Krishna Kumar',
-              position: 'Managing Trustee',
-              contact: 'trustee@marakathatemple.org',
-            ),
-            Trustee(
-              name: 'Smt. Lakshmi Devi',
-              position: 'Secretary',
-              contact: 'secretary@marakathatemple.org',
-            ),
-            Trustee(
-              name: 'Sri S. Rajagopal',
+              name: 'Mothkuru Aramjyothi',
               position: 'Treasurer',
-              contact: 'treasurer@marakathatemple.org',
-            ),
-            Trustee(
-              name: 'Sri R. Krishna Kumar',
-              position: 'Managing Trustee',
               contact: 'trustee@marakathatemple.org',
             ),
             Trustee(
-              name: 'Dr. M. Satyanarayana Shastry',
-              position: 'Chairman & Chief Priest',
-              contact: 'chairman@marakathatemple.org',
+              name: 'Dr. Mothkuru Sriyah Koumudi',
+              position: 'Trustee',
+              contact: 'secretary@marakathatemple.org',
             ),
           ],
         );
@@ -768,10 +763,11 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             if (section.hasAudio) _buildAudioCard(),
             if (section.hasDownload) _buildDownloadCard(),
+            if (section.hasWhatsApp!) _buildShareOnWhatsAppCard(),
           ],
         ),
       ),
@@ -903,7 +899,7 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
                   ),
                 ),
               );
-            }).toList(),
+            }),
 
             SizedBox(height: 20.h),
             TranslatedText(
@@ -1366,7 +1362,6 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
                     child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12.r),
@@ -1713,6 +1708,44 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
               ),
               SizedBox(height: 16.h),
             ],
+            ExpansionTile(
+              title: TranslatedText(
+                'Read More',
+                style: TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              shape: Border(),
+              children: [
+                Column(
+                  spacing: 16.h,
+                  children: [
+                    _buildReadMoreCard(
+                      "About Sri Mothkuru Satyanarayana Shastri Garu",
+                      "Sri Sri Sri Vedamurti Mothkuru Satyanarayana Shastri (b. 26-12-1968) is a revered Vedic scholar, Devi upasaka, Lalata Shastra expert, educator, and social servant. Born into a traditional Vedic family to Late Sri Rama Shastri & Smt. Ramulamma, he overcame severe poverty through faith and discipline.\n\nA Sanskrit Lecturer at Railway Junior College, Secunderabad, he completed multiple postgraduate degrees from Osmania University, earned 4 Gold Medals, 2 distinctions, and a Ph.D. He was honored with titles such as “Vachaspati”, Dharma Sarvabhouma, Seva Ratna, and Honorary Doctorate.\n\nGuided by divine vision, he established the Marakata Lakshmi Ganapati Temple (2016) and leads spiritual, cultural, annadanam, and charitable service initiatives.",
+                    ),
+                    _buildReadMoreCard(
+                      "Lalata Rekha Shastram",
+                      "Lalata Rekha Shastram is a rare spiritual science that studies forehead structure, lines, and sacred markings to understand life tendencies.\n\nUnlike horoscope-based systems, this method does not require date of birth. By observing forehead patterns, guidance can be given regarding health, career, mental peace, family matters, and life obstacles.\n\nClear and well-formed lines indicate leadership, intelligence, and success, while disturbed lines suggest challenges requiring spiritual remedies.",
+                    ),
+                    _buildReadMoreCard(
+                      "Marakata Ganapati Locket – Significance",
+                      "The sacred Marakata (Emerald) Lakshmi Ganapati represents prosperity, knowledge, planetary harmony, and divine protection.\n\nDevotees who participate in Abhishekam and wear the Marakata Ganapati locket are believed to receive success in education, business, career, marriage, and foreign opportunities.\n\nEspecially beneficial for certain stars, zodiac signs, and those facing planetary afflictions, it is believed to promote courage, clarity, recognition, and mental peace.",
+                    ),
+                    _buildReadMoreCard(
+                      "Service & Contact",
+                      "Through the Marakata Lakshmi Ganapati Trust and associated charities, large-scale annadanam (feeding thousands daily), medical camps, educational support, and COVID relief services are conducted.",
+                      guidingPrinciple:
+                          '“Service to Humanity is Service to God.”\n“Serving Living Beings is Serving the Divine Mother."',
+                      contact:
+                          'For Locket, Annadanam participation, or Lalata Rekha consultation:\n  📞 99490 60885 | 95503 17277 | 94409 87638',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1883,9 +1916,15 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
               ),
               title: TranslatedText(
                 t.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontFamily: 'aBeeZee',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              subtitle: TranslatedText(t.position),
+              subtitle: TranslatedText(
+                t.position,
+                style: const TextStyle(fontFamily: 'aBeeZee'),
+              ),
               trailing: IconButton(
                 icon: const Icon(Icons.email),
                 onPressed: () => _sendEmail(t.contact),
@@ -1894,6 +1933,67 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
           ),
         ),
       ],
+    );
+  }
+
+  // ---------------- SHASHTRI READ MORE CONTENT ----------------
+  Widget _buildReadMoreCard(
+    String title,
+    String content, {
+    String? guidingPrinciple,
+    String? contact,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(10.r),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Column(
+        spacing: 10.h,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TranslatedText(
+            title,
+            style: TextStyle(
+              fontFamily: 'aBeeZee',
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          TranslatedText(
+            content,
+            style: TextStyle(fontFamily: 'aBeeZee', fontSize: 14.sp),
+          ),
+          if (guidingPrinciple != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TranslatedText(
+                  'Guiding Principle:',
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                TranslatedText(
+                  guidingPrinciple,
+                  style: TextStyle(
+                    fontFamily: 'aBeeZee',
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          if (contact != null)
+            TranslatedText(
+              contact,
+              style: TextStyle(fontFamily: 'aBeeZee', fontSize: 14.sp),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1907,7 +2007,10 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
             style: _primaryButtonStyle(),
             onPressed: _togglePlayPause,
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-            label: TranslatedText(_isPlaying ? 'Pause Audio' : 'Play Audio'),
+            label: TranslatedText(
+              _isPlaying ? 'Pause Audio' : 'Play Audio',
+              style: TextStyle(fontFamily: 'aBeeZee'),
+            ),
           ),
 
           // Optional: simple progress bar
@@ -1926,8 +2029,14 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TranslatedText(_formatDuration(_position)),
-                  TranslatedText(_formatDuration(_duration)),
+                  TranslatedText(
+                    _formatDuration(_position),
+                    style: TextStyle(fontFamily: 'aBeeZee'),
+                  ),
+                  TranslatedText(
+                    _formatDuration(_duration),
+                    style: TextStyle(fontFamily: 'aBeeZee'),
+                  ),
                 ],
               ),
             ),
@@ -1957,6 +2066,28 @@ Marakata Lakshmi Ganapati Temple, Kanajiguda, Secunderabad, is a rare and sacred
             : const Icon(Icons.download),
         label: TranslatedText(
           _isPdfDownloading ? 'Processing...' : 'Download Historical Notes',
+          style: TextStyle(fontFamily: 'aBeeZee'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareOnWhatsAppCard() {
+    return _buildAuthCard(
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          foregroundColor: Colors.white,
+          minimumSize: Size(double.infinity, 48.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+        onPressed: _handleShareOnWhatsAppAction,
+        icon: const Icon(FontAwesomeIcons.whatsapp),
+        label: TranslatedText(
+          'Share on WhatsApp',
+          style: TextStyle(fontFamily: 'aBeeZee'),
         ),
       ),
     );
@@ -1986,7 +2117,12 @@ class PdfViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const TranslatedText('Historical Notes')),
+      appBar: AppBar(
+        title: const TranslatedText(
+          'Historical Notes',
+          style: TextStyle(fontFamily: 'aBeeZee'),
+        ),
+      ),
       body: SfPdfViewer.asset(
         'assets/pdfs/historical_notes.pdf',
         canShowPaginationDialog: true,

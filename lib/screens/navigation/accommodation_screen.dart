@@ -74,21 +74,6 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     Navigator.pop(context);
   }
 
-  // String get _title {
-  //   switch (_currentSection) {
-  //     case AccommodationSection.accommodationBooking:
-  //       return 'Accommodation Booking';
-  //     case AccommodationSection.pilgrimAmenities:
-  //       return 'Pilgrim Amenities';
-  //     case AccommodationSection.howToReach:
-  //       return 'How to Reach';
-  //     case AccommodationSection.localServiceDirectory:
-  //       return 'Local Service Directory';
-  //     case AccommodationSection.volunteering:
-  //       return 'Volunteering';
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeBloc, ThemeState>(
@@ -260,28 +245,28 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
         'desc': 'Simple rooms with basic facilities',
         'price': '₹500/Night',
         'image':
-            'https://www.asenseinterior.com/assets/uploads/1a72a898a8e3ba146ceb7b1fccb39ff2.jpg',
+            'https://marakatasrilaxmiganapathi.org/assets/img/nonac.jpg',
       },
       {
         'title': 'AC Rooms',
         'desc': 'Comfortable AC Rooms for family',
         'price': '₹1200/Night',
         'image':
-            'https://thumbs.dreamstime.com/b/simple-basic-hotel-room-wood-flooring-29782828.jpg',
+            'https://marakatasrilaxmiganapathi.org/assets/img/ac.jpg',
       },
       {
         'title': 'Dormitory',
         'desc': 'Shared Accommodation for Groups',
         'price': '₹200/Night',
         'image':
-            'https://q-xx.bstatic.com/xdata/images/hotel/max500/477241897.jpg?k=c1cd6c8cc9165213911c5e551a3fe0c7eba7048f46d0b886feee8aacc9d17211&o=',
+            'https://marakatasrilaxmiganapathi.org/assets/img/dormitory.jpg',
       },
       {
         'title': 'Guest House',
         'desc': 'Spacious rooms with premium facilities',
         'price': '₹2500/Night',
         'image':
-            'https://smartscalehousedesign.com/wp-content/uploads/2025/03/f744b1dc-8db7-4df7-bda1-d047ce9845f3.png',
+            'https://marakatasrilaxmiganapathi.org/assets/img/guesthouse.jpg',
       },
     ];
 
@@ -334,22 +319,22 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
       {
         'title': 'Lockers',
         'image':
-            'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI1LTA2L3NyLWltYWdlLTE4MDUyNS1iYWExMi1zLTA4NS5qcGc.jpg',
+            'https://marakatasrilaxmiganapathi.org/assets/img/locker.jpg',
       },
       {
         'title': 'Food/Annadanam',
         'image':
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLTzK_7hGPMVE_l3Gfgmlu_GRSzsmK76ul9w&s',
+            'https://marakatasrilaxmiganapathi.org/assets/img/food.jpg',
       },
       {
         'title': 'Medical Aid',
         'image':
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRimxzJKMVP-2CmOy_jzMwzhNoR57ONAkTQXw&s',
+            'https://marakatasrilaxmiganapathi.org/assets/img/medical.jpg',
       },
       {
         'title': 'Toilets & Hygiene',
         'image':
-            'https://housing.com/news/wp-content/uploads/2023/04/modular-bathroom-shutterstock_609094331-1200x700-compressed.jpg',
+            'https://marakatasrilaxmiganapathi.org/assets/img/hygiene.jpg',
       },
     ];
 
@@ -1159,78 +1144,6 @@ class _AccommodationScreenState extends State<AccommodationScreen> {
     );
   }
 
-  // Widget _amenitiesCardSection(
-  //   List<Map<String, dynamic>> items,
-  //   ThemeData theme,
-  //   bool isDark,
-  // ) {
-  //   return Wrap(
-  //     spacing: 16.w,
-  //     runSpacing: 16.h,
-  //     children: items.map((item) {
-  //       return Container(
-  //         width: (MediaQuery.of(context).size.width - 48) / 2,
-  //         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-  //         decoration: _cardDecoration(theme, isDark),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             Container(
-  //               height: 80.h,
-  //               decoration: BoxDecoration(
-  //                 borderRadius: BorderRadius.circular(12.r),
-  //               ),
-  //               child: ClipRRect(
-  //                 borderRadius: BorderRadius.circular(12.r),
-  //                 child: Image.network(
-  //                   item['image'],
-  //                   fit: BoxFit.cover,
-  //                   errorBuilder: (context, error, stackTrace) {
-  //                     return Container(
-  //                       color: Colors.grey[300],
-  //                       child: Center(
-  //                         child: Icon(
-  //                           Icons.image_not_supported,
-  //                           size: 30.sp,
-  //                           color: Colors.grey,
-  //                         ),
-  //                       ),
-  //                     );
-  //                   },
-  //                   loadingBuilder: (context, child, loadingProgress) {
-  //                     if (loadingProgress == null) return child;
-  //                     return Container(
-  //                       color: Colors.grey[200],
-  //                       child: Center(
-  //                         child: CircularProgressIndicator(
-  //                           color: theme.colorScheme.secondary,
-  //                           strokeWidth: 2,
-  //                         ),
-  //                       ),
-  //                     );
-  //                   },
-  //                 ),
-  //               ),
-  //             ),
-  //             SizedBox(height: 8.h),
-  //             TranslatedText(
-  //               item['title'],
-  //               style: TextStyle(
-  //                 fontFamily: 'aBeeZee',
-  //                 fontWeight: FontWeight.w600,
-  //                 fontSize: 16.sp,
-  //                 color: isDark ? Colors.white : null,
-  //               ),
-  //               textAlign: TextAlign.center,
-  //               maxLines: 1,
-  //               overflow: TextOverflow.ellipsis,
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     }).toList(),
-  //   );
-  // }
   Widget _amenitiesCardSection(
     List<Map<String, dynamic>> items,
     ThemeData theme,
