@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mslgd/screens/dashboard/contact_info_screen.dart';
 import 'package:mslgd/screens/dashboard/donations_screen.dart';
 import 'package:mslgd/screens/dashboard/home_screen.dart';
-import 'package:mslgd/screens/dashboard/new_home_screen.dart';
 import 'package:mslgd/screens/dashboard/seva_livedarshan_screen.dart';
 import 'package:mslgd/screens/dashboard/user_dashbaord_screen.dart';
 import 'package:mslgd/widgets/translated_text.dart';
@@ -24,8 +23,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
   // List of pages to display for each tab
   final List<Widget> _pages = [
-    // const HomeScreen(),
-    const TempleHomeScreen(),
+    const HomeScreen(),
     const DonationsScreen(),
     const SevaLiveDarshanScreen(),
     const ContactScreen(),
